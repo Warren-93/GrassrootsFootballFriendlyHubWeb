@@ -1,0 +1,50 @@
+import { useState } from 'react';
+import { Alert, Button, Container, Stack, TextField, Typography } from '@mui/material';
+import { useNavigate, useParams } from 'react-router-dom';
+import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
+
+// The backend's POST .../actions/{action} is a bare status transition with
+// no request body, so this reason isn't sent anywhere yet - same documented
+// gap as the mobile client. Cheap to add later once the endpoint accepts one.
+export function SuggestChangesPage() {
+  const navigate = useNavigate();
+  const { requestId } = useParams<{ requestId: string }>();
+  const [reason, setReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  async function handleSubmit() {
+    if (!requestId) return;
+    setSubmitting(true);
+    setErrorMessage(null);
+    const result = await friendlyRequestRepository.act(requestId, 'suggest-changes');
+    setSubmitting(false);
+    if (result.ok) navigate(`/request/${requestId}`);
+    else setErrorMessage(result.message);
+  }
+
+  return (
+    <Container maxWidth="xs" sx={{ py: 6 }}>
+      <Stack spacing={3}>
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          Suggest changes
+        </Typography>
+        <TextField
+          label="What would you like to change?"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          multiline
+          minRows={3}
+          fullWidth
+        />
+        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+        <Button variant="contained" size="large" disabled={submitting} onClick={handleSubmit}>
+          {submitting ? 'Sending…' : 'Send'}
+        </Button>
+        <Button variant="text" onClick={() => navigate(-1)}>
+          Cancel
+        </Button>
+      </Stack>
+    </Container>
+  );
+}
