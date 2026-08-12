@@ -64,7 +64,7 @@ export type Gender = 'MALE' | 'FEMALE' | 'MIXED';
 export type Format = 'FIVE_A_SIDE' | 'SEVEN_A_SIDE' | 'NINE_A_SIDE' | 'ELEVEN_A_SIDE';
 export type AbilityLevel = 'RECREATIONAL' | 'INTERMEDIATE' | 'COMPETITIVE' | 'ELITE';
 export type HomeAwayPreference = 'HOME' | 'AWAY' | 'EITHER';
-export type VerificationStatus = 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+export type VerificationStatus = 'NOT_STARTED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type PitchSurface = 'GRASS' | 'THREE_G' | 'FOUR_G' | 'ASTRO' | 'INDOOR';
 export type VenueFacility = 'CHANGING_ROOMS' | 'PARKING' | 'FLOODLIGHTS' | 'REFRESHMENTS' | 'TOILETS' | 'SPECTATOR_AREA';
 export type CostShare = 'SPLIT' | 'HOME_PAYS' | 'AWAY_PAYS' | 'NONE';
@@ -354,4 +354,25 @@ export interface AddMemberRequest {
 
 export interface UpdateMemberRoleRequest {
   role: MemberRole;
+}
+
+export type VerificationRequestStatus = 'PENDING' | 'AWAITING_SECOND_REJECTION' | 'APPROVED' | 'REJECTED';
+
+export interface VerificationRequestView {
+  id: string;
+  teamId: string;
+  affiliationNumber: string | null;
+  contactDetails: string;
+  evidenceUrls: string[];
+  status: VerificationRequestStatus;
+  firstRejectionReason: string | null;
+  finalRejectionReason: string | null;
+  submittedAt: string;
+  reviewedAt: string | null;
+}
+
+export interface SubmitVerificationRequest {
+  affiliationNumber?: string | null;
+  contactDetails: string;
+  evidenceUrls: string[];
 }
