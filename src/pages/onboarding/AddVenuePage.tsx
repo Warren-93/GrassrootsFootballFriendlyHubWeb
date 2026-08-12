@@ -5,7 +5,14 @@ import { venueRepository } from '../../api/venueRepository';
 import { teamRepository } from '../../api/teamRepository';
 import type { PitchSurface } from '../../api/types';
 
-const PITCH_SURFACES: PitchSurface[] = ['GRASS', '3G', '4G', 'ASTROTURF', 'INDOOR'];
+const PITCH_SURFACES: PitchSurface[] = ['GRASS', 'THREE_G', 'FOUR_G', 'ASTRO', 'INDOOR'];
+const PITCH_SURFACE_LABELS: Record<PitchSurface, string> = {
+  GRASS: 'Grass',
+  THREE_G: '3G',
+  FOUR_G: '4G',
+  ASTRO: 'Astro',
+  INDOOR: 'Indoor',
+};
 
 export function AddVenuePage() {
   const navigate = useNavigate();
@@ -70,7 +77,7 @@ export function AddVenuePage() {
         >
           {PITCH_SURFACES.map((p) => (
             <MenuItem key={p} value={p}>
-              {p}
+              {PITCH_SURFACE_LABELS[p]}
             </MenuItem>
           ))}
         </TextField>

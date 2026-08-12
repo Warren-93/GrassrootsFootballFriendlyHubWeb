@@ -82,6 +82,9 @@ export function TeamProfilePage() {
         <Button variant="contained" onClick={() => navigate(`/team/${team.id}/edit`)}>
           Edit team
         </Button>
+        <Button variant="outlined" onClick={() => navigate('/venues')}>
+          Venues
+        </Button>
         <Button variant="outlined" onClick={() => navigate('/settings')}>
           Settings
         </Button>

@@ -15,6 +15,8 @@ import { TeamProfilePage } from './pages/profile/TeamProfilePage';
 import { EditTeamPage } from './pages/profile/EditTeamPage';
 import { SettingsPage } from './pages/profile/SettingsPage';
 import { ReportBlockPage } from './pages/profile/ReportBlockPage';
+import { VenuesListPage } from './pages/profile/VenuesListPage';
+import { EditVenuePage } from './pages/profile/EditVenuePage';
 import { HomePage } from './pages/Home/HomePage';
 import { CalendarPage } from './pages/availability/CalendarPage';
 import { DayDetailPage } from './pages/availability/DayDetailPage';
@@ -56,6 +58,9 @@ function App() {
         <Route path="/team/:teamId/edit" element={<EditTeamPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/report" element={<ReportBlockPage />} />
+        <Route path="/venues" element={<VenuesListPage />} />
+        <Route path="/venues/new" element={<EditVenuePage />} />
+        <Route path="/venues/:venueId/edit" element={<EditVenuePage />} />
         <Route path="/settings/notifications" element={<PlaceholderPage label="Notification preferences" />} />
         <Route path="/settings/privacy" element={<PlaceholderPage label="Privacy and data" />} />
         <Route path="/settings/help" element={<PlaceholderPage label="Help and support" />} />
