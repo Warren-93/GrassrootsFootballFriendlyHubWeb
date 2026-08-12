@@ -56,6 +56,8 @@ export interface CreateClubRequest {
   contactEmail?: string | null;
 }
 
+export type UpdateClubRequest = Partial<CreateClubRequest>;
+
 export type AgeGroup =
   | 'U7' | 'U8' | 'U9' | 'U10' | 'U11' | 'U12' | 'U13' | 'U14' | 'U15' | 'U16' | 'U17' | 'U18' | 'ADULT';
 export type Gender = 'MALE' | 'FEMALE' | 'MIXED';

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Chip, CircularProgress, Container, LinearProgress, Stack, Typography } from '@mui/material';
+import { Box, Button, Chip, CircularProgress, Container, LinearProgress, Link, Stack, Typography } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { teamRepository } from '../../api/teamRepository';
 import type { TeamView } from '../../api/types';
@@ -41,9 +41,9 @@ export function TeamProfilePage() {
           <Typography variant="h5" sx={{ fontWeight: 700 }}>
             {team.name}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Link component="button" variant="body2" color="text.secondary" onClick={() => navigate('/club')}>
             {team.clubName}
-          </Typography>
+          </Link>
         </Box>
 
         <Box>
