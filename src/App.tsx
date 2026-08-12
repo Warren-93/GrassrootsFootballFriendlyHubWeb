@@ -22,6 +22,7 @@ import { EditClubPage } from './pages/profile/EditClubPage';
 import { MembersPage } from './pages/profile/MembersPage';
 import { VerificationPage } from './pages/profile/VerificationPage';
 import { PrivacyPage } from './pages/profile/PrivacyPage';
+import { HelpPage } from './pages/profile/HelpPage';
 import { HomePage } from './pages/Home/HomePage';
 import { CalendarPage } from './pages/availability/CalendarPage';
 import { DayDetailPage } from './pages/availability/DayDetailPage';
@@ -72,7 +73,7 @@ function App() {
         <Route path="/team/:teamId/verification" element={<VerificationPage />} />
         <Route path="/settings/notifications" element={<PlaceholderPage label="Notification preferences" />} />
         <Route path="/settings/privacy" element={<PrivacyPage />} />
-        <Route path="/settings/help" element={<PlaceholderPage label="Help and support" />} />
+        <Route path="/settings/help" element={<HelpPage />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/calendar/:date" element={<DayDetailPage />} />
