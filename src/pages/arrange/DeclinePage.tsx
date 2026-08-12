@@ -3,7 +3,6 @@ import { Alert, Button, Container, Stack, TextField, Typography } from '@mui/mat
 import { useNavigate, useParams } from 'react-router-dom';
 import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
 
-// Same gap as SuggestChangesPage - the reason isn't sent to the backend yet.
 export function DeclinePage() {
   const navigate = useNavigate();
   const { requestId } = useParams<{ requestId: string }>();
@@ -15,7 +14,7 @@ export function DeclinePage() {
     if (!requestId) return;
     setSubmitting(true);
     setErrorMessage(null);
-    const result = await friendlyRequestRepository.act(requestId, 'decline');
+    const result = await friendlyRequestRepository.act(requestId, 'decline', reason || undefined);
     setSubmitting(false);
     if (result.ok) navigate(`/request/${requestId}`);
     else setErrorMessage(result.message);

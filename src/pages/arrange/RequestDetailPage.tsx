@@ -6,6 +6,16 @@ import type { FriendlyRequestView } from '../../api/types';
 
 const DIRECT_ACTIONS = new Set(['accept', 'withdraw', 'cancel']);
 
+const ACTION_LABELS: Record<string, string> = {
+  accept: 'Accept',
+  suggestChanges: 'Suggest changes',
+  decline: 'Decline',
+  withdraw: 'Withdraw',
+  cancel: 'Cancel fixture',
+  acceptChanges: 'Accept changes',
+  counter: 'Send again',
+};
+
 export function RequestDetailPage() {
   const navigate = useNavigate();
   const { requestId } = useParams<{ requestId: string }>();
@@ -26,7 +36,7 @@ export function RequestDetailPage() {
 
   async function handleAction(action: string) {
     if (!requestId) return;
-    if (action === 'suggest-changes') return navigate(`/request/${requestId}/suggest-changes`);
+    if (action === 'suggestChanges') return navigate(`/request/${requestId}/suggest-changes`);
     if (action === 'decline') return navigate(`/request/${requestId}/decline`);
 
     setActing(true);
@@ -68,6 +78,11 @@ export function RequestDetailPage() {
         <Typography variant="body2">Cost share: {request.costShare.replace(/_/g, ' ')}</Typography>
         <Typography variant="body2">Referee: {request.refereeArrangement.replace(/_/g, ' ')}</Typography>
         {request.message && <Typography variant="body2">Message: "{request.message}"</Typography>}
+        {request.actionReason && (
+          <Typography variant="body2">
+            {request.status === 'DECLINED' ? 'Reason for declining' : 'Requested changes'}: "{request.actionReason}"
+          </Typography>
+        )}
 
         {(request.senderContact || request.recipientContact) && (
           <Stack spacing={0.5}>
@@ -95,7 +110,7 @@ export function RequestDetailPage() {
               disabled={acting}
               onClick={() => handleAction(action)}
             >
-              {action.replace(/-/g, ' ')}
+              {ACTION_LABELS[action] ?? action}
             </Button>
           ))}
         </Stack>

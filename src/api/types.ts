@@ -279,6 +279,7 @@ export interface FriendlyRequestView {
   costShare: CostShare;
   refereeArrangement: RefereeArrangement;
   message: string | null;
+  actionReason: string | null;
   availableActions: string[];
   senderContact: TeamContact | null;
   recipientContact: TeamContact | null;

@@ -3,9 +3,6 @@ import { Alert, Button, Container, Stack, TextField, Typography } from '@mui/mat
 import { useNavigate, useParams } from 'react-router-dom';
 import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
 
-// The backend's POST .../actions/{action} is a bare status transition with
-// no request body, so this reason isn't sent anywhere yet - same documented
-// gap as the mobile client. Cheap to add later once the endpoint accepts one.
 export function SuggestChangesPage() {
   const navigate = useNavigate();
   const { requestId } = useParams<{ requestId: string }>();
@@ -17,7 +14,7 @@ export function SuggestChangesPage() {
     if (!requestId) return;
     setSubmitting(true);
     setErrorMessage(null);
-    const result = await friendlyRequestRepository.act(requestId, 'suggest-changes');
+    const result = await friendlyRequestRepository.act(requestId, 'suggestChanges', reason || undefined);
     setSubmitting(false);
     if (result.ok) navigate(`/request/${requestId}`);
     else setErrorMessage(result.message);
