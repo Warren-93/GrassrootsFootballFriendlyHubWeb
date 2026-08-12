@@ -376,3 +376,23 @@ export interface SubmitVerificationRequest {
   contactDetails: string;
   evidenceUrls: string[];
 }
+
+export interface MembershipExport {
+  membershipId: string;
+  role: string;
+  scope: 'TEAM' | 'CLUB';
+  teamId: string | null;
+  teamName: string | null;
+  clubId: string | null;
+  clubName: string | null;
+  joinedAt: string;
+}
+
+export interface AccountExport {
+  userId: string;
+  email: string;
+  displayName: string;
+  emailVerified: boolean;
+  createdAt: string;
+  memberships: MembershipExport[];
+}
