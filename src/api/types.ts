@@ -333,3 +333,25 @@ export interface BlockRequest {
   blockedTeamId: string;
   reason?: string | null;
 }
+
+export type MemberRole = 'USER' | 'TEAM_MANAGER' | 'CLUB_ADMIN';
+export type MemberScope = 'TEAM' | 'CLUB';
+
+export interface MemberView {
+  membershipId: string;
+  userId: string;
+  email: string;
+  displayName: string;
+  role: MemberRole;
+  scope: MemberScope;
+  joinedAt: string;
+}
+
+export interface AddMemberRequest {
+  email: string;
+  role: MemberRole;
+}
+
+export interface UpdateMemberRoleRequest {
+  role: MemberRole;
+}

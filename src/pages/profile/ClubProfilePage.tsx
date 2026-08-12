@@ -92,7 +92,7 @@ export function ClubProfilePage() {
         </Button>
 
         <Card variant="outlined">
-          <CardActionArea onClick={() => navigate(`/club/${club.id}/members`)}>
+          <CardActionArea onClick={() => navigate(`/team/${active.teamId}/members`)}>
             <CardContent>
               <Typography>Officials</Typography>
             </CardContent>
