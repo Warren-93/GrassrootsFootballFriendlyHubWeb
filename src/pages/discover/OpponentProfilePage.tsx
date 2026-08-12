@@ -47,6 +47,13 @@ export function OpponentProfilePage() {
         <Button variant="contained" size="large" onClick={() => navigate(`/invite/${team.id}`)}>
           Propose a friendly
         </Button>
+        <Button
+          variant="text"
+          color="error"
+          onClick={() => navigate(`/report?teamId=${team.id}&teamName=${encodeURIComponent(team.name)}`)}
+        >
+          Report or block
+        </Button>
       </Stack>
     </Container>
   );

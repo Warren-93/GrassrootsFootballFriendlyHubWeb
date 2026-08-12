@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Chip, CircularProgress, Container, Stack, Typography } from '@mui/material';
-import { useParams } from 'react-router-dom';
+import { Button, Chip, CircularProgress, Container, Stack, Typography } from '@mui/material';
+import { useNavigate, useParams } from 'react-router-dom';
 import { fixtureRepository } from '../../api/fixtureRepository';
+import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import type { FixtureView } from '../../api/types';
 
 export function FixtureDetailPage() {
+  const navigate = useNavigate();
+  const { active } = useCurrentTeam();
   const { fixtureId } = useParams<{ fixtureId: string }>();
   const [fixture, setFixture] = useState<FixtureView | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,6 +62,19 @@ export function FixtureDetailPage() {
             {fixture.awayTeam.managerName ?? '—'} {fixture.awayTeam.contactPhone ?? ''}
           </Typography>
         </Stack>
+
+        {active && (
+          <Button
+            variant="text"
+            color="error"
+            onClick={() => {
+              const otherTeam = active.teamId === fixture.homeTeam.id ? fixture.awayTeam : fixture.homeTeam;
+              navigate(`/report?teamId=${otherTeam.id}&teamName=${encodeURIComponent(otherTeam.name)}&fixtureId=${fixture.id}`);
+            }}
+          >
+            Report or block
+          </Button>
+        )}
       </Stack>
     </Container>
   );

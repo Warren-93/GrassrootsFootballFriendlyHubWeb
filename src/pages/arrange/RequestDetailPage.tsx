@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Button, Chip, CircularProgress, Container, Stack, Typography } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
+import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import type { FriendlyRequestView } from '../../api/types';
 
 const DIRECT_ACTIONS = new Set(['accept', 'withdraw', 'cancel']);
@@ -18,6 +19,7 @@ const ACTION_LABELS: Record<string, string> = {
 
 export function RequestDetailPage() {
   const navigate = useNavigate();
+  const { active } = useCurrentTeam();
   const { requestId } = useParams<{ requestId: string }>();
   const [request, setRequest] = useState<FriendlyRequestView | null>(null);
   const [loading, setLoading] = useState(true);
@@ -114,6 +116,20 @@ export function RequestDetailPage() {
             </Button>
           ))}
         </Stack>
+
+        {active && (
+          <Button
+            variant="text"
+            color="error"
+            onClick={() => {
+              const otherTeamId =
+                active.teamId === request.senderTeamId ? request.recipientTeamId : request.senderTeamId;
+              navigate(`/report?teamId=${otherTeamId}`);
+            }}
+          >
+            Report or block
+          </Button>
+        )}
       </Stack>
     </Container>
   );

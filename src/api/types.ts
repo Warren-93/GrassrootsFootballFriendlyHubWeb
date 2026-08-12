@@ -315,3 +315,19 @@ export interface FixtureView {
   costShare: CostShare;
   refereeArrangement: RefereeArrangement;
 }
+
+export type ReportType = 'SAFEGUARDING' | 'ABUSIVE_BEHAVIOUR' | 'FAKE_OR_MISLEADING_TEAM' | 'SPAM' | 'OTHER';
+export type ReportSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'SAFEGUARDING';
+
+export interface SubmitReportRequest {
+  reportedTeamId: string;
+  relatedFixtureId?: string | null;
+  type: ReportType;
+  severity: ReportSeverity;
+  details: string;
+}
+
+export interface BlockRequest {
+  blockedTeamId: string;
+  reason?: string | null;
+}
