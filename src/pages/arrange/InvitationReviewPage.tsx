@@ -12,6 +12,10 @@ export function InvitationReviewPage() {
   const setDraft = useInvitationDraftStore((s) => s.setDraft);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Generated once per visit to this page, not per click - so retrying a
+  // failed send (network blip, double-click) reuses the same key and the
+  // backend recognizes it as the same attempt, never a second proposal.
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
 
   if (!draft || !active) {
     return (
@@ -38,7 +42,7 @@ export function InvitationReviewPage() {
       costShare: draft.costShare,
       refereeArrangement: draft.refereeArrangement,
       message: draft.message || null,
-    });
+    }, idempotencyKey);
     setSubmitting(false);
     if (result.ok) {
       setDraft(null);

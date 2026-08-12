@@ -38,6 +38,7 @@ interface RequestOptions {
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined | null>;
   auth?: boolean;
+  headers?: Record<string, string>;
 }
 
 function buildUrl(path: string, query?: RequestOptions['query']): string {
@@ -62,10 +63,10 @@ async function parseErrorMessage(response: Response): Promise<string> {
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<ApiResult<T>> {
-  const { method = 'GET', body, query, auth = true } = options;
+  const { method = 'GET', body, query, auth = true, headers: extraHeaders } = options;
 
   const doFetch = async (): Promise<Response> => {
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = { ...extraHeaders };
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     if (auth) {
       const accessToken = tokenStore.accessToken();
@@ -105,7 +106,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<A
 export const apiClient = {
   get: <T>(path: string, query?: RequestOptions['query'], auth = true) =>
     request<T>(path, { method: 'GET', query, auth }),
-  post: <T>(path: string, body?: unknown, auth = true) => request<T>(path, { method: 'POST', body, auth }),
+  post: <T>(path: string, body?: unknown, auth = true, headers?: Record<string, string>) =>
+    request<T>(path, { method: 'POST', body, auth, headers }),
   put: <T>(path: string, body?: unknown, auth = true) => request<T>(path, { method: 'PUT', body, auth }),
   patch: <T>(path: string, body?: unknown, auth = true) => request<T>(path, { method: 'PATCH', body, auth }),
   delete: <T>(path: string, auth = true) => request<T>(path, { method: 'DELETE', auth }),

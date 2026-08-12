@@ -2,8 +2,13 @@ import { apiClient } from './client';
 import type { FriendlyRequestView, SendRequestBody } from './types';
 
 export const friendlyRequestRepository = {
-  send: (request: SendRequestBody) =>
-    apiClient.post<FriendlyRequestView>('/api/v1/friendly-requests', request),
+  send: (request: SendRequestBody, idempotencyKey?: string) =>
+    apiClient.post<FriendlyRequestView>(
+      '/api/v1/friendly-requests',
+      request,
+      true,
+      idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
+    ),
   act: (id: string, action: string, reason?: string) =>
     apiClient.post<FriendlyRequestView>(
       `/api/v1/friendly-requests/${id}/actions/${action}`,
