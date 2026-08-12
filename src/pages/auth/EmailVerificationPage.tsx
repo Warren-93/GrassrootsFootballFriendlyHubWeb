@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Button, Container, Stack, Typography } from '@mui/material';
+import { Alert, Button, Container, Link, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { authRepository } from '../../api/authRepository';
 import { useAuth } from '../../auth/AuthContext';
@@ -13,13 +13,21 @@ export function EmailVerificationPage() {
   const [resending, setResending] = useState(false);
   const [checking, setChecking] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [verifyLink, setVerifyLink] = useState<string | null>(null);
 
   async function resend() {
     setResending(true);
     setMessage(null);
+    setVerifyLink(null);
     const result = await authRepository.resendVerification();
     setResending(false);
-    setMessage(result.ok ? 'Verification email sent.' : result.message);
+    if (!result.ok) {
+      setMessage(result.message);
+    } else if (result.value.verificationToken) {
+      setVerifyLink(`/verify-email?token=${encodeURIComponent(result.value.verificationToken)}`);
+    } else {
+      setMessage('This account is already verified.');
+    }
   }
 
   async function checkNow() {
@@ -40,6 +48,15 @@ export function EmailVerificationPage() {
         </Typography>
 
         {message && <Alert severity="info">{message}</Alert>}
+        {verifyLink && (
+          <Alert severity="warning">
+            No email provider is connected yet, so we can't send this automatically. Use this link to verify your
+            account now instead:{' '}
+            <Link component="button" onClick={() => navigate(verifyLink)}>
+              Verify now
+            </Link>
+          </Alert>
+        )}
 
         <Button variant="contained" size="large" disabled={checking} onClick={checkNow}>
           {checking ? 'Checking…' : 'Check now'}

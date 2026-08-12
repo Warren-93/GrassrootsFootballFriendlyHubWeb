@@ -4,6 +4,7 @@ import { RegisterPage } from './pages/auth/RegisterPage';
 import { SignInPage } from './pages/auth/SignInPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { EmailVerificationPage } from './pages/auth/EmailVerificationPage';
+import { VerifyEmailPage } from './pages/auth/VerifyEmailPage';
 import { RoleSelectionPage } from './pages/onboarding/RoleSelectionPage';
 import { CreateClubPage } from './pages/onboarding/CreateClubPage';
 import { CreateTeamPage } from './pages/onboarding/CreateTeamPage';
@@ -40,6 +41,7 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/sign-in" element={<SignInPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
 
       <Route element={<ProtectedRoute />}>
         <Route path="/email-verification" element={<EmailVerificationPage />} />

@@ -15,6 +15,12 @@ export interface TokenResponse {
   tokenType: string;
   expiresIn: number;
   user: UserView;
+  /** Only present while no real email provider is connected - see EmailVerificationPage. */
+  verificationToken: string | null;
+}
+
+export interface VerificationResendResponse {
+  verificationToken: string | null;
 }
 
 export interface RegisterRequest {

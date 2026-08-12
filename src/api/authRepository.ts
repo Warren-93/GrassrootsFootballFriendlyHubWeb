@@ -1,6 +1,6 @@
 import { apiClient } from './client';
 import { tokenStore } from '../auth/tokenStore';
-import type { LoginRequest, RegisterRequest, TokenResponse, UserView } from './types';
+import type { LoginRequest, RegisterRequest, TokenResponse, UserView, VerificationResendResponse } from './types';
 
 async function storeAndReturn(result: Awaited<ReturnType<typeof apiClient.post<TokenResponse>>>) {
   if (result.ok) tokenStore.set(result.value.accessToken, result.value.refreshToken);
@@ -22,7 +22,7 @@ export const authRepository = {
   confirmPasswordReset: (token: string, newPassword: string) =>
     apiClient.post<void>('/api/v1/auth/password-reset/confirm', { token, newPassword }, false),
 
-  resendVerification: () => apiClient.post<void>('/api/v1/auth/verify/resend'),
+  resendVerification: () => apiClient.post<VerificationResendResponse>('/api/v1/auth/verify/resend'),
 
   confirmVerification: (token: string) =>
     apiClient.post<void>('/api/v1/auth/verify/confirm', { token }, false),
