@@ -12,6 +12,7 @@ import { AddAvailabilityPage } from './pages/onboarding/AddAvailabilityPage';
 import { OnboardingCompletePage } from './pages/onboarding/OnboardingCompletePage';
 import { TeamProfilePage } from './pages/profile/TeamProfilePage';
 import { EditTeamPage } from './pages/profile/EditTeamPage';
+import { SettingsPage } from './pages/profile/SettingsPage';
 import { HomePage } from './pages/Home/HomePage';
 import { CalendarPage } from './pages/availability/CalendarPage';
 import { DayDetailPage } from './pages/availability/DayDetailPage';
@@ -50,6 +51,10 @@ function App() {
         <Route path="/onboarding-complete" element={<OnboardingCompletePage />} />
         <Route path="/team/:teamId" element={<TeamProfilePage />} />
         <Route path="/team/:teamId/edit" element={<EditTeamPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/settings/notifications" element={<PlaceholderPage label="Notification preferences" />} />
+        <Route path="/settings/privacy" element={<PlaceholderPage label="Privacy and data" />} />
+        <Route path="/settings/help" element={<PlaceholderPage label="Help and support" />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/calendar/:date" element={<DayDetailPage />} />
