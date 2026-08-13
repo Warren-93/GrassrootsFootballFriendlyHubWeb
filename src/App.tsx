@@ -47,6 +47,7 @@ import { DeclinePage } from './pages/arrange/DeclinePage';
 import { FixturesPage } from './pages/arrange/FixturesPage';
 import { FixtureDetailPage } from './pages/arrange/FixtureDetailPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
+import { AppShell } from './layouts/AppShell';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 
 function App() {
@@ -59,6 +60,7 @@ function App() {
       <Route path="/verify-email" element={<VerifyEmailPage />} />
 
       <Route element={<ProtectedRoute />}>
+        {/* Onboarding is a linear wizard with no team yet - it renders full-screen, outside the dashboard shell. */}
         <Route path="/email-verification" element={<EmailVerificationPage />} />
         <Route path="/role-selection" element={<RoleSelectionPage />} />
         <Route path="/select-club" element={<SelectClubPage />} />
@@ -68,42 +70,45 @@ function App() {
         <Route path="/add-venue" element={<AddVenuePage />} />
         <Route path="/add-availability" element={<AddAvailabilityPage />} />
         <Route path="/onboarding-complete" element={<OnboardingCompletePage />} />
-        <Route path="/team/:teamId" element={<TeamProfilePage />} />
-        <Route path="/team/:teamId/edit" element={<EditTeamPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/report" element={<ReportBlockPage />} />
-        <Route path="/venues" element={<VenuesListPage />} />
-        <Route path="/venues/new" element={<EditVenuePage />} />
-        <Route path="/venues/:venueId/edit" element={<EditVenuePage />} />
-        <Route path="/club" element={<ClubProfilePage />} />
-        <Route path="/club/:clubId/edit" element={<EditClubPage />} />
-        <Route path="/team/:teamId/members" element={<MembersPage />} />
-        <Route path="/team/:teamId/verification" element={<VerificationPage />} />
-        <Route path="/settings/notifications" element={<NotificationPreferencesPage />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/settings/privacy" element={<PrivacyPage />} />
-        <Route path="/settings/help" element={<HelpPage />} />
-        <Route path="/" element={<HomePage />} />
-        <Route path="/calendar" element={<CalendarPage />} />
-        <Route path="/calendar/:date" element={<DayDetailPage />} />
-        <Route path="/availability/new" element={<EditAvailabilitySlotPage />} />
-        <Route path="/availability/bulk" element={<BulkAddAvailabilityPage />} />
-        <Route path="/availability/:slotId/edit" element={<EditAvailabilitySlotPage />} />
-        <Route path="/search" element={<SearchEntryPage />} />
-        <Route path="/suggested-matches" element={<SuggestedMatchesPage />} />
-        <Route path="/filters" element={<FiltersPage />} />
-        <Route path="/results" element={<ResultsListPage />} />
-        <Route path="/opponent/:teamId" element={<OpponentProfilePage />} />
-        <Route path="/match-explanation/:teamId" element={<MatchExplanationPage />} />
-        <Route path="/invite/:teamId" element={<InvitationComposerPage />} />
-        <Route path="/invite/review" element={<InvitationReviewPage />} />
-        <Route path="/invite/sent/:requestId" element={<InvitationSentPage />} />
-        <Route path="/request/:requestId" element={<RequestDetailPage />} />
-        <Route path="/request/:requestId/suggest-changes" element={<SuggestChangesPage />} />
-        <Route path="/request/:requestId/decline" element={<DeclinePage />} />
-        <Route path="/fixtures" element={<FixturesPage />} />
-        <Route path="/fixtures/:fixtureId" element={<FixtureDetailPage />} />
-        <Route path="*" element={<PlaceholderPage label="Not built yet" />} />
+
+        <Route element={<AppShell />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/team/:teamId" element={<TeamProfilePage />} />
+          <Route path="/team/:teamId/edit" element={<EditTeamPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/report" element={<ReportBlockPage />} />
+          <Route path="/venues" element={<VenuesListPage />} />
+          <Route path="/venues/new" element={<EditVenuePage />} />
+          <Route path="/venues/:venueId/edit" element={<EditVenuePage />} />
+          <Route path="/club" element={<ClubProfilePage />} />
+          <Route path="/club/:clubId/edit" element={<EditClubPage />} />
+          <Route path="/team/:teamId/members" element={<MembersPage />} />
+          <Route path="/team/:teamId/verification" element={<VerificationPage />} />
+          <Route path="/settings/notifications" element={<NotificationPreferencesPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/settings/privacy" element={<PrivacyPage />} />
+          <Route path="/settings/help" element={<HelpPage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/calendar/:date" element={<DayDetailPage />} />
+          <Route path="/availability/new" element={<EditAvailabilitySlotPage />} />
+          <Route path="/availability/bulk" element={<BulkAddAvailabilityPage />} />
+          <Route path="/availability/:slotId/edit" element={<EditAvailabilitySlotPage />} />
+          <Route path="/search" element={<SearchEntryPage />} />
+          <Route path="/suggested-matches" element={<SuggestedMatchesPage />} />
+          <Route path="/filters" element={<FiltersPage />} />
+          <Route path="/results" element={<ResultsListPage />} />
+          <Route path="/opponent/:teamId" element={<OpponentProfilePage />} />
+          <Route path="/match-explanation/:teamId" element={<MatchExplanationPage />} />
+          <Route path="/invite/:teamId" element={<InvitationComposerPage />} />
+          <Route path="/invite/review" element={<InvitationReviewPage />} />
+          <Route path="/invite/sent/:requestId" element={<InvitationSentPage />} />
+          <Route path="/request/:requestId" element={<RequestDetailPage />} />
+          <Route path="/request/:requestId/suggest-changes" element={<SuggestChangesPage />} />
+          <Route path="/request/:requestId/decline" element={<DeclinePage />} />
+          <Route path="/fixtures" element={<FixturesPage />} />
+          <Route path="/fixtures/:fixtureId" element={<FixtureDetailPage />} />
+          <Route path="*" element={<PlaceholderPage label="Not built yet" />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<Navigate to="/welcome" replace />} />

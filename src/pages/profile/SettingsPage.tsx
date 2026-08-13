@@ -17,7 +17,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
-import { PageHeader } from '../../components/PageHeader';
 
 /**
  * SCR-PR-08 Settings. Purpose: account, notification, privacy and support
@@ -44,8 +43,6 @@ export function SettingsPage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={2}>
-        <PageHeader title="Settings" />
-
         <Card variant="outlined">
           <CardContent>
             <Typography variant="subtitle2">Account</Typography>

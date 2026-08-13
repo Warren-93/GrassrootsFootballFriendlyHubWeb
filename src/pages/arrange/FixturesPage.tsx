@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
 import { fixtureRepository } from '../../api/fixtureRepository';
-import { PageHeader } from '../../components/PageHeader';
 import type { FixtureView, FriendlyRequestView } from '../../api/types';
 
 const OPEN_STATUSES = new Set(['SENT', 'CHANGES_REQUESTED', 'UPDATED']);
@@ -48,7 +47,6 @@ export function FixturesPage() {
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
       <Stack spacing={2}>
-        <PageHeader title="Requests and fixtures" />
         <Tabs value={tab} onChange={(_, v) => setTab(v)}>
           <Tab label={`Pending (${pending.length})`} />
           <Tab label="Confirmed" />

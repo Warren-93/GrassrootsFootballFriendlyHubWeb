@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { clubRepository } from '../../api/clubRepository';
 import { teamRepository } from '../../api/teamRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
-import { PageHeader } from '../../components/PageHeader';
 import type { ClubView, TeamView } from '../../api/types';
 
 // SCR-PR-03 Club profile. Purpose: manage club identity and the squads beneath it.
@@ -31,10 +30,7 @@ export function ClubProfilePage() {
   if (!active) {
     return (
       <Container maxWidth="xs" sx={{ py: 6 }}>
-        <Stack spacing={2}>
-          <PageHeader title="Club" />
-          <Typography>No club selected.</Typography>
-        </Stack>
+        <Typography>No club selected.</Typography>
       </Container>
     );
   }
@@ -48,10 +44,7 @@ export function ClubProfilePage() {
   if (!club) {
     return (
       <Container maxWidth="xs" sx={{ py: 6 }}>
-        <Stack spacing={2}>
-          <PageHeader title="Club" />
-          <Alert severity="error">{errorMessage ?? 'Club not found.'}</Alert>
-        </Stack>
+        <Alert severity="error">{errorMessage ?? 'Club not found.'}</Alert>
       </Container>
     );
   }
@@ -59,7 +52,6 @@ export function ClubProfilePage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={2.5}>
-        <PageHeader title="Club" />
         <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
           <Avatar src={club.badgeUrl ?? undefined} sx={{ width: 56, height: 56 }}>
             {club.name[0]}

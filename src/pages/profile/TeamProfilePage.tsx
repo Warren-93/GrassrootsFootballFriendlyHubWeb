@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Box, Button, Chip, CircularProgress, Container, LinearProgress, Link, Stack, Typography } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { teamRepository } from '../../api/teamRepository';
-import { PageHeader } from '../../components/PageHeader';
 import type { TeamView } from '../../api/types';
 
 export function TeamProfilePage() {
@@ -38,7 +37,9 @@ export function TeamProfilePage() {
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
       <Stack spacing={3}>
-        <PageHeader title={team.name} />
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          {team.name}
+        </Typography>
         <Box>
           <Link component="button" variant="body2" color="text.secondary" onClick={() => navigate('/club')}>
             {team.clubName}

@@ -6,7 +6,6 @@ import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { availabilityRepository } from '../../api/availabilityRepository';
-import { PageHeader } from '../../components/PageHeader';
 import type { SlotView } from '../../api/types';
 
 function monthBounds(cursor: Date): { start: string; end: string } {
@@ -40,10 +39,7 @@ export function CalendarPage() {
   if (!active) {
     return (
       <Container maxWidth="sm" sx={{ py: 6 }}>
-        <Stack spacing={2}>
-          <PageHeader title="Availability" />
-          <Typography>No active team. Create or select a team first.</Typography>
-        </Stack>
+        <Typography>No active team. Create or select a team first.</Typography>
       </Container>
     );
   }
@@ -64,7 +60,9 @@ export function CalendarPage() {
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
       <Stack spacing={2}>
-        <PageHeader title={active.teamName} />
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          {active.teamName}
+        </Typography>
 
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
           <IconButton onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}>

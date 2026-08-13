@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Badge, Box, Button, Card, CardActionArea, CardContent, Chip, Container, IconButton, Stack, Typography } from '@mui/material';
-import NotificationsIcon from '@mui/icons-material/Notifications';
+import { Box, Button, Card, CardActionArea, CardContent, Chip, Container, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { teamRepository } from '../../api/teamRepository';
 import { availabilityRepository } from '../../api/availabilityRepository';
 import { fixtureRepository } from '../../api/fixtureRepository';
-import { notificationRepository } from '../../api/notificationRepository';
 import type { FixtureView, SlotView, TeamView } from '../../api/types';
 
 function todayIso(): string {
@@ -20,22 +18,20 @@ function addDaysIso(days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * The dashboard landing page. Navigation between sections lives in AppShell's
+ * sidebar now, so this only shows things worth summarising - status, the
+ * next fixture, what needs attention - not a duplicate list of nav links.
+ */
 export function HomePage() {
   const navigate = useNavigate();
-  const { session, signOut } = useAuth();
-  const { active, clear } = useCurrentTeam();
+  const { session } = useAuth();
+  const { active } = useCurrentTeam();
 
   const [team, setTeam] = useState<TeamView | null>(null);
   const [futureSlots, setFutureSlots] = useState<SlotView[]>([]);
   const [fixtures, setFixtures] = useState<FixtureView[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    notificationRepository.unreadCount().then((result) => {
-      if (result.ok) setUnreadCount(result.value.count);
-    });
-  }, []);
 
   useEffect(() => {
     if (!active) {
@@ -67,32 +63,19 @@ export function HomePage() {
   if (loaded && futureSlots.length === 0) actionItems.push('No availability published yet.');
   if (session?.emailVerified === false) actionItems.push('Email not verified - invitations and messages are blocked.');
 
-  function handleSignOut() {
-    signOut();
-    clear();
-    navigate('/welcome');
-  }
-
   return (
-    <Container maxWidth="sm" sx={{ py: 6 }}>
+    <Container maxWidth="md" sx={{ py: 4 }}>
       <Stack spacing={3}>
-        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>
-              Welcome, {session?.displayName}
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Welcome, {session?.displayName}
+          </Typography>
+          {active && (
+            <Typography variant="body2" color="text.secondary">
+              {active.teamName}
             </Typography>
-            {active && (
-              <Typography variant="body2" color="text.secondary">
-                {active.teamName}
-              </Typography>
-            )}
-          </Box>
-          <IconButton onClick={() => navigate('/notifications')} aria-label="Notifications">
-            <Badge badgeContent={unreadCount} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
-        </Stack>
+          )}
+        </Box>
 
         {session?.emailVerified === false && (
           <Chip label="Verify your email" onClick={() => navigate('/email-verification')} sx={{ alignSelf: 'flex-start' }} />
@@ -150,32 +133,15 @@ export function HomePage() {
             <Card variant="outlined">
               <CardActionArea onClick={() => navigate('/suggested-matches')}>
                 <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    Suggested matches
-                  </Typography>
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      Suggested matches
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Opponents worth considering right now
+                    </Typography>
+                  </Box>
                   <Typography variant="button">See all</Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-
-            <Card variant="outlined">
-              <CardActionArea onClick={() => navigate('/search')}>
-                <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    Find a friendly
-                  </Typography>
-                  <Typography variant="button">Search</Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-
-            <Card variant="outlined">
-              <CardActionArea onClick={() => navigate('/fixtures')}>
-                <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    Requests and fixtures
-                  </Typography>
-                  <Typography variant="button">Open</Typography>
                 </CardContent>
               </CardActionArea>
             </Card>
@@ -195,16 +161,8 @@ export function HomePage() {
                 </CardContent>
               </CardActionArea>
             </Card>
-
-            <Button variant="outlined" onClick={() => navigate(`/team/${active.teamId}`)}>
-              Team profile
-            </Button>
           </>
         )}
-
-        <Button variant="text" onClick={handleSignOut}>
-          Sign out
-        </Button>
       </Stack>
     </Container>
   );

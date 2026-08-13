@@ -3,7 +3,6 @@ import { Alert, Button, Card, CardActionArea, CardContent, Chip, CircularProgres
 import { useNavigate } from 'react-router-dom';
 import { venueRepository } from '../../api/venueRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
-import { PageHeader } from '../../components/PageHeader';
 import type { VenueView } from '../../api/types';
 
 // SCR-PR-05 Venues list. Purpose: see and manage every pitch the club can host at.
@@ -35,10 +34,7 @@ export function VenuesListPage() {
   if (!active) {
     return (
       <Container maxWidth="xs" sx={{ py: 6 }}>
-        <Stack spacing={2}>
-          <PageHeader title="Venues" />
-          <Typography>No team selected.</Typography>
-        </Stack>
+        <Typography>No team selected.</Typography>
       </Container>
     );
   }
@@ -46,8 +42,6 @@ export function VenuesListPage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={2}>
-        <PageHeader title="Venues" />
-
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
         {loading ? (
