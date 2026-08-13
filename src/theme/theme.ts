@@ -1,12 +1,11 @@
 import { createTheme } from '@mui/material/styles';
 
-// Brand-neutral placeholder palette, matching the mobile client's approach
-// (see gffh-mobile's GffhTheme doc comment) - swap for real brand colors
-// once design delivers them.
+// PitchMate brand palette - green from the pin mark, navy from the pitch
+// base and wordmark.
 export const theme = createTheme({
   palette: {
-    primary: { main: '#2E7D32' },
-    secondary: { main: '#1A237E' },
+    primary: { main: '#2E9E52', dark: '#1E8E42', light: '#34B85B' },
+    secondary: { main: '#14213D' },
     error: { main: '#C62828' },
     warning: { main: '#FFA000' },
   },

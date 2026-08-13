@@ -122,9 +122,10 @@ export function AppShell() {
 
   const drawerContent = (
     <Box sx={{ width: DRAWER_WIDTH, display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Toolbar>
+      <Toolbar sx={{ gap: 1 }}>
+        <Box component="img" src="/favicon.svg" alt="" sx={{ width: 28, height: 28 }} />
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          GFFH
+          PitchMate
         </Typography>
       </Toolbar>
       <Divider />
