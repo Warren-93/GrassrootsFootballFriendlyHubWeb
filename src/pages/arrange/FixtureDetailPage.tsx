@@ -1,5 +1,21 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Card, CardContent, Chip, CircularProgress, Container, Stack, TextField, Typography } from '@mui/material';
+import {
+  Alert,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fixtureRepository } from '../../api/fixtureRepository';
 import { messageRepository } from '../../api/messageRepository';
@@ -16,6 +32,10 @@ export function FixtureDetailPage() {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [messageError, setMessageError] = useState<string | null>(null);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   function loadMessages(id: string) {
     messageRepository.list(id).then((result) => {
@@ -60,6 +80,22 @@ export function FixtureDetailPage() {
         <Typography>Fixture not found.</Typography>
       </Container>
     );
+  }
+
+  const weManage = active && (fixture.homeTeam.id === active.teamId || fixture.awayTeam.id === active.teamId);
+
+  async function handleCancel() {
+    if (!fixtureId) return;
+    setCancelling(true);
+    setCancelError(null);
+    const result = await fixtureRepository.cancel(fixtureId, cancelReason.trim() || undefined);
+    setCancelling(false);
+    if (result.ok) {
+      setFixture(result.value);
+      setConfirmCancel(false);
+    } else {
+      setCancelError(result.message);
+    }
   }
 
   return (
@@ -111,7 +147,7 @@ export function FixtureDetailPage() {
             })
           )}
           {messageError && <Alert severity="error">{messageError}</Alert>}
-          {active && (fixture.homeTeam.id === active.teamId || fixture.awayTeam.id === active.teamId) && (
+          {weManage && (
             <Stack direction="row" spacing={1}>
               <TextField
                 value={newMessage}
@@ -127,6 +163,14 @@ export function FixtureDetailPage() {
           )}
         </Stack>
 
+        {cancelError && <Alert severity="error">{cancelError}</Alert>}
+
+        {weManage && fixture.status === 'CONFIRMED' && (
+          <Button variant="outlined" color="error" onClick={() => setConfirmCancel(true)}>
+            Cancel fixture
+          </Button>
+        )}
+
         {active && (
           <Button
             variant="text"
@@ -140,6 +184,30 @@ export function FixtureDetailPage() {
           </Button>
         )}
       </Stack>
+
+      <Dialog open={confirmCancel} onClose={() => setConfirmCancel(false)}>
+        <DialogTitle>Cancel this fixture?</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            The other team will be notified. This can't be undone - you'd need to arrange a new friendly from
+            scratch.
+          </DialogContentText>
+          <TextField
+            label="Reason (optional)"
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            fullWidth
+            multiline
+            minRows={2}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmCancel(false)}>Back</Button>
+          <Button color="error" onClick={handleCancel} disabled={cancelling}>
+            {cancelling ? 'Cancelling…' : 'Cancel fixture'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }
