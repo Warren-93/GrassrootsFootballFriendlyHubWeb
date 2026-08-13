@@ -46,6 +46,13 @@ export interface ClubView {
   createdAt: string;
 }
 
+export interface ClubSearchView {
+  id: string;
+  name: string;
+  badgeUrl: string | null;
+  postcode: string;
+}
+
 export interface CreateClubRequest {
   name: string;
   badgeUrl?: string | null;
@@ -92,6 +99,7 @@ export interface TeamView {
   verification: VerificationStatus;
   defaultVenueId: string | null;
   completenessPercent: number;
+  archived: boolean;
   createdAt: string;
 }
 
@@ -369,6 +377,17 @@ export interface AddMemberRequest {
 
 export interface UpdateMemberRoleRequest {
   role: MemberRole;
+}
+
+export interface JoinCodeView {
+  code: string;
+}
+
+export interface JoinResultView {
+  teamId: string;
+  teamName: string;
+  clubId: string;
+  membership: MemberView;
 }
 
 export type VerificationRequestStatus = 'PENDING' | 'AWAITING_SECOND_REJECTION' | 'APPROVED' | 'REJECTED';

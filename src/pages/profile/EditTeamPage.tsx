@@ -1,5 +1,19 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, CircularProgress, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import {
+  Alert,
+  Button,
+  CircularProgress,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { teamRepository } from '../../api/teamRepository';
 import type { AbilityLevel, HomeAwayPreference, TeamView } from '../../api/types';
@@ -14,6 +28,8 @@ export function EditTeamPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [confirmArchive, setConfirmArchive] = useState(false);
+  const [archiving, setArchiving] = useState(false);
 
   useEffect(() => {
     if (!teamId) return;
@@ -41,6 +57,17 @@ export function EditTeamPage() {
     else setErrorMessage(result.message);
   }
 
+  async function handleArchive() {
+    if (!teamId) return;
+    setArchiving(true);
+    setErrorMessage(null);
+    const result = await teamRepository.archive(teamId);
+    setArchiving(false);
+    setConfirmArchive(false);
+    if (result.ok) navigate('/');
+    else setErrorMessage(result.message);
+  }
+
   if (loading || !team) {
     return (
       <Container maxWidth="xs" sx={{ py: 6, textAlign: 'center' }}>
@@ -52,6 +79,9 @@ export function EditTeamPage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={3}>
+        <Button variant="text" onClick={() => navigate(-1)} sx={{ alignSelf: 'flex-start' }}>
+          Back
+        </Button>
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           Edit team
         </Typography>
@@ -124,7 +154,27 @@ export function EditTeamPage() {
         <Button variant="contained" size="large" disabled={submitting} onClick={handleSubmit}>
           {submitting ? 'Saving…' : 'Save'}
         </Button>
+
+        <Button variant="text" color="error" onClick={() => setConfirmArchive(true)}>
+          Archive this team
+        </Button>
       </Stack>
+
+      <Dialog open={confirmArchive} onClose={() => setConfirmArchive(false)}>
+        <DialogTitle>Archive this team?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            The team will stop appearing in search and matching. This isn't possible while there's an open
+            friendly request or a confirmed upcoming fixture - resolve those first.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmArchive(false)}>Cancel</Button>
+          <Button color="error" disabled={archiving} onClick={handleArchive}>
+            {archiving ? 'Archiving…' : 'Archive'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

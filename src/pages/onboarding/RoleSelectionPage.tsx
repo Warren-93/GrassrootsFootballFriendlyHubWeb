@@ -24,13 +24,26 @@ export function RoleSelectionPage() {
         </Card>
 
         <Card variant="outlined">
-          <CardActionArea onClick={() => navigate('/create-team')}>
+          <CardActionArea onClick={() => navigate('/select-club')}>
             <CardContent>
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                 My club already exists
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Add another team under an existing club.
+              </Typography>
+            </CardContent>
+          </CardActionArea>
+        </Card>
+
+        <Card variant="outlined">
+          <CardActionArea onClick={() => navigate('/join-team')}>
+            <CardContent>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                I have a join code
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Join a team a manager has already set up, using their code.
               </Typography>
             </CardContent>
           </CardActionArea>

@@ -6,6 +6,8 @@ import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { EmailVerificationPage } from './pages/auth/EmailVerificationPage';
 import { VerifyEmailPage } from './pages/auth/VerifyEmailPage';
 import { RoleSelectionPage } from './pages/onboarding/RoleSelectionPage';
+import { SelectClubPage } from './pages/onboarding/SelectClubPage';
+import { JoinTeamPage } from './pages/onboarding/JoinTeamPage';
 import { CreateClubPage } from './pages/onboarding/CreateClubPage';
 import { CreateTeamPage } from './pages/onboarding/CreateTeamPage';
 import { AddVenuePage } from './pages/onboarding/AddVenuePage';
@@ -59,6 +61,8 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route path="/email-verification" element={<EmailVerificationPage />} />
         <Route path="/role-selection" element={<RoleSelectionPage />} />
+        <Route path="/select-club" element={<SelectClubPage />} />
+        <Route path="/join-team" element={<JoinTeamPage />} />
         <Route path="/create-club" element={<CreateClubPage />} />
         <Route path="/create-team" element={<CreateTeamPage />} />
         <Route path="/add-venue" element={<AddVenuePage />} />

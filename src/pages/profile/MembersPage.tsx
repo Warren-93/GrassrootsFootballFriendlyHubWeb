@@ -48,6 +48,9 @@ export function MembersPage() {
   const [adding, setAdding] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [removeTarget, setRemoveTarget] = useState<MemberView | null>(null);
+  const [joinCode, setJoinCode] = useState<string | null>(null);
+  const [regenerating, setRegenerating] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   function reload(teamId: string) {
     memberRepository.list(teamId).then((result) => {
@@ -60,8 +63,28 @@ export function MembersPage() {
   useEffect(() => {
     if (!teamId) return;
     reload(teamId);
+    memberRepository.joinCode(teamId).then((result) => {
+      if (result.ok) setJoinCode(result.value.code);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamId]);
+
+  async function handleRegenerateCode() {
+    if (!teamId) return;
+    setRegenerating(true);
+    const result = await memberRepository.regenerateJoinCode(teamId);
+    setRegenerating(false);
+    if (result.ok) setJoinCode(result.value.code);
+    else setErrorMessage(result.message);
+  }
+
+  function handleCopyCode() {
+    if (!joinCode) return;
+    navigator.clipboard.writeText(joinCode).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
 
   async function handleAdd() {
     if (!teamId) return;
@@ -176,6 +199,29 @@ export function MembersPage() {
           ))}
           {members.length === 0 && <Typography color="text.secondary">No officials yet.</Typography>}
         </Stack>
+
+        <Card variant="outlined">
+          <CardContent>
+            <Typography variant="subtitle2">Join code</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+              Share this code so anyone can join the team directly, without you adding them by email.
+            </Typography>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+              <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: '0.2em' }}>
+                {joinCode ?? '······'}
+              </Typography>
+              <Button size="small" onClick={handleCopyCode} disabled={!joinCode}>
+                {copied ? 'Copied' : 'Copy'}
+              </Button>
+              <Button size="small" onClick={handleRegenerateCode} disabled={regenerating}>
+                {regenerating ? 'Regenerating…' : 'Regenerate'}
+              </Button>
+            </Stack>
+            <Typography variant="caption" color="text.secondary">
+              Regenerating immediately invalidates the old code.
+            </Typography>
+          </CardContent>
+        </Card>
 
         <Typography variant="subtitle2">Add an official</Typography>
         <Stack spacing={1.5}>
