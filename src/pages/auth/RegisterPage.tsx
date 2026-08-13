@@ -3,6 +3,7 @@ import { Alert, Button, Container, Link, Stack, TextField, Typography } from '@m
 import { useNavigate } from 'react-router-dom';
 import { authRepository } from '../../api/authRepository';
 import { useAuth } from '../../auth/AuthContext';
+import { BrandHeader } from '../../components/BrandHeader';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -31,9 +32,12 @@ export function RegisterPage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={3}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Create your account
-        </Typography>
+        <Stack spacing={2} sx={{ mb: 1 }}>
+          <BrandHeader tagline="none" />
+          <Typography variant="h5" sx={{ fontWeight: 700, textAlign: 'center' }}>
+            Create your account
+          </Typography>
+        </Stack>
 
         <TextField label="Display name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} fullWidth />
         <TextField

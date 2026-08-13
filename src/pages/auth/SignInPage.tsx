@@ -3,6 +3,7 @@ import { Alert, Button, Container, Link, Stack, TextField, Typography } from '@m
 import { useNavigate } from 'react-router-dom';
 import { authRepository } from '../../api/authRepository';
 import { useAuth } from '../../auth/AuthContext';
+import { BrandHeader } from '../../components/BrandHeader';
 
 export function SignInPage() {
   const navigate = useNavigate();
@@ -28,9 +29,12 @@ export function SignInPage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={3}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Sign in
-        </Typography>
+        <Stack spacing={2} sx={{ mb: 1 }}>
+          <BrandHeader tagline="none" />
+          <Typography variant="h5" sx={{ fontWeight: 700, textAlign: 'center' }}>
+            Sign in
+          </Typography>
+        </Stack>
 
         <TextField label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} fullWidth />
         <TextField
