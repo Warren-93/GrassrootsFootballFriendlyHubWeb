@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { useInvitationDraftStore, useSearchResultsStore } from '../../session/SearchState';
 import { addMinutesToTime } from '../../utils/time';
+import { PageHeader } from '../../components/PageHeader';
 import type { CostShare, HomeAwayPreference, RefereeArrangement } from '../../api/types';
 
 const COST_SHARES: CostShare[] = ['SPLIT', 'HOME_PAYS', 'AWAY_PAYS', 'NONE'];
@@ -27,7 +28,10 @@ export function InvitationComposerPage() {
   if (!match || !overlap || !active) {
     return (
       <Container maxWidth="xs" sx={{ py: 6 }}>
-        <Typography>No overlapping availability found for this opponent - search again.</Typography>
+        <Stack spacing={2}>
+          <PageHeader title="Propose a friendly" />
+          <Typography>No overlapping availability found for this opponent - search again.</Typography>
+        </Stack>
       </Container>
     );
   }
@@ -55,9 +59,7 @@ export function InvitationComposerPage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={3}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Propose to {match.team.name}
-        </Typography>
+        <PageHeader title={`Propose to ${match.team.name}`} />
         <Typography variant="body2" color="text.secondary">
           {date}, {startTime} - {endTime}
         </Typography>

@@ -20,6 +20,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { fixtureRepository } from '../../api/fixtureRepository';
 import { messageRepository } from '../../api/messageRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { PageHeader } from '../../components/PageHeader';
 import type { FixtureView, MessageView } from '../../api/types';
 
 export function FixtureDetailPage() {
@@ -101,9 +102,7 @@ export function FixtureDetailPage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={2}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          {fixture.homeTeam.name} vs {fixture.awayTeam.name}
-        </Typography>
+        <PageHeader title={`${fixture.homeTeam.name} vs ${fixture.awayTeam.name}`} />
         <Chip label={fixture.status} sx={{ alignSelf: 'flex-start' }} />
 
         <Typography variant="body2">

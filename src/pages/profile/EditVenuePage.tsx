@@ -19,6 +19,7 @@ import { venueRepository } from '../../api/venueRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import type { PitchSurface } from '../../api/types';
 import { PostcodeLocationField } from '../../components/PostcodeLocationField';
+import { PageHeader } from '../../components/PageHeader';
 
 const PITCH_SURFACES: PitchSurface[] = ['GRASS', 'THREE_G', 'FOUR_G', 'ASTRO', 'INDOOR'];
 const PITCH_SURFACE_LABELS: Record<PitchSurface, string> = {
@@ -115,9 +116,7 @@ export function EditVenuePage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={3}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          {isNew ? 'Add venue' : 'Edit venue'}
-        </Typography>
+        <PageHeader title={isNew ? 'Add venue' : 'Edit venue'} onBack={() => navigate('/venues')} />
 
         <TextField label="Venue name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
         <TextField label="Address" value={address} onChange={(e) => setAddress(e.target.value)} fullWidth />
@@ -152,9 +151,6 @@ export function EditVenuePage() {
             Delete venue
           </Button>
         )}
-        <Button variant="text" onClick={() => navigate('/venues')}>
-          Cancel
-        </Button>
       </Stack>
 
       <Dialog open={confirmDelete} onClose={() => setConfirmDelete(false)}>

@@ -8,6 +8,7 @@ import { useSearchResultsStore } from '../../session/SearchState';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { teamRepository } from '../../api/teamRepository';
 import { geocodeOutcode } from '../../lib/geocodeOutcode';
+import { PageHeader } from '../../components/PageHeader';
 import type { MatchSummary } from '../../api/types';
 
 const BAND_COLOR: Record<string, 'success' | 'warning' | 'default'> = {
@@ -74,7 +75,10 @@ export function ResultsListPage() {
   if (!response) {
     return (
       <Container maxWidth="sm" sx={{ py: 6 }}>
-        <Typography>No search yet.</Typography>
+        <Stack spacing={2}>
+          <PageHeader title="Search results" />
+          <Typography>No search yet.</Typography>
+        </Stack>
       </Container>
     );
   }
@@ -84,13 +88,15 @@ export function ResultsListPage() {
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
       <Stack spacing={2}>
-        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">{response.totalResults} matches found</Typography>
-          <ToggleButtonGroup size="small" exclusive value={view} onChange={(_, v) => v && setView(v)}>
-            <ToggleButton value="list">List</ToggleButton>
-            <ToggleButton value="map">Map</ToggleButton>
-          </ToggleButtonGroup>
-        </Stack>
+        <PageHeader
+          title={`${response.totalResults} matches found`}
+          action={
+            <ToggleButtonGroup size="small" exclusive value={view} onChange={(_, v) => v && setView(v)}>
+              <ToggleButton value="list">List</ToggleButton>
+              <ToggleButton value="map">Map</ToggleButton>
+            </ToggleButtonGroup>
+          }
+        />
 
         {view === 'list' ? (
           response.results.map((match) => (

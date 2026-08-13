@@ -1,6 +1,7 @@
 import { Box, Container, LinearProgress, Stack, Typography } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { useSearchResultsStore } from '../../session/SearchState';
+import { PageHeader } from '../../components/PageHeader';
 
 export function MatchExplanationPage() {
   const { teamId } = useParams<{ teamId: string }>();
@@ -9,7 +10,10 @@ export function MatchExplanationPage() {
   if (!match) {
     return (
       <Container maxWidth="xs" sx={{ py: 6 }}>
-        <Typography>This opponent isn't in your last search results.</Typography>
+        <Stack spacing={2}>
+          <PageHeader title="Match explanation" />
+          <Typography>This opponent isn't in your last search results.</Typography>
+        </Stack>
       </Container>
     );
   }
@@ -17,9 +21,7 @@ export function MatchExplanationPage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={3}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Why {match.team.name}?
-        </Typography>
+        <PageHeader title={`Why ${match.team.name}?`} />
         <Typography variant="h3" color="primary">
           {match.score}%
         </Typography>

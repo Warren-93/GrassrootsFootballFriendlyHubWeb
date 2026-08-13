@@ -3,6 +3,7 @@ import { Alert, Button, Chip, CircularProgress, Container, Stack, Typography } f
 import { useNavigate, useParams } from 'react-router-dom';
 import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { PageHeader } from '../../components/PageHeader';
 import type { FriendlyRequestView } from '../../api/types';
 
 const DIRECT_ACTIONS = new Set(['accept', 'withdraw', 'cancel']);
@@ -68,9 +69,7 @@ export function RequestDetailPage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={2}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Friendly request
-        </Typography>
+        <PageHeader title="Friendly request" />
         <Chip label={request.status} sx={{ alignSelf: 'flex-start' }} />
 
         <Typography variant="body2">Date: {request.date}</Typography>

@@ -3,6 +3,7 @@ import { Alert, Button, Container, Link, Stack, Typography } from '@mui/material
 import { useNavigate } from 'react-router-dom';
 import { authRepository } from '../../api/authRepository';
 import { useAuth } from '../../auth/AuthContext';
+import { PageHeader } from '../../components/PageHeader';
 
 // SCR-AU-06. No foreground-resume polling wired up (needs a platform
 // lifecycle hook this SPA doesn't have) - "Check now" covers the same need
@@ -40,9 +41,7 @@ export function EmailVerificationPage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={3}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Verify your email
-        </Typography>
+        <PageHeader title="Verify your email" onBack={() => navigate('/')} />
         <Typography variant="body2" color="text.secondary">
           We've sent a verification link to {session?.email}. Follow it, then check back here.
         </Typography>

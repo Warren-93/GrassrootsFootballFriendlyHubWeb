@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, CircularProgress, Container, Stack, Typography } from '@mui/material';
+import { Alert, Button, CircularProgress, Container, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { matchRepository } from '../../api/matchRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
@@ -29,7 +29,12 @@ export function SuggestedMatchesPage() {
   if (!active) {
     return (
       <Container maxWidth="xs" sx={{ py: 6 }}>
-        <Typography>No team selected.</Typography>
+        <Stack spacing={2}>
+          <Typography>No team selected.</Typography>
+          <Button variant="text" onClick={() => navigate(-1)}>
+            Back
+          </Button>
+        </Stack>
       </Container>
     );
   }
@@ -38,9 +43,14 @@ export function SuggestedMatchesPage() {
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={3} sx={{ alignItems: 'center', textAlign: 'center' }}>
         {errorMessage ? (
-          <Alert severity="error" sx={{ width: '100%' }}>
-            {errorMessage}
-          </Alert>
+          <>
+            <Alert severity="error" sx={{ width: '100%' }}>
+              {errorMessage}
+            </Alert>
+            <Button variant="text" onClick={() => navigate(-1)}>
+              Back
+            </Button>
+          </>
         ) : (
           <>
             <CircularProgress />

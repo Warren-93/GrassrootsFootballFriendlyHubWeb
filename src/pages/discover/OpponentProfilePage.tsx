@@ -1,6 +1,7 @@
 import { Button, Chip, Container, Stack, Typography } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSearchResultsStore } from '../../session/SearchState';
+import { PageHeader } from '../../components/PageHeader';
 
 export function OpponentProfilePage() {
   const navigate = useNavigate();
@@ -10,7 +11,10 @@ export function OpponentProfilePage() {
   if (!match) {
     return (
       <Container maxWidth="xs" sx={{ py: 6 }}>
-        <Typography>This opponent isn't in your last search results.</Typography>
+        <Stack spacing={2}>
+          <PageHeader title="Team profile" />
+          <Typography>This opponent isn't in your last search results.</Typography>
+        </Stack>
       </Container>
     );
   }
@@ -20,9 +24,7 @@ export function OpponentProfilePage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={3}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          {team.name}
-        </Typography>
+        <PageHeader title={team.name} />
         <Typography variant="body2" color="text.secondary">
           {team.clubName} · {team.generalArea}
         </Typography>

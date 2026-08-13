@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Alert, Button, Container, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Button, Container, Stack, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { clubRepository } from '../../api/clubRepository';
 import { PostcodeLocationField } from '../../components/PostcodeLocationField';
+import { PageHeader } from '../../components/PageHeader';
 
 export function CreateClubPage() {
   const navigate = useNavigate();
@@ -39,9 +40,7 @@ export function CreateClubPage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={3}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Create your club
-        </Typography>
+        <PageHeader title="Create your club" />
 
         <TextField label="Club name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
         <PostcodeLocationField
