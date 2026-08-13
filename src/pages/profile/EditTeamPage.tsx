@@ -18,7 +18,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { teamRepository } from '../../api/teamRepository';
 import type { AbilityLevel, HomeAwayPreference, TeamView } from '../../api/types';
 
-const ABILITY_LEVELS: AbilityLevel[] = ['RECREATIONAL', 'INTERMEDIATE', 'COMPETITIVE', 'ELITE'];
+const ABILITY_LEVELS: AbilityLevel[] = ['DEVELOPMENT', 'INTERMEDIATE', 'COMPETITIVE'];
 const HOME_AWAY: HomeAwayPreference[] = ['HOME', 'AWAY', 'EITHER'];
 
 export function EditTeamPage() {

@@ -4,7 +4,7 @@ import { useSearchFilterStore } from '../../session/SearchState';
 import type { AbilityLevel, Format } from '../../api/types';
 
 const FORMATS: Format[] = ['FIVE_A_SIDE', 'SEVEN_A_SIDE', 'NINE_A_SIDE', 'ELEVEN_A_SIDE'];
-const ABILITY_LEVELS: AbilityLevel[] = ['RECREATIONAL', 'INTERMEDIATE', 'COMPETITIVE', 'ELITE'];
+const ABILITY_LEVELS: AbilityLevel[] = ['DEVELOPMENT', 'INTERMEDIATE', 'COMPETITIVE'];
 
 export function FiltersPage() {
   const navigate = useNavigate();

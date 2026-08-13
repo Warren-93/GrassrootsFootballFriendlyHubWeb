@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   Button,
@@ -16,11 +16,15 @@ import { teamRepository } from '../../api/teamRepository';
 import type { AbilityLevel, AgeGroup, Format, Gender, HomeAwayPreference } from '../../api/types';
 import { PostcodeLocationField } from '../../components/PostcodeLocationField';
 
-const AGE_GROUPS: AgeGroup[] = ['U7', 'U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15', 'U16', 'U17', 'U18', 'ADULT'];
-const GENDERS: Gender[] = ['MALE', 'FEMALE', 'MIXED'];
+const AGE_GROUPS: AgeGroup[] = ['U7', 'U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15', 'U16', 'U17', 'U18', 'ADULT', 'VETERANS'];
 const FORMATS: Format[] = ['FIVE_A_SIDE', 'SEVEN_A_SIDE', 'NINE_A_SIDE', 'ELEVEN_A_SIDE'];
-const ABILITY_LEVELS: AbilityLevel[] = ['RECREATIONAL', 'INTERMEDIATE', 'COMPETITIVE', 'ELITE'];
+const ABILITY_LEVELS: AbilityLevel[] = ['DEVELOPMENT', 'INTERMEDIATE', 'COMPETITIVE'];
 const HOME_AWAY: HomeAwayPreference[] = ['HOME', 'AWAY', 'EITHER'];
+
+// Mirrors backend Gender.availableFor(AgeGroup) - see gffh-api Gender.java.
+function gendersFor(ageGroup: AgeGroup): Gender[] {
+  return ageGroup === 'ADULT' || ageGroup === 'VETERANS' ? ['MEN', 'WOMEN', 'MIXED'] : ['BOYS', 'GIRLS', 'MIXED'];
+}
 
 const STEPS = ['Basics', 'Location & format', 'Preferences', 'Contact'];
 
@@ -36,6 +40,12 @@ export function CreateTeamPage() {
   const [ageGroup, setAgeGroup] = useState<AgeGroup>('ADULT');
   const [gender, setGender] = useState<Gender>('MIXED');
   const [abilityLevel, setAbilityLevel] = useState<AbilityLevel>('INTERMEDIATE');
+  const genders = gendersFor(ageGroup);
+
+  useEffect(() => {
+    if (!genders.includes(gender)) setGender('MIXED');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ageGroup]);
   const [format, setFormat] = useState<Format>('ELEVEN_A_SIDE');
   const [postcode, setPostcode] = useState('');
   const [coordinates, setCoordinates] = useState<{ longitude: number; latitude: number } | null>(null);
@@ -123,7 +133,7 @@ export function CreateTeamPage() {
               ))}
             </TextField>
             <TextField select label="Gender" value={gender} onChange={(e) => setGender(e.target.value as Gender)} fullWidth>
-              {GENDERS.map((g) => (
+              {genders.map((g) => (
                 <MenuItem key={g} value={g}>
                   {g}
                 </MenuItem>

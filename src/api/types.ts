@@ -66,16 +66,17 @@ export interface CreateClubRequest {
 export type UpdateClubRequest = Partial<CreateClubRequest>;
 
 export type AgeGroup =
-  | 'U7' | 'U8' | 'U9' | 'U10' | 'U11' | 'U12' | 'U13' | 'U14' | 'U15' | 'U16' | 'U17' | 'U18' | 'ADULT';
-export type Gender = 'MALE' | 'FEMALE' | 'MIXED';
+  | 'U7' | 'U8' | 'U9' | 'U10' | 'U11' | 'U12' | 'U13' | 'U14' | 'U15' | 'U16' | 'U17' | 'U18' | 'ADULT' | 'VETERANS';
+/** BOYS/GIRLS for youth age groups, MEN/WOMEN for ADULT/VETERANS, MIXED always allowed - see Gender.availableFor on the backend. */
+export type Gender = 'BOYS' | 'GIRLS' | 'MIXED' | 'MEN' | 'WOMEN';
 export type Format = 'FIVE_A_SIDE' | 'SEVEN_A_SIDE' | 'NINE_A_SIDE' | 'ELEVEN_A_SIDE';
-export type AbilityLevel = 'RECREATIONAL' | 'INTERMEDIATE' | 'COMPETITIVE' | 'ELITE';
+export type AbilityLevel = 'DEVELOPMENT' | 'INTERMEDIATE' | 'COMPETITIVE';
 export type HomeAwayPreference = 'HOME' | 'AWAY' | 'EITHER';
 export type VerificationStatus = 'NOT_STARTED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type PitchSurface = 'GRASS' | 'THREE_G' | 'FOUR_G' | 'ASTRO' | 'INDOOR';
 export type VenueFacility = 'CHANGING_ROOMS' | 'PARKING' | 'FLOODLIGHTS' | 'REFRESHMENTS' | 'TOILETS' | 'SPECTATOR_AREA';
-export type CostShare = 'SPLIT' | 'HOME_PAYS' | 'AWAY_PAYS' | 'NONE';
-export type RefereeArrangement = 'HOME_ARRANGES' | 'AWAY_ARRANGES' | 'SPLIT_COST' | 'NONE';
+export type CostShare = 'NONE' | 'SPLIT' | 'HOST_PAYS' | 'VISITOR_PAYS';
+export type RefereeArrangement = 'NONE' | 'CLUB_SUPPLIED' | 'APPOINTED';
 
 export interface TeamView {
   id: string;
@@ -157,7 +158,7 @@ export interface CreateVenueRequest {
 
 export type UpdateVenueRequest = Partial<Omit<CreateVenueRequest, 'clubId'>>;
 
-export type SlotStatus = 'OPEN' | 'PENDING' | 'BOOKED' | 'WITHDRAWN';
+export type SlotStatus = 'AVAILABLE' | 'RESERVED' | 'BOOKED' | 'WITHDRAWN';
 
 export interface SlotView {
   id: string;
@@ -272,7 +273,7 @@ export interface SearchResponse {
 }
 
 export type RequestStatus =
-  | 'SENT' | 'CHANGES_REQUESTED' | 'UPDATED' | 'CONFIRMED' | 'DECLINED' | 'WITHDRAWN' | 'CANCELLED';
+  | 'DRAFT' | 'SENT' | 'CHANGES_REQUESTED' | 'UPDATED' | 'ACCEPTED' | 'CONFIRMED' | 'DECLINED' | 'CANCELLED' | 'COMPLETED';
 
 export interface SendRequestBody {
   senderTeamId: string;

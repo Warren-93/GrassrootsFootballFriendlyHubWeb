@@ -7,8 +7,8 @@ import { addMinutesToTime } from '../../utils/time';
 import { PageHeader } from '../../components/PageHeader';
 import type { CostShare, HomeAwayPreference, RefereeArrangement } from '../../api/types';
 
-const COST_SHARES: CostShare[] = ['SPLIT', 'HOME_PAYS', 'AWAY_PAYS', 'NONE'];
-const REFEREE_ARRANGEMENTS: RefereeArrangement[] = ['HOME_ARRANGES', 'AWAY_ARRANGES', 'SPLIT_COST', 'NONE'];
+const COST_SHARES: CostShare[] = ['SPLIT', 'HOST_PAYS', 'VISITOR_PAYS', 'NONE'];
+const REFEREE_ARRANGEMENTS: RefereeArrangement[] = ['CLUB_SUPPLIED', 'APPOINTED', 'NONE'];
 
 export function InvitationComposerPage() {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ export function InvitationComposerPage() {
   const [startTime] = useState(overlap?.startTime.slice(0, 5) ?? '');
   const [homeAwayChoice, setHomeAwayChoice] = useState<HomeAwayPreference>('HOME');
   const [costShare, setCostShare] = useState<CostShare>('SPLIT');
-  const [refereeArrangement, setRefereeArrangement] = useState<RefereeArrangement>('SPLIT_COST');
+  const [refereeArrangement, setRefereeArrangement] = useState<RefereeArrangement>('NONE');
   const [message, setMessage] = useState('');
 
   if (!match || !overlap || !active) {
