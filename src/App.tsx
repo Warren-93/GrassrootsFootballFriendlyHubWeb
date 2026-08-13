@@ -30,6 +30,7 @@ import { CalendarPage } from './pages/availability/CalendarPage';
 import { DayDetailPage } from './pages/availability/DayDetailPage';
 import { EditAvailabilitySlotPage } from './pages/availability/EditAvailabilitySlotPage';
 import { SearchEntryPage } from './pages/discover/SearchEntryPage';
+import { SuggestedMatchesPage } from './pages/discover/SuggestedMatchesPage';
 import { FiltersPage } from './pages/discover/FiltersPage';
 import { ResultsListPage } from './pages/discover/ResultsListPage';
 import { OpponentProfilePage } from './pages/discover/OpponentProfilePage';
@@ -83,6 +84,7 @@ function App() {
         <Route path="/availability/new" element={<EditAvailabilitySlotPage />} />
         <Route path="/availability/:slotId/edit" element={<EditAvailabilitySlotPage />} />
         <Route path="/search" element={<SearchEntryPage />} />
+        <Route path="/suggested-matches" element={<SuggestedMatchesPage />} />
         <Route path="/filters" element={<FiltersPage />} />
         <Route path="/results" element={<ResultsListPage />} />
         <Route path="/opponent/:teamId" element={<OpponentProfilePage />} />

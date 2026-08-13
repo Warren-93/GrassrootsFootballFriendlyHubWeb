@@ -148,6 +148,17 @@ export function HomePage() {
             )}
 
             <Card variant="outlined">
+              <CardActionArea onClick={() => navigate('/suggested-matches')}>
+                <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    Suggested matches
+                  </Typography>
+                  <Typography variant="button">See all</Typography>
+                </CardContent>
+              </CardActionArea>
+            </Card>
+
+            <Card variant="outlined">
               <CardActionArea onClick={() => navigate('/search')}>
                 <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
