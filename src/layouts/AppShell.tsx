@@ -35,6 +35,7 @@ import { useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useCurrentTeam } from '../session/CurrentTeamContext';
 import { notificationRepository } from '../api/notificationRepository';
+import { teamRepository } from '../api/teamRepository';
 
 const DRAWER_WIDTH = 240;
 
@@ -75,7 +76,7 @@ export function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const { session, signOut } = useAuth();
-  const { active, clear } = useCurrentTeam();
+  const { active, setActive, clear } = useCurrentTeam();
   const navItems = useNavItems(active?.teamId);
 
   useEffect(() => {
@@ -83,6 +84,30 @@ export function AppShell() {
       if (result.ok) setUnreadCount(result.value.count);
     });
   }, [location.pathname]);
+
+  // The active team is a local cache (see CurrentTeamContext) that sign-out
+  // clears, so a fresh session has no way to know which team it's acting as
+  // until this runs - without it, every page here would keep treating a real
+  // member as if they'd never created or joined a team. Reconciling against
+  // the server on every signed-in session (not just when the cache is empty)
+  // also self-heals a stale cached team left over from a different account on
+  // a shared browser, rather than blindly trusting whatever's in storage.
+  useEffect(() => {
+    if (!session) return;
+    teamRepository.listMine().then((result) => {
+      if (!result.ok) return;
+      const mine = result.value;
+      if (mine.length === 0) {
+        if (active) clear();
+        return;
+      }
+      if (!active || !mine.some((t) => t.id === active.teamId)) {
+        const t = mine[0];
+        setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId });
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.id]);
 
   function handleSignOut() {
     signOut();
