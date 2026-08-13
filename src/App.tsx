@@ -29,6 +29,7 @@ import { HomePage } from './pages/Home/HomePage';
 import { CalendarPage } from './pages/availability/CalendarPage';
 import { DayDetailPage } from './pages/availability/DayDetailPage';
 import { EditAvailabilitySlotPage } from './pages/availability/EditAvailabilitySlotPage';
+import { BulkAddAvailabilityPage } from './pages/availability/BulkAddAvailabilityPage';
 import { SearchEntryPage } from './pages/discover/SearchEntryPage';
 import { SuggestedMatchesPage } from './pages/discover/SuggestedMatchesPage';
 import { FiltersPage } from './pages/discover/FiltersPage';
@@ -82,6 +83,7 @@ function App() {
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/calendar/:date" element={<DayDetailPage />} />
         <Route path="/availability/new" element={<EditAvailabilitySlotPage />} />
+        <Route path="/availability/bulk" element={<BulkAddAvailabilityPage />} />
         <Route path="/availability/:slotId/edit" element={<EditAvailabilitySlotPage />} />
         <Route path="/search" element={<SearchEntryPage />} />
         <Route path="/suggested-matches" element={<SuggestedMatchesPage />} />

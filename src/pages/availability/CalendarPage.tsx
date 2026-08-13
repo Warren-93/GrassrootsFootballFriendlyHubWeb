@@ -125,6 +125,9 @@ export function CalendarPage() {
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/availability/new')}>
           Add availability
         </Button>
+        <Button variant="outlined" onClick={() => navigate('/availability/bulk')}>
+          Bulk add
+        </Button>
       </Stack>
     </Container>
   );

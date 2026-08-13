@@ -1,9 +1,11 @@
 import { apiClient } from './client';
-import type { CreateSlotRequest, SlotView } from './types';
+import type { BulkCreateResult, BulkCreateSlotRequest, CreateSlotRequest, SlotView } from './types';
 
 export const availabilityRepository = {
   create: (teamId: string, request: CreateSlotRequest) =>
     apiClient.post<SlotView>(`/api/v1/teams/${teamId}/availability`, request),
+  createBulk: (teamId: string, request: BulkCreateSlotRequest) =>
+    apiClient.post<BulkCreateResult>(`/api/v1/teams/${teamId}/availability/bulk`, request),
   list: (teamId: string, from?: string, to?: string) =>
     apiClient.get<SlotView[]>(`/api/v1/teams/${teamId}/availability`, { from, to }),
   get: (teamId: string, slotId: string) =>

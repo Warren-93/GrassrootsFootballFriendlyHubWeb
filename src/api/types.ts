@@ -174,6 +174,21 @@ export interface CreateSlotRequest {
   notes?: string | null;
 }
 
+export interface BulkCreateSlotRequest {
+  dates: string[];
+  startTime: string;
+  endTime: string;
+  homeAwayPreference: HomeAwayPreference;
+  venueId?: string | null;
+  format?: string | null;
+  notes?: string | null;
+}
+
+export interface BulkCreateResult {
+  created: SlotView[];
+  skippedPastDates: string[];
+}
+
 export interface SearchRequest {
   teamId: string;
   fromDate?: string | null;
