@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Card, CardActionArea, CardContent, Chip, Container, Stack, Typography } from '@mui/material';
+import { Badge, Box, Button, Card, CardActionArea, CardContent, Chip, Container, IconButton, Stack, Typography } from '@mui/material';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { teamRepository } from '../../api/teamRepository';
 import { availabilityRepository } from '../../api/availabilityRepository';
 import { fixtureRepository } from '../../api/fixtureRepository';
+import { notificationRepository } from '../../api/notificationRepository';
 import type { FixtureView, SlotView, TeamView } from '../../api/types';
 
 function todayIso(): string {
@@ -26,7 +28,14 @@ export function HomePage() {
   const [team, setTeam] = useState<TeamView | null>(null);
   const [futureSlots, setFutureSlots] = useState<SlotView[]>([]);
   const [fixtures, setFixtures] = useState<FixtureView[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    notificationRepository.unreadCount().then((result) => {
+      if (result.ok) setUnreadCount(result.value.count);
+    });
+  }, []);
 
   useEffect(() => {
     if (!active) {
@@ -67,16 +76,23 @@ export function HomePage() {
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
       <Stack spacing={3}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Welcome, {session?.displayName}
-          </Typography>
-          {active && (
-            <Typography variant="body2" color="text.secondary">
-              {active.teamName}
+        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>
+              Welcome, {session?.displayName}
             </Typography>
-          )}
-        </Box>
+            {active && (
+              <Typography variant="body2" color="text.secondary">
+                {active.teamName}
+              </Typography>
+            )}
+          </Box>
+          <IconButton onClick={() => navigate('/notifications')} aria-label="Notifications">
+            <Badge badgeContent={unreadCount} color="error">
+              <NotificationsIcon />
+            </Badge>
+          </IconButton>
+        </Stack>
 
         {session?.emailVerified === false && (
           <Chip label="Verify your email" onClick={() => navigate('/email-verification')} sx={{ alignSelf: 'flex-start' }} />

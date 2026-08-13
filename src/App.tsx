@@ -23,6 +23,8 @@ import { MembersPage } from './pages/profile/MembersPage';
 import { VerificationPage } from './pages/profile/VerificationPage';
 import { PrivacyPage } from './pages/profile/PrivacyPage';
 import { HelpPage } from './pages/profile/HelpPage';
+import { NotificationPreferencesPage } from './pages/profile/NotificationPreferencesPage';
+import { NotificationsPage } from './pages/Home/NotificationsPage';
 import { HomePage } from './pages/Home/HomePage';
 import { CalendarPage } from './pages/availability/CalendarPage';
 import { DayDetailPage } from './pages/availability/DayDetailPage';
@@ -71,7 +73,8 @@ function App() {
         <Route path="/club/:clubId/edit" element={<EditClubPage />} />
         <Route path="/team/:teamId/members" element={<MembersPage />} />
         <Route path="/team/:teamId/verification" element={<VerificationPage />} />
-        <Route path="/settings/notifications" element={<PlaceholderPage label="Notification preferences" />} />
+        <Route path="/settings/notifications" element={<NotificationPreferencesPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/settings/privacy" element={<PrivacyPage />} />
         <Route path="/settings/help" element={<HelpPage />} />
         <Route path="/" element={<HomePage />} />

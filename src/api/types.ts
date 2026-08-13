@@ -396,3 +396,43 @@ export interface AccountExport {
   createdAt: string;
   memberships: MembershipExport[];
 }
+
+export type NotificationType =
+  | 'REQUEST_RECEIVED'
+  | 'REQUEST_ACCEPTED'
+  | 'REQUEST_DECLINED'
+  | 'REQUEST_CHANGES_REQUESTED'
+  | 'REQUEST_WITHDRAWN'
+  | 'FIXTURE_CONFIRMED'
+  | 'FIXTURE_CANCELLED'
+  | 'VERIFICATION_APPROVED'
+  | 'VERIFICATION_REJECTED'
+  | 'MESSAGE_RECEIVED';
+
+export interface NotificationView {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  relatedTeamId: string | null;
+  relatedRequestId: string | null;
+  relatedFixtureId: string | null;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface NotificationPreferenceView {
+  friendlyRequests: boolean;
+  fixtures: boolean;
+  verification: boolean;
+  messages: boolean;
+}
+
+export interface MessageView {
+  id: string;
+  fixtureId: string;
+  senderTeamId: string;
+  senderUserId: string;
+  body: string;
+  createdAt: string;
+}
