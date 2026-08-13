@@ -14,6 +14,7 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 import { teamRepository } from '../../api/teamRepository';
 import type { AbilityLevel, AgeGroup, Format, Gender, HomeAwayPreference } from '../../api/types';
+import { PostcodeLocationField } from '../../components/PostcodeLocationField';
 
 const AGE_GROUPS: AgeGroup[] = ['U7', 'U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15', 'U16', 'U17', 'U18', 'ADULT'];
 const GENDERS: Gender[] = ['MALE', 'FEMALE', 'MIXED'];
@@ -37,8 +38,7 @@ export function CreateTeamPage() {
   const [abilityLevel, setAbilityLevel] = useState<AbilityLevel>('INTERMEDIATE');
   const [format, setFormat] = useState<Format>('ELEVEN_A_SIDE');
   const [postcode, setPostcode] = useState('');
-  const [longitude, setLongitude] = useState('');
-  const [latitude, setLatitude] = useState('');
+  const [coordinates, setCoordinates] = useState<{ longitude: number; latitude: number } | null>(null);
   const [travelRadiusMiles, setTravelRadiusMiles] = useState('15');
   const [homeAwayPreference, setHomeAwayPreference] = useState<HomeAwayPreference>('EITHER');
   const [league, setLeague] = useState('');
@@ -51,6 +51,7 @@ export function CreateTeamPage() {
   const hasExistingClub = !!passedState?.clubId;
 
   async function handleSubmit() {
+    if (!coordinates) return;
     setSubmitting(true);
     setErrorMessage(null);
     const result = await teamRepository.create({
@@ -63,8 +64,8 @@ export function CreateTeamPage() {
       abilityLevel,
       league: league || null,
       postcode,
-      longitude: Number(longitude),
-      latitude: Number(latitude),
+      longitude: coordinates.longitude,
+      latitude: coordinates.latitude,
       travelRadiusMiles: Number(travelRadiusMiles),
       homeAwayPreference,
       managerName: managerName || null,
@@ -81,7 +82,7 @@ export function CreateTeamPage() {
 
   const stepValid = [
     !!name && (hasExistingClub ? !!clubId : !!clubName),
-    !!postcode && longitude !== '' && latitude !== '',
+    !!postcode && !!coordinates,
     true,
     true,
   ][step];
@@ -153,11 +154,12 @@ export function CreateTeamPage() {
                 </MenuItem>
               ))}
             </TextField>
-            <TextField label="Postcode" value={postcode} onChange={(e) => setPostcode(e.target.value)} fullWidth />
-            <Stack direction="row" spacing={2}>
-              <TextField label="Longitude" type="number" value={longitude} onChange={(e) => setLongitude(e.target.value)} fullWidth />
-              <TextField label="Latitude" type="number" value={latitude} onChange={(e) => setLatitude(e.target.value)} fullWidth />
-            </Stack>
+            <PostcodeLocationField
+              postcode={postcode}
+              onPostcodeChange={setPostcode}
+              coordinates={coordinates}
+              onCoordinatesChange={setCoordinates}
+            />
             <TextField
               label="Travel radius (miles)"
               type="number"

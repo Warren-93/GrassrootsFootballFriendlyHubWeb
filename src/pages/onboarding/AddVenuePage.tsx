@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { venueRepository } from '../../api/venueRepository';
 import { teamRepository } from '../../api/teamRepository';
 import type { PitchSurface } from '../../api/types';
+import { PostcodeLocationField } from '../../components/PostcodeLocationField';
 
 const PITCH_SURFACES: PitchSurface[] = ['GRASS', 'THREE_G', 'FOUR_G', 'ASTRO', 'INDOOR'];
 const PITCH_SURFACE_LABELS: Record<PitchSurface, string> = {
@@ -21,23 +22,24 @@ export function AddVenuePage() {
 
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
-  const [longitude, setLongitude] = useState('');
-  const [latitude, setLatitude] = useState('');
+  const [postcode, setPostcode] = useState('');
+  const [coordinates, setCoordinates] = useState<{ longitude: number; latitude: number } | null>(null);
   const [pitchSurface, setPitchSurface] = useState<PitchSurface>('GRASS');
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const canSubmit = name.length >= 3 && address && longitude !== '' && latitude !== '';
+  const canSubmit = name.length >= 3 && address && postcode && !!coordinates;
 
   async function handleSubmit() {
+    if (!coordinates) return;
     setSubmitting(true);
     setErrorMessage(null);
     const venueResult = await venueRepository.create({
       clubId,
       name,
       address,
-      longitude: Number(longitude),
-      latitude: Number(latitude),
+      longitude: coordinates.longitude,
+      latitude: coordinates.latitude,
       pitchSurface,
     });
     if (!venueResult.ok) {
@@ -64,10 +66,12 @@ export function AddVenuePage() {
 
         <TextField label="Venue name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
         <TextField label="Address" value={address} onChange={(e) => setAddress(e.target.value)} fullWidth />
-        <Stack direction="row" spacing={2}>
-          <TextField label="Longitude" type="number" value={longitude} onChange={(e) => setLongitude(e.target.value)} fullWidth />
-          <TextField label="Latitude" type="number" value={latitude} onChange={(e) => setLatitude(e.target.value)} fullWidth />
-        </Stack>
+        <PostcodeLocationField
+          postcode={postcode}
+          onPostcodeChange={setPostcode}
+          coordinates={coordinates}
+          onCoordinatesChange={setCoordinates}
+        />
         <TextField
           select
           label="Pitch surface"

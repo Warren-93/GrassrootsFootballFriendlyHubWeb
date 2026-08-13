@@ -18,6 +18,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { venueRepository } from '../../api/venueRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import type { PitchSurface } from '../../api/types';
+import { PostcodeLocationField } from '../../components/PostcodeLocationField';
 
 const PITCH_SURFACES: PitchSurface[] = ['GRASS', 'THREE_G', 'FOUR_G', 'ASTRO', 'INDOOR'];
 const PITCH_SURFACE_LABELS: Record<PitchSurface, string> = {
@@ -39,8 +40,8 @@ export function EditVenuePage() {
   const [loading, setLoading] = useState(!isNew);
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
-  const [longitude, setLongitude] = useState('');
-  const [latitude, setLatitude] = useState('');
+  const [postcode, setPostcode] = useState('');
+  const [coordinates, setCoordinates] = useState<{ longitude: number; latitude: number } | null>(null);
   const [pitchSurface, setPitchSurface] = useState<PitchSurface>('GRASS');
   const [accessNotes, setAccessNotes] = useState('');
   const [parkingNotes, setParkingNotes] = useState('');
@@ -56,8 +57,7 @@ export function EditVenuePage() {
         if (venue) {
           setName(venue.name);
           setAddress(venue.address);
-          setLongitude(String(venue.longitude));
-          setLatitude(String(venue.latitude));
+          setCoordinates({ longitude: venue.longitude, latitude: venue.latitude });
           if (venue.pitchSurface) setPitchSurface(venue.pitchSurface as PitchSurface);
           setAccessNotes(venue.accessNotes ?? '');
           setParkingNotes(venue.parkingNotes ?? '');
@@ -71,17 +71,17 @@ export function EditVenuePage() {
     });
   }, [venueId, active?.clubId]);
 
-  const canSubmit = name.length >= 3 && address && longitude !== '' && latitude !== '';
+  const canSubmit = name.length >= 3 && address && !!coordinates;
 
   async function handleSubmit() {
-    if (!active) return;
+    if (!active || !coordinates) return;
     setSubmitting(true);
     setErrorMessage(null);
     const body = {
       name,
       address,
-      longitude: Number(longitude),
-      latitude: Number(latitude),
+      longitude: coordinates.longitude,
+      latitude: coordinates.latitude,
       pitchSurface,
       accessNotes: accessNotes || null,
       parkingNotes: parkingNotes || null,
@@ -121,10 +121,17 @@ export function EditVenuePage() {
 
         <TextField label="Venue name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
         <TextField label="Address" value={address} onChange={(e) => setAddress(e.target.value)} fullWidth />
-        <Stack direction="row" spacing={2}>
-          <TextField label="Longitude" type="number" value={longitude} onChange={(e) => setLongitude(e.target.value)} fullWidth />
-          <TextField label="Latitude" type="number" value={latitude} onChange={(e) => setLatitude(e.target.value)} fullWidth />
-        </Stack>
+        <PostcodeLocationField
+          postcode={postcode}
+          onPostcodeChange={setPostcode}
+          coordinates={coordinates}
+          onCoordinatesChange={setCoordinates}
+        />
+        {!isNew && !postcode && (
+          <Typography variant="caption" color="text.secondary">
+            Keeping the existing location. Enter a postcode above to change it.
+          </Typography>
+        )}
         <TextField select label="Pitch surface" value={pitchSurface} onChange={(e) => setPitchSurface(e.target.value as PitchSurface)} fullWidth>
           {PITCH_SURFACES.map((p) => (
             <MenuItem key={p} value={p}>
