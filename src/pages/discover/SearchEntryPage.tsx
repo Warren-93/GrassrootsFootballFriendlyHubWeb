@@ -17,7 +17,11 @@ export function SearchEntryPage() {
   const activeFilterChips = [
     ...filters.formats,
     ...filters.abilityLevels,
-    filters.maxDistanceMiles ? `${filters.maxDistanceMiles} miles` : null,
+    filters.ignoreTravelRadius
+      ? 'All distances'
+      : filters.maxDistanceMiles
+        ? `${filters.maxDistanceMiles} miles`
+        : null,
     filters.verifiedOnly ? 'Verified only' : null,
     filters.venueRequired ? 'Venue required' : null,
   ].filter((x): x is string => !!x);
@@ -30,9 +34,10 @@ export function SearchEntryPage() {
       teamId: active.teamId,
       formats: filters.formats.length ? filters.formats : null,
       abilityLevels: filters.abilityLevels.length ? filters.abilityLevels : null,
-      maxDistanceMiles: filters.maxDistanceMiles,
+      maxDistanceMiles: filters.ignoreTravelRadius ? null : filters.maxDistanceMiles,
       verifiedOnly: filters.verifiedOnly || null,
       venueRequired: filters.venueRequired || null,
+      ignoreTravelRadius: filters.ignoreTravelRadius || null,
       limit: 20,
     });
     setSearching(false);

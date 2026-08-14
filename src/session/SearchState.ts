@@ -11,6 +11,7 @@ interface SearchFilterState {
   maxDistanceMiles: number | null;
   verifiedOnly: boolean;
   venueRequired: boolean;
+  ignoreTravelRadius: boolean;
   setFilters: (patch: Partial<Omit<SearchFilterState, 'setFilters' | 'reset'>>) => void;
   reset: () => void;
 }
@@ -21,8 +22,17 @@ export const useSearchFilterStore = create<SearchFilterState>((set) => ({
   maxDistanceMiles: null,
   verifiedOnly: false,
   venueRequired: false,
+  ignoreTravelRadius: false,
   setFilters: (patch) => set(patch),
-  reset: () => set({ formats: [], abilityLevels: [], maxDistanceMiles: null, verifiedOnly: false, venueRequired: false }),
+  reset: () =>
+    set({
+      formats: [],
+      abilityLevels: [],
+      maxDistanceMiles: null,
+      verifiedOnly: false,
+      venueRequired: false,
+      ignoreTravelRadius: false,
+    }),
 }));
 
 interface SearchResultsState {

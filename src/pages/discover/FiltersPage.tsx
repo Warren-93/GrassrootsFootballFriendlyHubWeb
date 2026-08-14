@@ -52,13 +52,32 @@ export function FiltersPage() {
         </Stack>
 
         <Stack spacing={1}>
-          <Typography variant="body2">Max distance: {filters.maxDistanceMiles ?? 'Any'} miles</Typography>
+          <Typography variant="body2" color={filters.ignoreTravelRadius ? 'text.disabled' : 'text.primary'}>
+            Max distance: {filters.maxDistanceMiles ?? 'Any'} miles
+          </Typography>
           <Slider
             value={filters.maxDistanceMiles ?? 50}
             min={1}
             max={50}
+            disabled={filters.ignoreTravelRadius}
             onChange={(_, value) => filters.setFilters({ maxDistanceMiles: value as number })}
           />
+        </Stack>
+
+        <Stack spacing={0.5}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={filters.ignoreTravelRadius}
+                onChange={(e) => filters.setFilters({ ignoreTravelRadius: e.target.checked })}
+              />
+            }
+            label="Search all distances"
+          />
+          <Typography variant="caption" color="text.secondary">
+            Your travel radius still shapes ranking - nearby teams are still shown first - it just won't hide anyone
+            further away.
+          </Typography>
         </Stack>
 
         <FormControlLabel

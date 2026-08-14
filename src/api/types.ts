@@ -207,6 +207,7 @@ export interface SearchRequest {
   maxDistanceMiles?: number | null;
   verifiedOnly?: boolean | null;
   venueRequired?: boolean | null;
+  ignoreTravelRadius?: boolean | null;
   limit?: number | null;
   cursor?: string | null;
 }
