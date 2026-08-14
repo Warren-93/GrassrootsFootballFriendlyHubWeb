@@ -14,11 +14,14 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Select,
   Stack,
   Toolbar,
   Typography,
   useMediaQuery,
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
+import type { TeamView } from '../api/types';
 import { useTheme } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -75,6 +78,7 @@ export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [myTeams, setMyTeams] = useState<TeamView[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
   const { session, signOut } = useAuth();
@@ -99,6 +103,7 @@ export function AppShell() {
     teamRepository.listMine().then((result) => {
       if (!result.ok) return;
       const mine = result.value;
+      setMyTeams(mine);
       if (mine.length === 0) {
         if (active) clear();
         return;
@@ -115,6 +120,11 @@ export function AppShell() {
     signOut();
     clear();
     navigate('/welcome');
+  }
+
+  function handleTeamSwitch(event: SelectChangeEvent) {
+    const t = myTeams.find((team) => team.id === event.target.value);
+    if (t) setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId });
   }
 
   function isActive(path: string) {
@@ -158,9 +168,25 @@ export function AppShell() {
             <Typography variant="caption" color="text.secondary">
               Current team
             </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
-              {active.teamName}
-            </Typography>
+            {myTeams.length > 1 ? (
+              <Select
+                value={active.teamId}
+                onChange={handleTeamSwitch}
+                size="small"
+                fullWidth
+                sx={{ mt: 0.5 }}
+              >
+                {myTeams.map((t) => (
+                  <MenuItem key={t.id} value={t.id}>
+                    {t.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            ) : (
+              <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
+                {active.teamName}
+              </Typography>
+            )}
           </Box>
         </>
       )}
