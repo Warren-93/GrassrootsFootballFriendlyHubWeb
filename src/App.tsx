@@ -47,16 +47,20 @@ import { DeclinePage } from './pages/arrange/DeclinePage';
 import { FixturesPage } from './pages/arrange/FixturesPage';
 import { FixtureDetailPage } from './pages/arrange/FixtureDetailPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
+import { PublicOnlyRoute } from './routes/PublicOnlyRoute';
 import { AppShell } from './layouts/AppShell';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 
 function App() {
   return (
     <Routes>
-      <Route path="/welcome" element={<WelcomePage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/sign-in" element={<SignInPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route element={<PublicOnlyRoute />}>
+        <Route path="/welcome" element={<WelcomePage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/sign-in" element={<SignInPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      </Route>
+      {/* Not gated: a verification link can legitimately be opened while already signed in. */}
       <Route path="/verify-email" element={<VerifyEmailPage />} />
 
       <Route element={<ProtectedRoute />}>
