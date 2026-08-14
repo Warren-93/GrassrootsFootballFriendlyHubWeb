@@ -22,11 +22,10 @@ import { useCurrentTeam } from '../../session/CurrentTeamContext';
  * SCR-PR-08 Settings. Purpose: account, notification, privacy and support
  * controls in one predictable place.
  *
- * Notifications, privacy/data and help route to the generic placeholder -
- * those screens (SCR-PR-09/10/12) aren't built yet. Units and Appearance
- * aren't shown: neither has anywhere to persist to yet, and a toggle that
- * resets on reload would be worse than no toggle. What's real here - account
- * info and sign out - is real.
+ * Notifications, privacy/data and help all route to real screens
+ * (SCR-PR-09/10/12). Units and Appearance aren't shown: neither has anywhere
+ * to persist to yet, and a toggle that resets on reload would be worse than
+ * no toggle.
  */
 export function SettingsPage() {
   const navigate = useNavigate();

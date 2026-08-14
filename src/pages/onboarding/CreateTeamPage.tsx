@@ -117,7 +117,7 @@ export function CreateTeamPage() {
             {!hasExistingClub && (
               <TextField
                 label="Club name"
-                helperText="No club search yet - this creates a new club. If yours already exists, use the club's ID instead."
+                helperText="This creates a new club. If yours already exists, go back and search for it instead."
                 value={clubName}
                 onChange={(e) => setClubName(e.target.value)}
                 fullWidth
