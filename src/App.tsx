@@ -28,6 +28,8 @@ import { HelpPage } from './pages/profile/HelpPage';
 import { NotificationPreferencesPage } from './pages/profile/NotificationPreferencesPage';
 import { NotificationsPage } from './pages/Home/NotificationsPage';
 import { HomePage } from './pages/Home/HomePage';
+import { ConversationsListPage } from './pages/messages/ConversationsListPage';
+import { ConversationThreadPage } from './pages/messages/ConversationThreadPage';
 import { CalendarPage } from './pages/availability/CalendarPage';
 import { DayDetailPage } from './pages/availability/DayDetailPage';
 import { EditAvailabilitySlotPage } from './pages/availability/EditAvailabilitySlotPage';
@@ -90,6 +92,8 @@ function App() {
           <Route path="/team/:teamId/verification" element={<VerificationPage />} />
           <Route path="/settings/notifications" element={<NotificationPreferencesPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/messages" element={<ConversationsListPage />} />
+          <Route path="/messages/:conversationId" element={<ConversationThreadPage />} />
           <Route path="/settings/privacy" element={<PrivacyPage />} />
           <Route path="/settings/help" element={<HelpPage />} />
           <Route path="/calendar" element={<CalendarPage />} />

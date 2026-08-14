@@ -26,6 +26,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import SearchIcon from '@mui/icons-material/Search';
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import GroupsIcon from '@mui/icons-material/Groups';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import PlaceIcon from '@mui/icons-material/Place';
@@ -52,6 +53,7 @@ function useNavItems(teamId: string | undefined): NavItem[] {
     { label: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { label: 'Find a friendly', icon: <SearchIcon />, path: '/search', requiresTeam: true },
     { label: 'Requests & fixtures', icon: <SportsSoccerIcon />, path: '/fixtures', requiresTeam: true },
+    { label: 'Messages', icon: <ChatBubbleOutlineIcon />, path: '/messages', requiresTeam: true },
     { label: 'Calendar', icon: <CalendarMonthIcon />, path: '/calendar', requiresTeam: true },
     { label: 'Team profile', icon: <GroupsIcon />, path: teamId ? `/team/${teamId}` : '/role-selection', requiresTeam: true },
     { label: 'Club', icon: <ApartmentIcon />, path: '/club', requiresTeam: true },

@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import {
   Alert,
   Button,
-  Card,
-  CardContent,
   Chip,
   CircularProgress,
   Container,
@@ -16,12 +14,13 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fixtureRepository } from '../../api/fixtureRepository';
-import { messageRepository } from '../../api/messageRepository';
+import { conversationRepository } from '../../api/conversationRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { PageHeader } from '../../components/PageHeader';
-import type { FixtureView, MessageView } from '../../api/types';
+import type { FixtureView } from '../../api/types';
 
 export function FixtureDetailPage() {
   const navigate = useNavigate();
@@ -29,20 +28,12 @@ export function FixtureDetailPage() {
   const { fixtureId } = useParams<{ fixtureId: string }>();
   const [fixture, setFixture] = useState<FixtureView | null>(null);
   const [loading, setLoading] = useState(true);
-  const [messages, setMessages] = useState<MessageView[]>([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [sending, setSending] = useState(false);
+  const [opening, setOpening] = useState(false);
   const [messageError, setMessageError] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
-
-  function loadMessages(id: string) {
-    messageRepository.list(id).then((result) => {
-      if (result.ok) setMessages(result.value);
-    });
-  }
 
   useEffect(() => {
     if (!fixtureId) return;
@@ -50,21 +41,17 @@ export function FixtureDetailPage() {
       if (result.ok) setFixture(result.value);
       setLoading(false);
     });
-    loadMessages(fixtureId);
   }, [fixtureId]);
 
-  async function handleSend() {
-    if (!fixtureId || !newMessage.trim()) return;
-    setSending(true);
+  async function openChat() {
+    if (!active || !fixture) return;
+    const otherTeamId = active.teamId === fixture.homeTeam.id ? fixture.awayTeam.id : fixture.homeTeam.id;
+    setOpening(true);
     setMessageError(null);
-    const result = await messageRepository.send(fixtureId, newMessage.trim());
-    setSending(false);
-    if (result.ok) {
-      setNewMessage('');
-      loadMessages(fixtureId);
-    } else {
-      setMessageError(result.message);
-    }
+    const result = await conversationRepository.start(active.teamId, otherTeamId);
+    setOpening(false);
+    if (result.ok) navigate(`/messages/${result.value.id}`);
+    else setMessageError(result.message);
   }
 
   if (loading) {
@@ -124,43 +111,12 @@ export function FixtureDetailPage() {
           </Typography>
         </Stack>
 
-        <Stack spacing={1}>
-          <Typography variant="subtitle2">Messages</Typography>
-          {messages.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              No messages yet.
-            </Typography>
-          ) : (
-            messages.map((m) => {
-              const senderName = m.senderTeamId === fixture.homeTeam.id ? fixture.homeTeam.name : fixture.awayTeam.name;
-              return (
-                <Card key={m.id} variant="outlined">
-                  <CardContent sx={{ py: 1, '&:last-child': { pb: 1 } }}>
-                    <Typography variant="caption" color="text.secondary">
-                      {senderName} · {new Date(m.createdAt).toLocaleString()}
-                    </Typography>
-                    <Typography variant="body2">{m.body}</Typography>
-                  </CardContent>
-                </Card>
-              );
-            })
-          )}
-          {messageError && <Alert severity="error">{messageError}</Alert>}
-          {weManage && (
-            <Stack direction="row" spacing={1}>
-              <TextField
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Message the other team…"
-                size="small"
-                fullWidth
-              />
-              <Button variant="contained" disabled={sending || !newMessage.trim()} onClick={handleSend}>
-                Send
-              </Button>
-            </Stack>
-          )}
-        </Stack>
+        {messageError && <Alert severity="error">{messageError}</Alert>}
+        {weManage && (
+          <Button variant="outlined" startIcon={<ChatBubbleOutlineIcon />} disabled={opening} onClick={openChat}>
+            {opening ? 'Opening…' : 'Message the other team'}
+          </Button>
+        )}
 
         {cancelError && <Alert severity="error">{cancelError}</Alert>}
 

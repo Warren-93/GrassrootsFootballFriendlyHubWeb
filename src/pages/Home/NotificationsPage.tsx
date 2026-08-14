@@ -26,7 +26,8 @@ export function NotificationsPage() {
 
   async function open(n: NotificationView) {
     if (!n.read) await notificationRepository.markRead(n.id);
-    if (n.relatedFixtureId) navigate(`/fixtures/${n.relatedFixtureId}`);
+    if (n.relatedConversationId) navigate(`/messages/${n.relatedConversationId}`);
+    else if (n.relatedFixtureId) navigate(`/fixtures/${n.relatedFixtureId}`);
     else if (n.relatedRequestId) navigate(`/request/${n.relatedRequestId}`);
     else load();
   }

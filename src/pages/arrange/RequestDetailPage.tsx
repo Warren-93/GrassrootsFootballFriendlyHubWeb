@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Alert, Button, Chip, CircularProgress, Container, Stack, Typography } from '@mui/material';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import { useNavigate, useParams } from 'react-router-dom';
 import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
+import { conversationRepository } from '../../api/conversationRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { PageHeader } from '../../components/PageHeader';
 import type { FriendlyRequestView } from '../../api/types';
@@ -26,6 +28,7 @@ export function RequestDetailPage() {
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [opening, setOpening] = useState(false);
 
   function load() {
     if (!requestId) return;
@@ -47,6 +50,17 @@ export function RequestDetailPage() {
     const result = await friendlyRequestRepository.act(requestId, action);
     setActing(false);
     if (result.ok) setRequest(result.value);
+    else setErrorMessage(result.message);
+  }
+
+  async function handleMessage() {
+    if (!active || !request) return;
+    const otherTeamId = active.teamId === request.senderTeamId ? request.recipientTeamId : request.senderTeamId;
+    setOpening(true);
+    setErrorMessage(null);
+    const result = await conversationRepository.start(active.teamId, otherTeamId);
+    setOpening(false);
+    if (result.ok) navigate(`/messages/${result.value.id}`);
     else setErrorMessage(result.message);
   }
 
@@ -115,6 +129,17 @@ export function RequestDetailPage() {
             </Button>
           ))}
         </Stack>
+
+        {active && (
+          <Button
+            variant="outlined"
+            startIcon={<ChatBubbleOutlineIcon />}
+            disabled={opening}
+            onClick={handleMessage}
+          >
+            {opening ? 'Opening…' : 'Message the other team'}
+          </Button>
+        )}
 
         {active && (
           <Button

@@ -453,6 +453,7 @@ export interface NotificationView {
   relatedTeamId: string | null;
   relatedRequestId: string | null;
   relatedFixtureId: string | null;
+  relatedConversationId: string | null;
   read: boolean;
   createdAt: string;
 }
@@ -466,9 +467,18 @@ export interface NotificationPreferenceView {
 
 export interface MessageView {
   id: string;
-  fixtureId: string;
+  conversationId: string;
   senderTeamId: string;
   senderUserId: string;
   body: string;
+  createdAt: string;
+}
+
+export interface ConversationView {
+  id: string;
+  otherTeam: TeamSummary;
+  lastMessageBody: string | null;
+  lastMessageSenderTeamId: string | null;
+  lastMessageAt: string | null;
   createdAt: string;
 }

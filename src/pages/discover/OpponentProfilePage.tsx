@@ -1,12 +1,19 @@
-import { Button, Chip, Container, Stack, Typography } from '@mui/material';
+import { useState } from 'react';
+import { Alert, Button, Chip, Container, Stack, Typography } from '@mui/material';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSearchResultsStore } from '../../session/SearchState';
+import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { conversationRepository } from '../../api/conversationRepository';
 import { PageHeader } from '../../components/PageHeader';
 
 export function OpponentProfilePage() {
   const navigate = useNavigate();
+  const { active } = useCurrentTeam();
   const { teamId } = useParams<{ teamId: string }>();
   const match = useSearchResultsStore((s) => (teamId ? s.findTeam(teamId) : null));
+  const [opening, setOpening] = useState(false);
+  const [messageError, setMessageError] = useState<string | null>(null);
 
   if (!match) {
     return (
@@ -20,6 +27,16 @@ export function OpponentProfilePage() {
   }
 
   const { team } = match;
+
+  async function handleMessage() {
+    if (!active) return;
+    setOpening(true);
+    setMessageError(null);
+    const result = await conversationRepository.start(active.teamId, team.id);
+    setOpening(false);
+    if (result.ok) navigate(`/messages/${result.value.id}`);
+    else setMessageError(result.message);
+  }
 
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
@@ -43,8 +60,18 @@ export function OpponentProfilePage() {
           {match.score}% match · {match.milesApart.toFixed(1)} miles away
         </Typography>
 
+        {messageError && <Alert severity="error">{messageError}</Alert>}
+
         <Button variant="outlined" onClick={() => navigate(`/match-explanation/${team.id}`)}>
           Why this match?
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<ChatBubbleOutlineIcon />}
+          disabled={opening || !active}
+          onClick={handleMessage}
+        >
+          {opening ? 'Opening…' : 'Message this team'}
         </Button>
         <Button variant="contained" size="large" onClick={() => navigate(`/invite/${team.id}`)}>
           Propose a friendly
