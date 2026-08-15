@@ -24,7 +24,6 @@ import type { SelectChangeEvent } from '@mui/material';
 import type { TeamView } from '../api/types';
 import { useTheme } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
-import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import HomeIcon from '@mui/icons-material/Home';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -82,6 +81,10 @@ function useManageItems(teamId: string | undefined): NavItem[] {
  * not just Home, which is the only sound way to offer two navigation
  * paradigms in a router-driven app. Data logic (team reconciliation, unread
  * count, sign out) is identical to AppShell.tsx - only the chrome differs.
+ *
+ * There's no standalone "switch to top nav" control: clicking Home is how
+ * you get back to the top-nav experience, since Home always means top nav
+ * the same way Dashboard (account menu) always means this sidebar.
  */
 export function AppShellSidebar() {
   const theme = useTheme();
@@ -159,6 +162,10 @@ export function AppShellSidebar() {
               selected={active_}
               disabled={disabled}
               onClick={() => {
+                // Home is the top-nav experience - clicking it from the sidebar
+                // shell is how you get back to top nav, rather than a separate
+                // "switch to top nav" control.
+                if (item.path === '/') setNavStyle('top');
                 navigate(item.path);
                 setMobileOpen(false);
               }}
@@ -208,30 +215,6 @@ export function AppShellSidebar() {
           );
         })}
       </List>
-      <Box
-        component="button"
-        onClick={() => setNavStyle('top')}
-        sx={{
-          m: 1.5,
-          font: 'inherit',
-          fontSize: 12,
-          fontWeight: 700,
-          color: '#8AA091',
-          background: 'rgba(255,255,255,.05)',
-          border: 'none',
-          borderRadius: 1.5,
-          py: 1,
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 0.75,
-          '&:hover': { color: '#fff', background: 'rgba(255,255,255,.09)' },
-        }}
-      >
-        <ViewSidebarOutlinedIcon sx={{ fontSize: 16 }} />
-        Switch to top nav
-      </Box>
       {active && (
         <Box sx={{ p: 2, borderTop: '1px solid rgba(255,255,255,.08)' }}>
           <Typography variant="caption" sx={{ color: '#8AA091' }}>
@@ -311,14 +294,6 @@ export function AppShellSidebar() {
                 </Stack>
               </MenuItem>
               <Divider />
-              <MenuItem
-                onClick={() => {
-                  setUserMenuAnchor(null);
-                  setNavStyle('top');
-                }}
-              >
-                Switch to top nav
-              </MenuItem>
               <MenuItem
                 selected={isActive('/dashboard')}
                 onClick={() => {

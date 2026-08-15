@@ -70,7 +70,7 @@ export function HomePage() {
   const publishedDates = new Set(futureSlots.map((s) => s.date)).size;
 
   return (
-    <Container maxWidth="md" sx={{ py: 3 }}>
+    <Container maxWidth="lg" sx={{ py: 3 }}>
       <HeroBand
         eyebrow={active?.teamName}
         title={`Welcome back, ${session?.displayName ?? ''}`}
