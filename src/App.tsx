@@ -37,7 +37,6 @@ import { EditAvailabilitySlotPage } from './pages/availability/EditAvailabilityS
 import { BulkAddAvailabilityPage } from './pages/availability/BulkAddAvailabilityPage';
 import { SearchEntryPage } from './pages/discover/SearchEntryPage';
 import { SuggestedMatchesPage } from './pages/discover/SuggestedMatchesPage';
-import { FiltersPage } from './pages/discover/FiltersPage';
 import { ResultsListPage } from './pages/discover/ResultsListPage';
 import { OpponentProfilePage } from './pages/discover/OpponentProfilePage';
 import { MatchExplanationPage } from './pages/discover/MatchExplanationPage';
@@ -105,7 +104,6 @@ function App() {
           <Route path="/availability/:slotId/edit" element={<EditAvailabilitySlotPage />} />
           <Route path="/search" element={<SearchEntryPage />} />
           <Route path="/suggested-matches" element={<SuggestedMatchesPage />} />
-          <Route path="/filters" element={<FiltersPage />} />
           <Route path="/results" element={<ResultsListPage />} />
           <Route path="/opponent/:teamId" element={<OpponentProfilePage />} />
           <Route path="/match-explanation/:teamId" element={<MatchExplanationPage />} />
