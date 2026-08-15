@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Alert, Button, Card, Container, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, Container, Stack, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { memberRepository } from '../../api/memberRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { PageHeader } from '../../components/PageHeader';
+import { OnboardingStepper } from '../../components/brand/OnboardingStepper';
 
 /** Self-service alternative to the create-club/create-team flow - redeem a manager's join code directly. */
 export function JoinTeamPage() {
@@ -28,6 +29,9 @@ export function JoinTeamPage() {
 
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
+      <Box sx={{ mb: 3 }}>
+        <OnboardingStepper currentStep={1} />
+      </Box>
       <Card sx={{ p: 4, borderRadius: 4 }}>
         <Stack spacing={3}>
           <PageHeader title="Join a team" />

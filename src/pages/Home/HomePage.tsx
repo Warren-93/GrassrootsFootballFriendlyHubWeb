@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Box, Button, Card, CardActionArea, CardContent, Chip, Container, Stack, Typography } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { useNavPreference } from '../../session/NavPreferenceContext';
 import { teamRepository } from '../../api/teamRepository';
 import { availabilityRepository } from '../../api/availabilityRepository';
 import { fixtureRepository } from '../../api/fixtureRepository';
@@ -32,6 +34,7 @@ export function HomePage() {
   const navigate = useNavigate();
   const { session } = useAuth();
   const { active } = useCurrentTeam();
+  const { setNavStyle } = useNavPreference();
 
   const [team, setTeam] = useState<TeamView | null>(null);
   const [futureSlots, setFutureSlots] = useState<SlotView[]>([]);
@@ -71,7 +74,20 @@ export function HomePage() {
   const publishedDates = new Set(futureSlots.map((s) => s.date)).size;
 
   return (
-    <Container maxWidth="md" sx={{ py: 3 }}>
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Stack direction="row" spacing={0.5} sx={{ mb: 2 }}>
+        <Chip label="Dashboard" size="small" sx={{ bgcolor: brand.void, color: '#fff', fontWeight: 700 }} />
+        <Chip label="Notifications" size="small" variant="outlined" onClick={() => navigate('/notifications')} sx={{ fontWeight: 700 }} />
+        <Chip
+          label="Sidebar view"
+          size="small"
+          variant="outlined"
+          icon={<ViewSidebarOutlinedIcon sx={{ fontSize: 15 }} />}
+          onClick={() => setNavStyle('sidebar')}
+          sx={{ fontWeight: 700 }}
+        />
+      </Stack>
+
       <HeroBand
         eyebrow={active?.teamName}
         title={`Welcome back, ${session?.displayName ?? ''}`}
@@ -126,60 +142,70 @@ export function HomePage() {
             </Box>
           )}
 
-          <Stack spacing={2}>
-            {actionItems.length > 0 && (
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },
+              gap: 3,
+            }}
+          >
+            <Stack spacing={2}>
+              {actionItems.length > 0 && (
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
+                      Needs your attention
+                    </Typography>
+                    {actionItems.map((item) => (
+                      <Typography key={item} variant="body2" color="text.secondary">
+                        &bull; {item}
+                      </Typography>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
               <Card variant="outlined">
-                <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
-                    Needs your attention
-                  </Typography>
-                  {actionItems.map((item) => (
-                    <Typography key={item} variant="body2" color="text.secondary">
-                      &bull; {item}
-                    </Typography>
-                  ))}
-                </CardContent>
+                <CardActionArea onClick={() => navigate('/suggested-matches')}>
+                  <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                        Suggested matches
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Opponents worth considering right now
+                      </Typography>
+                    </Box>
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', color: brand.pitchDeep, fontWeight: 700 }}>
+                      <Typography variant="button" sx={{ color: 'inherit' }}>See all</Typography>
+                      <ArrowForwardIcon sx={{ fontSize: 18 }} />
+                    </Stack>
+                  </CardContent>
+                </CardActionArea>
               </Card>
-            )}
+            </Stack>
 
-            <Card variant="outlined">
-              <CardActionArea onClick={() => navigate('/suggested-matches')}>
-                <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                      Suggested matches
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Opponents worth considering right now
-                    </Typography>
-                  </Box>
-                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', color: brand.pitchDeep, fontWeight: 700 }}>
-                    <Typography variant="button" sx={{ color: 'inherit' }}>See all</Typography>
-                    <ArrowForwardIcon sx={{ fontSize: 18 }} />
-                  </Stack>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-
-            <Card variant="outlined">
-              <CardActionArea onClick={() => navigate('/calendar')}>
-                <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                      Availability
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {loaded ? `${publishedDates} date(s) published` : 'Loading…'}
-                    </Typography>
-                  </Box>
-                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', color: brand.pitchDeep, fontWeight: 700 }}>
-                    <Typography variant="button" sx={{ color: 'inherit' }}>Open calendar</Typography>
-                    <ArrowForwardIcon sx={{ fontSize: 18 }} />
-                  </Stack>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          </Stack>
+            <Stack spacing={2}>
+              <Card variant="outlined">
+                <CardActionArea onClick={() => navigate('/calendar')}>
+                  <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                        Availability
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {loaded ? `${publishedDates} date(s) published` : 'Loading…'}
+                      </Typography>
+                    </Box>
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', color: brand.pitchDeep, fontWeight: 700 }}>
+                      <Typography variant="button" sx={{ color: 'inherit' }}>Open calendar</Typography>
+                      <ArrowForwardIcon sx={{ fontSize: 18 }} />
+                    </Stack>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Stack>
+          </Box>
         </>
       )}
     </Container>

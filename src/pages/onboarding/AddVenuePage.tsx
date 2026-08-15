@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Alert, Button, Card, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { venueRepository } from '../../api/venueRepository';
 import { teamRepository } from '../../api/teamRepository';
 import type { PitchSurface } from '../../api/types';
 import { PostcodeLocationField } from '../../components/PostcodeLocationField';
+import { OnboardingStepper } from '../../components/brand/OnboardingStepper';
 
 const PITCH_SURFACES: PitchSurface[] = ['GRASS', 'THREE_G', 'FOUR_G', 'ASTRO', 'INDOOR'];
 const PITCH_SURFACE_LABELS: Record<PitchSurface, string> = {
@@ -59,6 +60,9 @@ export function AddVenuePage() {
 
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
+      <Box sx={{ mb: 3 }}>
+        <OnboardingStepper currentStep={2} />
+      </Box>
       <Card sx={{ p: 4, borderRadius: 4 }}>
         <Stack spacing={3}>
           <Typography variant="h5" sx={{ fontWeight: 700, textAlign: 'center' }}>

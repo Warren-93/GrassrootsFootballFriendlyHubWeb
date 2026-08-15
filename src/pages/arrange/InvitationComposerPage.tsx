@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { useInvitationDraftStore, useSearchResultsStore } from '../../session/SearchState';
@@ -28,7 +28,7 @@ export function InvitationComposerPage() {
 
   if (!match || !overlap || !active) {
     return (
-      <Container maxWidth="xs" sx={{ py: 6 }}>
+      <Container maxWidth="sm" sx={{ py: 6 }}>
         <Stack spacing={2}>
           <PageHeader title="Propose a friendly" />
           <Typography>No overlapping availability found for this opponent - search again.</Typography>
@@ -58,61 +58,79 @@ export function InvitationComposerPage() {
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
+    <Container maxWidth="sm" sx={{ py: 6 }}>
       <Stack spacing={3}>
-        <PageHeader title="Propose a friendly" action={<CrestAvatar name={match.team.name} />} />
-        <Typography variant="subtitle1" sx={{ fontWeight: 700, mt: -1 }}>
-          {match.team.name}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: -2 }}>
-          {date}, {startTime} - {endTime}
-        </Typography>
+        <PageHeader title="Propose a friendly" />
 
-        <TextField
-          select
-          label="Home / away"
-          value={homeAwayChoice}
-          onChange={(e) => setHomeAwayChoice(e.target.value as HomeAwayPreference)}
-          fullWidth
-        >
-          <MenuItem value="HOME">We host</MenuItem>
-          <MenuItem value="AWAY">They host</MenuItem>
-        </TextField>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1.6fr 1fr' }, gap: 3 }}>
+          <Stack spacing={3}>
+            <TextField
+              select
+              label="Home / away"
+              value={homeAwayChoice}
+              onChange={(e) => setHomeAwayChoice(e.target.value as HomeAwayPreference)}
+              fullWidth
+            >
+              <MenuItem value="HOME">We host</MenuItem>
+              <MenuItem value="AWAY">They host</MenuItem>
+            </TextField>
 
-        <TextField select label="Cost share" value={costShare} onChange={(e) => setCostShare(e.target.value as CostShare)} fullWidth>
-          {COST_SHARES.map((c) => (
-            <MenuItem key={c} value={c}>
-              {c.replace(/_/g, ' ')}
-            </MenuItem>
-          ))}
-        </TextField>
+            <TextField select label="Cost share" value={costShare} onChange={(e) => setCostShare(e.target.value as CostShare)} fullWidth>
+              {COST_SHARES.map((c) => (
+                <MenuItem key={c} value={c}>
+                  {c.replace(/_/g, ' ')}
+                </MenuItem>
+              ))}
+            </TextField>
 
-        <TextField
-          select
-          label="Referee arrangement"
-          value={refereeArrangement}
-          onChange={(e) => setRefereeArrangement(e.target.value as RefereeArrangement)}
-          fullWidth
-        >
-          {REFEREE_ARRANGEMENTS.map((r) => (
-            <MenuItem key={r} value={r}>
-              {r.replace(/_/g, ' ')}
-            </MenuItem>
-          ))}
-        </TextField>
+            <TextField
+              select
+              label="Referee arrangement"
+              value={refereeArrangement}
+              onChange={(e) => setRefereeArrangement(e.target.value as RefereeArrangement)}
+              fullWidth
+            >
+              {REFEREE_ARRANGEMENTS.map((r) => (
+                <MenuItem key={r} value={r}>
+                  {r.replace(/_/g, ' ')}
+                </MenuItem>
+              ))}
+            </TextField>
 
-        <TextField
-          label="Message (optional)"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          multiline
-          minRows={3}
-          fullWidth
-        />
+            <TextField
+              label="Message (optional)"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              multiline
+              minRows={3}
+              fullWidth
+            />
 
-        <Button variant="contained" size="large" onClick={handleContinue}>
-          Review invitation
-        </Button>
+            <Button variant="contained" size="large" onClick={handleContinue}>
+              Review invitation
+            </Button>
+          </Stack>
+
+          <Card variant="outlined">
+            <CardContent>
+              <Stack spacing={1} sx={{ alignItems: 'center', textAlign: 'center' }}>
+                <CrestAvatar name={match.team.name} size={56} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                  {match.team.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {date}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {startTime} - {endTime}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {overlap.overlapMinutes} min overlap in shared availability
+                </Typography>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Box>
       </Stack>
     </Container>
   );

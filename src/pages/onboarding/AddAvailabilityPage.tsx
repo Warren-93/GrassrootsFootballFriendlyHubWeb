@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Alert, Button, Card, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { availabilityRepository } from '../../api/availabilityRepository';
 import type { HomeAwayPreference } from '../../api/types';
+import { OnboardingStepper } from '../../components/brand/OnboardingStepper';
 
 const HOME_AWAY: HomeAwayPreference[] = ['HOME', 'AWAY', 'EITHER'];
 
@@ -49,6 +50,9 @@ export function AddAvailabilityPage() {
 
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
+      <Box sx={{ mb: 3 }}>
+        <OnboardingStepper currentStep={3} />
+      </Box>
       <Card sx={{ p: 4, borderRadius: 4 }}>
         <Stack spacing={3}>
           <Typography variant="h5" sx={{ fontWeight: 700, textAlign: 'center' }}>

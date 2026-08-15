@@ -70,7 +70,7 @@ export function ResultsListPage() {
 
   if (!response) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6 }}>
+      <Container maxWidth="lg" sx={{ py: 6 }}>
         <Stack spacing={2}>
           <PageHeader title="Search results" />
           <Typography>No search yet.</Typography>
@@ -82,7 +82,7 @@ export function ResultsListPage() {
   const center = homeCoords ?? (markers[0]?.position as [number, number] | undefined) ?? [51.5074, -0.1276];
 
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
       <Stack spacing={2}>
         <PageHeader
           title={`${response.totalResults} matches found`}
@@ -132,31 +132,59 @@ export function ResultsListPage() {
                 <Typography color="text.secondary">Locating teams…</Typography>
               </Box>
             ) : (
-              <Box sx={{ height: 420, borderRadius: 1, overflow: 'hidden' }}>
-                <MapContainer center={center} zoom={10} style={{ height: '100%', width: '100%' }}>
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  {homeCoords && (
-                    <Marker position={homeCoords} icon={homeIcon()}>
-                      <Popup>Your team</Popup>
-                    </Marker>
-                  )}
-                  {markers.map(({ match, position }) => (
-                    <Marker key={match.team.id} position={position} icon={opponentIcon()}>
-                      <Popup>
-                        <strong>{match.team.name}</strong>
-                        <br />
-                        {match.score}% match · {match.milesApart.toFixed(1)} mi
-                        <br />
-                        <a href={`/opponent/${match.team.id}`} onClick={(e) => { e.preventDefault(); navigate(`/opponent/${match.team.id}`); }}>
-                          View profile
-                        </a>
-                      </Popup>
-                    </Marker>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                <Box sx={{ flex: 1, height: 480, borderRadius: 1, overflow: 'hidden' }}>
+                  <MapContainer center={center} zoom={10} style={{ height: '100%', width: '100%' }}>
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    {homeCoords && (
+                      <Marker position={homeCoords} icon={homeIcon()}>
+                        <Popup>Your team</Popup>
+                      </Marker>
+                    )}
+                    {markers.map(({ match, position }) => (
+                      <Marker key={match.team.id} position={position} icon={opponentIcon()}>
+                        <Popup>
+                          <strong>{match.team.name}</strong>
+                          <br />
+                          {match.score}% match · {match.milesApart.toFixed(1)} mi
+                          <br />
+                          <a href={`/opponent/${match.team.id}`} onClick={(e) => { e.preventDefault(); navigate(`/opponent/${match.team.id}`); }}>
+                            View profile
+                          </a>
+                        </Popup>
+                      </Marker>
+                    ))}
+                  </MapContainer>
+                </Box>
+
+                <Stack spacing={1} sx={{ width: { xs: 220, md: 280 }, flexShrink: 0, height: 480, overflowY: 'auto', pr: 0.5 }}>
+                  {response.results.map((match) => (
+                    <Card key={match.team.id} variant="outlined">
+                      <CardActionArea onClick={() => navigate(`/opponent/${match.team.id}`)}>
+                        <CardContent sx={{ py: 1, px: 1.5, '&:last-child': { pb: 1 } }}>
+                          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                            <CrestAvatar name={match.team.name} size={28} />
+                            <Box sx={{ minWidth: 0, flex: 1 }}>
+                              <Typography
+                                variant="body2"
+                                sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                              >
+                                {match.team.name}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {match.milesApart.toFixed(1)} mi
+                              </Typography>
+                            </Box>
+                            <MatchScoreChip score={match.score} size="small" />
+                          </Stack>
+                        </CardContent>
+                      </CardActionArea>
+                    </Card>
                   ))}
-                </MapContainer>
+                </Stack>
               </Box>
             )}
           </Box>

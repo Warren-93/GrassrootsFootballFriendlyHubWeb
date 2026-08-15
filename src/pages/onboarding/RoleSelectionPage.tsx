@@ -1,6 +1,7 @@
-import { Card, CardActionArea, CardContent, Container, Stack, Typography } from '@mui/material';
+import { Box, Card, CardActionArea, CardContent, Container, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { brand } from '../../theme/theme';
+import { OnboardingStepper } from '../../components/brand/OnboardingStepper';
 
 const OPTIONS = [
   {
@@ -27,6 +28,9 @@ export function RoleSelectionPage() {
   const navigate = useNavigate();
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
+      <Box sx={{ mb: 3 }}>
+        <OnboardingStepper currentStep={1} />
+      </Box>
       <Stack spacing={3}>
         <Stack spacing={0.5} sx={{ textAlign: 'center' }}>
           <Typography variant="h5" sx={{ fontWeight: 700 }}>

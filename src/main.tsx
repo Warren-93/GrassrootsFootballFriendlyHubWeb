@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { theme } from './theme/theme';
 import { AuthProvider } from './auth/AuthContext';
 import { CurrentTeamProvider } from './session/CurrentTeamContext';
+import { NavPreferenceProvider } from './session/NavPreferenceContext';
 import { SplashGate } from './components/SplashGate';
 import App from './App.tsx';
 
@@ -19,9 +20,11 @@ createRoot(document.getElementById('root')!).render(
         <BrowserRouter>
           <AuthProvider>
             <CurrentTeamProvider>
-              <SplashGate>
-                <App />
-              </SplashGate>
+              <NavPreferenceProvider>
+                <SplashGate>
+                  <App />
+                </SplashGate>
+              </NavPreferenceProvider>
             </CurrentTeamProvider>
           </AuthProvider>
         </BrowserRouter>

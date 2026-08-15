@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Alert, Button, Card, Container, Stack, TextField } from '@mui/material';
+import { Alert, Box, Button, Card, Container, Stack, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { clubRepository } from '../../api/clubRepository';
 import { PostcodeLocationField } from '../../components/PostcodeLocationField';
 import { PageHeader } from '../../components/PageHeader';
+import { OnboardingStepper } from '../../components/brand/OnboardingStepper';
 
 export function CreateClubPage() {
   const navigate = useNavigate();
@@ -39,6 +40,9 @@ export function CreateClubPage() {
 
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
+      <Box sx={{ mb: 3 }}>
+        <OnboardingStepper currentStep={1} />
+      </Box>
       <Card sx={{ p: 4, borderRadius: 4 }}>
         <Stack spacing={3}>
           <PageHeader title="Create your club" />

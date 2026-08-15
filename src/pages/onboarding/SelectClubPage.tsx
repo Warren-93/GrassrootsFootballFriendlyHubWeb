@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   Alert,
+  Box,
   Button,
   Card,
   CardActionArea,
@@ -16,6 +17,7 @@ import { clubRepository } from '../../api/clubRepository';
 import type { ClubSearchView } from '../../api/types';
 import { PageHeader } from '../../components/PageHeader';
 import { brand } from '../../theme/theme';
+import { OnboardingStepper } from '../../components/brand/OnboardingStepper';
 
 /** SCR-ON-01's "my club already exists" path - search for the real club instead of silently creating a duplicate. */
 export function SelectClubPage() {
@@ -43,6 +45,9 @@ export function SelectClubPage() {
 
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
+      <Box sx={{ mb: 3 }}>
+        <OnboardingStepper currentStep={1} />
+      </Box>
       <Stack spacing={3}>
         <PageHeader title="Find your club" />
         <Typography variant="body2" color="text.secondary">

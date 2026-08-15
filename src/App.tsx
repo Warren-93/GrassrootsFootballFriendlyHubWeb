@@ -50,7 +50,7 @@ import { FixturesPage } from './pages/arrange/FixturesPage';
 import { FixtureDetailPage } from './pages/arrange/FixtureDetailPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import { PublicOnlyRoute } from './routes/PublicOnlyRoute';
-import { AppShell } from './layouts/AppShell';
+import { AppShellSwitch } from './layouts/AppShellSwitch';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 
 function App() {
@@ -77,7 +77,7 @@ function App() {
         <Route path="/add-availability" element={<AddAvailabilityPage />} />
         <Route path="/onboarding-complete" element={<OnboardingCompletePage />} />
 
-        <Route element={<AppShell />}>
+        <Route element={<AppShellSwitch />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/team/:teamId" element={<TeamProfilePage />} />
           <Route path="/team/:teamId/edit" element={<EditTeamPage />} />

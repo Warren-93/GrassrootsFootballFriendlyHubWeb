@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Alert,
+  Box,
   Button,
   Card,
   Container,
@@ -16,6 +17,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { teamRepository } from '../../api/teamRepository';
 import type { AbilityLevel, AgeGroup, Format, Gender, HomeAwayPreference } from '../../api/types';
 import { PostcodeLocationField } from '../../components/PostcodeLocationField';
+import { OnboardingStepper } from '../../components/brand/OnboardingStepper';
 
 const AGE_GROUPS: AgeGroup[] = ['U7', 'U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15', 'U16', 'U17', 'U18', 'ADULT', 'VETERANS'];
 const FORMATS: Format[] = ['FIVE_A_SIDE', 'SEVEN_A_SIDE', 'NINE_A_SIDE', 'ELEVEN_A_SIDE'];
@@ -100,6 +102,9 @@ export function CreateTeamPage() {
 
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
+      <Box sx={{ mb: 3 }}>
+        <OnboardingStepper currentStep={2} />
+      </Box>
       <Card sx={{ p: { xs: 3, sm: 4 }, borderRadius: 4 }}>
         <Stack spacing={3}>
         <Typography variant="h5" sx={{ fontWeight: 700, textAlign: 'center' }}>

@@ -1,83 +1,39 @@
-import { useEffect, useState } from 'react';
-import { Card, CardActionArea, CircularProgress, Container, Stack, Typography } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { conversationRepository } from '../../api/conversationRepository';
-import { useCurrentTeam } from '../../session/CurrentTeamContext';
-import type { ConversationView } from '../../api/types';
+import { Box, Typography, useMediaQuery } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { HeroBand } from '../../components/brand/HeroBand';
-import { CrestAvatar } from '../../components/brand/CrestAvatar';
+import { ConversationListPanel } from './ConversationListPanel';
 
-/** The inbox - every team you're chatting with, most recently active first. */
+/**
+ * The inbox - every team you're chatting with, most recently active first.
+ * On desktop this is the left pane of a persistent two-pane layout (list +
+ * an empty-state placeholder until a conversation is opened); on mobile it's
+ * a single full-width list, matching `ConversationThreadPage`'s own
+ * desktop/mobile split so the two routes together behave like one inbox.
+ */
 export function ConversationsListPage() {
-  const navigate = useNavigate();
-  const { active } = useCurrentTeam();
-  const [conversations, setConversations] = useState<ConversationView[]>([]);
-  const [loading, setLoading] = useState(true);
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'), { noSsr: true });
 
-  useEffect(() => {
-    if (!active) {
-      setLoading(false);
-      return;
-    }
-    conversationRepository.list(active.teamId).then((result) => {
-      if (result.ok) setConversations(result.value);
-      setLoading(false);
-    });
-  }, [active]);
-
-  if (!active) {
+  if (isDesktop) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6 }}>
-        <Typography>No active team. Create or select a team first.</Typography>
-      </Container>
-    );
-  }
-
-  if (loading) {
-    return (
-      <Container maxWidth="sm" sx={{ py: 6, textAlign: 'center' }}>
-        <CircularProgress />
-      </Container>
+      <Box sx={{ display: 'flex', height: 'calc(100vh - 64px)' }}>
+        <Box sx={{ width: 258, flexShrink: 0, borderRight: 1, borderColor: 'divider', overflowY: 'auto' }}>
+          <Box sx={{ px: 2, pt: 2 }}>
+            <HeroBand compact title="Messages" subtitle="Every conversation tied to a friendly or fixture." />
+          </Box>
+          <ConversationListPanel />
+        </Box>
+        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Typography color="text.secondary">Select a conversation to start reading</Typography>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="sm" sx={{ py: 3 }}>
+    <Box sx={{ px: 2, py: 3 }}>
       <HeroBand compact title="Messages" subtitle="Every conversation tied to a friendly or fixture." />
-
-      {conversations.length === 0 ? (
-        <Typography color="text.secondary">
-          No conversations yet. Message a team from their profile once they've published availability.
-        </Typography>
-      ) : (
-        <Stack spacing={1}>
-          {conversations.map((c) => {
-            const mine = c.lastMessageSenderTeamId === active.teamId;
-            return (
-              <Card key={c.id} variant="outlined">
-                <CardActionArea onClick={() => navigate(`/messages/${c.id}`)} sx={{ p: 1.5 }}>
-                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-                    <CrestAvatar name={c.otherTeam.name} size={40} />
-                    <Stack sx={{ flexGrow: 1, minWidth: 0 }}>
-                      <Typography sx={{ fontWeight: 700 }} noWrap>
-                        {c.otherTeam.name}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" noWrap>
-                        {c.lastMessageBody ? `${mine ? 'You: ' : ''}${c.lastMessageBody}` : 'No messages yet'}
-                      </Typography>
-                    </Stack>
-                    {c.lastMessageAt && (
-                      <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
-                        {new Date(c.lastMessageAt).toLocaleDateString()}
-                      </Typography>
-                    )}
-                  </Stack>
-                </CardActionArea>
-              </Card>
-            );
-          })}
-        </Stack>
-      )}
-    </Container>
+      <ConversationListPanel />
+    </Box>
   );
 }

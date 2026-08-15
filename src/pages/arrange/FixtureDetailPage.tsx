@@ -62,7 +62,7 @@ export function FixtureDetailPage() {
 
   if (loading) {
     return (
-      <Container maxWidth="xs" sx={{ py: 6, textAlign: 'center' }}>
+      <Container maxWidth="sm" sx={{ py: 6, textAlign: 'center' }}>
         <CircularProgress />
       </Container>
     );
@@ -70,7 +70,7 @@ export function FixtureDetailPage() {
 
   if (!fixture) {
     return (
-      <Container maxWidth="xs" sx={{ py: 6 }}>
+      <Container maxWidth="sm" sx={{ py: 6 }}>
         <Typography>Fixture not found.</Typography>
       </Container>
     );
@@ -93,7 +93,7 @@ export function FixtureDetailPage() {
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 3 }}>
+    <Container maxWidth="sm" sx={{ py: 3 }}>
       <Stack spacing={2}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <IconButton onClick={() => navigate(-1)} aria-label="Back" edge="start">
@@ -118,53 +118,64 @@ export function FixtureDetailPage() {
           meta={`${fixture.startTime.slice(0, 5)} - ${fixture.endTime.slice(0, 5)}`}
         />
 
-        <Card variant="outlined">
-          <CardContent>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-              Details
-            </Typography>
-            <Stack spacing={1}>
-              <Row label="Cost share" value={fixture.costShare.replace(/_/g, ' ')} />
-              <Row label="Referee" value={fixture.refereeArrangement.replace(/_/g, ' ')} />
-              <Row
-                label="Home contact"
-                value={`${fixture.homeTeam.managerName ?? '—'} ${fixture.homeTeam.contactPhone ?? ''}`}
-              />
-              <Row
-                label="Away contact"
-                value={`${fixture.awayTeam.managerName ?? '—'} ${fixture.awayTeam.contactPhone ?? ''}`}
-              />
-            </Stack>
-          </CardContent>
-        </Card>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+                Details
+              </Typography>
+              <Stack spacing={1}>
+                <Row label="Cost share" value={fixture.costShare.replace(/_/g, ' ')} />
+                <Row label="Referee" value={fixture.refereeArrangement.replace(/_/g, ' ')} />
+                <Row
+                  label="Home contact"
+                  value={`${fixture.homeTeam.managerName ?? '—'} ${fixture.homeTeam.contactPhone ?? ''}`}
+                />
+                <Row
+                  label="Away contact"
+                  value={`${fixture.awayTeam.managerName ?? '—'} ${fixture.awayTeam.contactPhone ?? ''}`}
+                />
+              </Stack>
+            </CardContent>
+          </Card>
 
-        {messageError && <Alert severity="error">{messageError}</Alert>}
-        {weManage && (
-          <Button variant="outlined" startIcon={<ChatBubbleOutlineIcon />} disabled={opening} onClick={openChat}>
-            {opening ? 'Opening…' : 'Message the other team'}
-          </Button>
-        )}
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+                Actions
+              </Typography>
+              <Stack spacing={1.5}>
+                {messageError && <Alert severity="error">{messageError}</Alert>}
+                {weManage && (
+                  <Button variant="outlined" startIcon={<ChatBubbleOutlineIcon />} disabled={opening} onClick={openChat}>
+                    {opening ? 'Opening…' : 'Message the other team'}
+                  </Button>
+                )}
 
-        {cancelError && <Alert severity="error">{cancelError}</Alert>}
+                {cancelError && <Alert severity="error">{cancelError}</Alert>}
 
-        {weManage && fixture.status === 'CONFIRMED' && (
-          <Button variant="outlined" color="error" onClick={() => setConfirmCancel(true)}>
-            Cancel fixture
-          </Button>
-        )}
+                {weManage && fixture.status === 'CONFIRMED' && (
+                  <Button variant="outlined" color="error" onClick={() => setConfirmCancel(true)}>
+                    Cancel fixture
+                  </Button>
+                )}
 
-        {active && (
-          <Button
-            variant="text"
-            color="error"
-            onClick={() => {
-              const otherTeam = active.teamId === fixture.homeTeam.id ? fixture.awayTeam : fixture.homeTeam;
-              navigate(`/report?teamId=${otherTeam.id}&teamName=${encodeURIComponent(otherTeam.name)}&fixtureId=${fixture.id}`);
-            }}
-          >
-            Report or block
-          </Button>
-        )}
+                {active && (
+                  <Button
+                    variant="text"
+                    color="error"
+                    onClick={() => {
+                      const otherTeam = active.teamId === fixture.homeTeam.id ? fixture.awayTeam : fixture.homeTeam;
+                      navigate(`/report?teamId=${otherTeam.id}&teamName=${encodeURIComponent(otherTeam.name)}&fixtureId=${fixture.id}`);
+                    }}
+                  >
+                    Report or block
+                  </Button>
+                )}
+              </Stack>
+            </CardContent>
+          </Card>
+        </Box>
       </Stack>
 
       <Dialog open={confirmCancel} onClose={() => setConfirmCancel(false)}>
