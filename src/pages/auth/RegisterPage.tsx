@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Alert, Button, Container, Link, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, Container, Link, Stack, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { authRepository } from '../../api/authRepository';
 import { useAuth } from '../../auth/AuthContext';
 import { BrandHeader } from '../../components/BrandHeader';
+import { brand } from '../../theme/theme';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -30,51 +31,74 @@ export function RegisterPage() {
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
-      <Stack spacing={3}>
-        <Stack spacing={2} sx={{ mb: 1 }}>
-          <BrandHeader tagline="none" />
-          <Typography variant="h5" sx={{ fontWeight: 700, textAlign: 'center' }}>
-            Create your account
-          </Typography>
-        </Stack>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+        px: 2,
+        py: 6,
+        background: `radial-gradient(680px 260px at 88% -25%, rgba(111,199,138,.22), transparent 60%), linear-gradient(158deg, ${brand.void} 0%, ${brand.voidLight} 60%, ${brand.void} 130%)`,
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          backgroundImage: 'repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 72px)',
+        },
+      }}
+    >
+      <Container maxWidth="xs" sx={{ position: 'relative' }}>
+        <Card sx={{ p: 4, borderRadius: 4, boxShadow: '0 24px 60px rgba(0,0,0,.35)' }}>
+          <Stack spacing={3}>
+            <Stack spacing={2} sx={{ mb: 1 }}>
+              <BrandHeader tagline="none" />
+              <Typography variant="h5" sx={{ fontWeight: 700, textAlign: 'center' }}>
+                Create your account
+              </Typography>
+            </Stack>
 
-        <TextField label="Display name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} fullWidth />
-        <TextField
-          label="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          fullWidth
-        />
-        <TextField
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          error={passwordTooShort}
-          helperText={passwordTooShort ? 'At least 10 characters' : ' '}
-          fullWidth
-        />
+            <TextField label="Display name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} fullWidth />
+            <TextField
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              fullWidth
+            />
+            <TextField
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              error={passwordTooShort}
+              helperText={passwordTooShort ? 'At least 10 characters' : ' '}
+              fullWidth
+            />
 
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+            {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-        <Button
-          variant="contained"
-          size="large"
-          disabled={submitting || !email || password.length < 10 || !displayName}
-          onClick={handleSubmit}
-        >
-          {submitting ? 'Creating account…' : 'Create account'}
-        </Button>
+            <Button
+              variant="contained"
+              size="large"
+              disabled={submitting || !email || password.length < 10 || !displayName}
+              onClick={handleSubmit}
+            >
+              {submitting ? 'Creating account…' : 'Create account'}
+            </Button>
 
-        <Typography variant="body2" sx={{ textAlign: 'center' }}>
-          Already have an account?{' '}
-          <Link component="button" onClick={() => navigate('/sign-in')}>
-            Sign in
-          </Link>
-        </Typography>
-      </Stack>
-    </Container>
+            <Typography variant="body2" sx={{ textAlign: 'center' }}>
+              Already have an account?{' '}
+              <Link component="button" onClick={() => navigate('/sign-in')}>
+                Sign in
+              </Link>
+            </Typography>
+          </Stack>
+        </Card>
+      </Container>
+    </Box>
   );
 }

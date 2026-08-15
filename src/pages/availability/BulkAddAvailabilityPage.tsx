@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import {
   Alert,
   Button,
+  Card,
+  CardContent,
   Chip,
   Container,
   MenuItem,
@@ -14,6 +16,9 @@ import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { availabilityRepository } from '../../api/availabilityRepository';
 import { venueRepository } from '../../api/venueRepository';
 import type { HomeAwayPreference, VenueView } from '../../api/types';
+import { PageHeader } from '../../components/PageHeader';
+import { StatTile } from '../../components/brand/StatTile';
+import { brand } from '../../theme/theme';
 
 const HOME_AWAY: HomeAwayPreference[] = ['HOME', 'AWAY', 'EITHER'];
 const WEEKDAYS = [
@@ -112,7 +117,7 @@ export function BulkAddAvailabilityPage() {
 
   if (!active) {
     return (
-      <Container maxWidth="xs" sx={{ py: 6 }}>
+      <Container maxWidth="sm" sx={{ py: 6 }}>
         <Typography>No active team.</Typography>
       </Container>
     );
@@ -120,11 +125,9 @@ export function BulkAddAvailabilityPage() {
 
   if (result) {
     return (
-      <Container maxWidth="xs" sx={{ py: 6 }}>
+      <Container maxWidth="sm" sx={{ py: 6 }}>
         <Stack spacing={2.5}>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Published
-          </Typography>
+          <PageHeader title="Published" onBack={() => navigate('/calendar')} />
           <Alert severity="success">
             {result.createdCount} date{result.createdCount === 1 ? '' : 's'} published.
           </Alert>
@@ -143,103 +146,114 @@ export function BulkAddAvailabilityPage() {
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
+    <Container maxWidth="sm" sx={{ py: 4 }}>
       <Stack spacing={3}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Bulk add availability
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <PageHeader title="Bulk add availability" />
+        <Typography variant="body2" color="text.secondary" sx={{ mt: -2 }}>
           Publish the same time window on every matching weekday between two dates.
         </Typography>
 
-        <Stack direction="row" spacing={2}>
-          <TextField
-            label="From"
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            fullWidth
-          />
-          <TextField
-            label="To"
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            fullWidth
-          />
-        </Stack>
+        <Card variant="outlined">
+          <CardContent>
+            <Stack spacing={2.5}>
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  label="From"
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  fullWidth
+                />
+                <TextField
+                  label="To"
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  fullWidth
+                />
+              </Stack>
 
-        <Stack spacing={1}>
-          <Typography variant="subtitle2">Repeat on</Typography>
-          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-            {WEEKDAYS.map((w) => (
-              <Chip
-                key={w.value}
-                label={w.label}
-                color={weekdays.has(w.value) ? 'primary' : 'default'}
-                onClick={() => toggleWeekday(w.value)}
+              <Stack spacing={1}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  Repeat on
+                </Typography>
+                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                  {WEEKDAYS.map((w) => {
+                    const selected = weekdays.has(w.value);
+                    return (
+                      <Chip
+                        key={w.value}
+                        label={w.label}
+                        onClick={() => toggleWeekday(w.value)}
+                        sx={
+                          selected
+                            ? { bgcolor: brand.pitch, color: '#fff' }
+                            : { bgcolor: brand.mist, color: brand.ink2 }
+                        }
+                      />
+                    );
+                  })}
+                </Stack>
+              </Stack>
+
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  label="Start time"
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  fullWidth
+                />
+                <TextField
+                  label="End time"
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  fullWidth
+                />
+              </Stack>
+
+              <TextField
+                select
+                label="Home / away"
+                value={homeAwayPreference}
+                onChange={(e) => setHomeAwayPreference(e.target.value as HomeAwayPreference)}
+                fullWidth
+              >
+                {HOME_AWAY.map((h) => (
+                  <MenuItem key={h} value={h}>
+                    {h}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              {homeAwayPreference !== 'AWAY' && venues.length > 0 && (
+                <TextField select label="Venue" value={venueId} onChange={(e) => setVenueId(e.target.value)} fullWidth>
+                  {venues.map((v) => (
+                    <MenuItem key={v.id} value={v.id}>
+                      {v.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
+
+              <TextField
+                label="Notes (optional)"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value.slice(0, 280))}
+                multiline
+                minRows={2}
+                fullWidth
               />
-            ))}
-          </Stack>
-        </Stack>
+            </Stack>
+          </CardContent>
+        </Card>
 
-        <Stack direction="row" spacing={2}>
-          <TextField
-            label="Start time"
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            fullWidth
-          />
-          <TextField
-            label="End time"
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            fullWidth
-          />
-        </Stack>
-
-        <TextField
-          select
-          label="Home / away"
-          value={homeAwayPreference}
-          onChange={(e) => setHomeAwayPreference(e.target.value as HomeAwayPreference)}
-          fullWidth
-        >
-          {HOME_AWAY.map((h) => (
-            <MenuItem key={h} value={h}>
-              {h}
-            </MenuItem>
-          ))}
-        </TextField>
-
-        {homeAwayPreference !== 'AWAY' && venues.length > 0 && (
-          <TextField select label="Venue" value={venueId} onChange={(e) => setVenueId(e.target.value)} fullWidth>
-            {venues.map((v) => (
-              <MenuItem key={v.id} value={v.id}>
-                {v.name}
-              </MenuItem>
-            ))}
-          </TextField>
-        )}
-
-        <TextField
-          label="Notes (optional)"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value.slice(0, 280))}
-          multiline
-          minRows={2}
-          fullWidth
-        />
-
-        <Typography variant="body2" color="text.secondary">
-          {previewDates.length} date{previewDates.length === 1 ? '' : 's'} will be published.
-        </Typography>
+        <StatTile label="Dates to publish" value={previewDates.length} sub={previewDates.length === 1 ? 'date' : 'dates'} />
 
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 

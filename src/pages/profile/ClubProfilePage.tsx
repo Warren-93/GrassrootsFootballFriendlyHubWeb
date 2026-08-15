@@ -5,6 +5,8 @@ import { clubRepository } from '../../api/clubRepository';
 import { teamRepository } from '../../api/teamRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import type { ClubView, TeamView } from '../../api/types';
+import { HeroBand } from '../../components/brand/HeroBand';
+import { brand } from '../../theme/theme';
 
 // SCR-PR-03 Club profile. Purpose: manage club identity and the squads beneath it.
 export function ClubProfilePage() {
@@ -50,33 +52,33 @@ export function ClubProfilePage() {
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
-      <Stack spacing={2.5}>
-        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-          <Avatar src={club.badgeUrl ?? undefined} sx={{ width: 56, height: 56 }}>
+    <Container maxWidth="xs" sx={{ py: 3 }}>
+      <HeroBand
+        compact
+        eyebrow="Club"
+        title={club.name}
+        subtitle={club.postcode}
+        action={
+          <Avatar src={club.badgeUrl ?? undefined} sx={{ width: 52, height: 52, bgcolor: 'rgba(255,255,255,.14)' }}>
             {club.name[0]}
           </Avatar>
-          <Stack>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {club.name}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {club.postcode}
-            </Typography>
-          </Stack>
-        </Stack>
+        }
+      />
 
-        <Typography variant="subtitle2">Teams</Typography>
+      <Stack spacing={2.5}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+          Teams
+        </Typography>
         <Stack spacing={1}>
           {teams.map((t) => (
-            <Card key={t.id} variant="outlined">
+            <Card key={t.id} variant="outlined" sx={{ borderLeft: `3px solid ${t.id === active.teamId ? brand.pitch : brand.border}`, borderRadius: 2.5 }}>
               <CardActionArea
                 onClick={() => setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId })}
                 sx={{ p: 1.5 }}
               >
                 <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
                   <Stack>
-                    <Typography sx={{ fontWeight: 600 }}>{t.name}</Typography>
+                    <Typography sx={{ fontWeight: 700 }}>{t.name}</Typography>
                     <Typography variant="body2" color="text.secondary">
                       {t.ageGroup} · {t.format} · {t.completenessPercent}% complete
                     </Typography>
@@ -94,14 +96,14 @@ export function ClubProfilePage() {
         <Card variant="outlined">
           <CardActionArea onClick={() => navigate(`/team/${active.teamId}/members`)}>
             <CardContent>
-              <Typography>Officials</Typography>
+              <Typography sx={{ fontWeight: 700 }}>Officials</Typography>
             </CardContent>
           </CardActionArea>
         </Card>
         <Card variant="outlined">
           <CardActionArea onClick={() => navigate('/venues')}>
             <CardContent>
-              <Typography>Venues</Typography>
+              <Typography sx={{ fontWeight: 700 }}>Venues</Typography>
               <Typography variant="body2" color="text.secondary">
                 Shared across all squads in this club
               </Typography>

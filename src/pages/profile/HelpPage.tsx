@@ -58,9 +58,9 @@ export function HelpPage() {
 
         <Stack spacing={1.5}>
           {FAQS.map((faq) => (
-            <Card key={faq.question} variant="outlined">
+            <Card key={faq.question} variant="outlined" sx={{ borderRadius: 2.5 }}>
               <CardContent>
-                <Typography sx={{ fontWeight: 600 }}>{faq.question}</Typography>
+                <Typography sx={{ fontWeight: 700 }}>{faq.question}</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                   {faq.answer}
                 </Typography>

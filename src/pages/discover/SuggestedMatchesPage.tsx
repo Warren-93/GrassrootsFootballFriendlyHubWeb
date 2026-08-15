@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, CircularProgress, Container, Stack, Typography } from '@mui/material';
+import { Alert, Button, Card, CardContent, CircularProgress, Container, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { matchRepository } from '../../api/matchRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { useSearchResultsStore } from '../../session/SearchState';
+import { brand } from '../../theme/theme';
 
 // SCR-HM-03 Suggested matches. Purpose: show every opponent worth considering
 // right now, without the manual filter step SCR-FF-01/02 require - lands
@@ -28,36 +29,47 @@ export function SuggestedMatchesPage() {
 
   if (!active) {
     return (
-      <Container maxWidth="xs" sx={{ py: 6 }}>
-        <Stack spacing={2}>
-          <Typography>No team selected.</Typography>
-          <Button variant="text" onClick={() => navigate(-1)}>
-            Back
-          </Button>
-        </Stack>
+      <Container maxWidth="sm" sx={{ py: 8 }}>
+        <Card variant="outlined">
+          <CardContent sx={{ py: 5, textAlign: 'center' }}>
+            <Stack spacing={2} sx={{ alignItems: 'center' }}>
+              <Typography color="text.secondary">No team selected.</Typography>
+              <Button variant="text" onClick={() => navigate(-1)}>
+                Back
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
-      <Stack spacing={3} sx={{ alignItems: 'center', textAlign: 'center' }}>
-        {errorMessage ? (
-          <>
-            <Alert severity="error" sx={{ width: '100%' }}>
-              {errorMessage}
-            </Alert>
-            <Button variant="text" onClick={() => navigate(-1)}>
-              Back
-            </Button>
-          </>
-        ) : (
-          <>
-            <CircularProgress />
-            <Typography color="text.secondary">Finding suggested matches…</Typography>
-          </>
-        )}
-      </Stack>
+    <Container maxWidth="sm" sx={{ py: 8 }}>
+      <Card variant="outlined">
+        <CardContent sx={{ py: 6 }}>
+          <Stack spacing={2} sx={{ alignItems: 'center', textAlign: 'center' }}>
+            {errorMessage ? (
+              <>
+                <Alert severity="error" sx={{ width: '100%' }}>
+                  {errorMessage}
+                </Alert>
+                <Button variant="text" onClick={() => navigate(-1)}>
+                  Back
+                </Button>
+              </>
+            ) : (
+              <>
+                <CircularProgress sx={{ color: brand.pitch }} />
+                <Typography sx={{ fontWeight: 700 }}>Finding suggested matches…</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Matching your published availability against nearby teams.
+                </Typography>
+              </>
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
     </Container>
   );
 }

@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
   Alert,
+  Box,
   Button,
+  Card,
+  CardContent,
   Chip,
   CircularProgress,
   Container,
@@ -10,16 +13,19 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fixtureRepository } from '../../api/fixtureRepository';
 import { conversationRepository } from '../../api/conversationRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
-import { PageHeader } from '../../components/PageHeader';
+import { FixtureBanner } from '../../components/brand/FixtureBanner';
+import { brand } from '../../theme/theme';
 import type { FixtureView } from '../../api/types';
 
 export function FixtureDetailPage() {
@@ -87,29 +93,50 @@ export function FixtureDetailPage() {
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
+    <Container maxWidth="xs" sx={{ py: 3 }}>
       <Stack spacing={2}>
-        <PageHeader title={`${fixture.homeTeam.name} vs ${fixture.awayTeam.name}`} />
-        <Chip label={fixture.status} sx={{ alignSelf: 'flex-start' }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <IconButton onClick={() => navigate(-1)} aria-label="Back" edge="start">
+            <ArrowBackIcon />
+          </IconButton>
+          <Chip
+            label={fixture.status}
+            size="small"
+            sx={
+              fixture.status === 'CONFIRMED'
+                ? { bgcolor: '#E4F4E4', color: brand.pitchDeep }
+                : { bgcolor: brand.mist, color: brand.muted }
+            }
+          />
+        </Box>
 
-        <Typography variant="body2">
-          {fixture.date}, kick-off {fixture.startTime.slice(0, 5)} - {fixture.endTime.slice(0, 5)}
-        </Typography>
-        <Typography variant="body2">Cost share: {fixture.costShare.replace(/_/g, ' ')}</Typography>
-        <Typography variant="body2">Referee: {fixture.refereeArrangement.replace(/_/g, ' ')}</Typography>
+        <FixtureBanner
+          tag={fixture.status === 'CONFIRMED' ? 'Confirmed friendly' : fixture.status}
+          homeTeam={fixture.homeTeam.name}
+          awayTeam={fixture.awayTeam.name}
+          date={fixture.date}
+          meta={`${fixture.startTime.slice(0, 5)} - ${fixture.endTime.slice(0, 5)}`}
+        />
 
-        <Stack spacing={0.5}>
-          <Typography variant="subtitle2">Home team contact</Typography>
-          <Typography variant="body2">
-            {fixture.homeTeam.managerName ?? '—'} {fixture.homeTeam.contactPhone ?? ''}
-          </Typography>
-        </Stack>
-        <Stack spacing={0.5}>
-          <Typography variant="subtitle2">Away team contact</Typography>
-          <Typography variant="body2">
-            {fixture.awayTeam.managerName ?? '—'} {fixture.awayTeam.contactPhone ?? ''}
-          </Typography>
-        </Stack>
+        <Card variant="outlined">
+          <CardContent>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+              Details
+            </Typography>
+            <Stack spacing={1}>
+              <Row label="Cost share" value={fixture.costShare.replace(/_/g, ' ')} />
+              <Row label="Referee" value={fixture.refereeArrangement.replace(/_/g, ' ')} />
+              <Row
+                label="Home contact"
+                value={`${fixture.homeTeam.managerName ?? '—'} ${fixture.homeTeam.contactPhone ?? ''}`}
+              />
+              <Row
+                label="Away contact"
+                value={`${fixture.awayTeam.managerName ?? '—'} ${fixture.awayTeam.contactPhone ?? ''}`}
+              />
+            </Stack>
+          </CardContent>
+        </Card>
 
         {messageError && <Alert severity="error">{messageError}</Alert>}
         {weManage && (
@@ -164,5 +191,18 @@ export function FixtureDetailPage() {
         </DialogActions>
       </Dialog>
     </Container>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+      <Typography variant="body2" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography variant="body2" sx={{ fontWeight: 600, textAlign: 'right' }}>
+        {value}
+      </Typography>
+    </Stack>
   );
 }

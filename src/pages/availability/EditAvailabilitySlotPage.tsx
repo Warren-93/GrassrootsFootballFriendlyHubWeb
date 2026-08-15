@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, CircularProgress, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Button, Card, CardContent, CircularProgress, Container, MenuItem, Stack, TextField } from '@mui/material';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { availabilityRepository } from '../../api/availabilityRepository';
 import { venueRepository } from '../../api/venueRepository';
 import type { HomeAwayPreference, VenueView } from '../../api/types';
+import { PageHeader } from '../../components/PageHeader';
+import { brand } from '../../theme/theme';
 
 const HOME_AWAY: HomeAwayPreference[] = ['HOME', 'AWAY', 'EITHER'];
 
@@ -76,78 +78,82 @@ export function EditAvailabilitySlotPage() {
 
   if (loading) {
     return (
-      <Container maxWidth="xs" sx={{ py: 6, textAlign: 'center' }}>
-        <CircularProgress />
+      <Container maxWidth="sm" sx={{ py: 6, textAlign: 'center' }}>
+        <CircularProgress sx={{ color: brand.pitch }} />
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
+    <Container maxWidth="sm" sx={{ py: 4 }}>
       <Stack spacing={3}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          {isEdit ? 'Edit availability' : 'Add availability'}
-        </Typography>
+        <PageHeader title={isEdit ? 'Edit availability' : 'Add availability'} />
 
-        <TextField
-          label="Date"
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          slotProps={{ inputLabel: { shrink: true } }}
-          fullWidth
-        />
-        <Stack direction="row" spacing={2}>
-          <TextField
-            label="Start time"
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            fullWidth
-          />
-          <TextField
-            label="End time"
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            fullWidth
-          />
-        </Stack>
-        <TextField
-          select
-          label="Home / away"
-          value={homeAwayPreference}
-          onChange={(e) => setHomeAwayPreference(e.target.value as HomeAwayPreference)}
-          fullWidth
-        >
-          {HOME_AWAY.map((h) => (
-            <MenuItem key={h} value={h}>
-              {h}
-            </MenuItem>
-          ))}
-        </TextField>
+        <Card variant="outlined">
+          <CardContent>
+            <Stack spacing={2.5}>
+              <TextField
+                label="Date"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                slotProps={{ inputLabel: { shrink: true } }}
+                fullWidth
+              />
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  label="Start time"
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  fullWidth
+                />
+                <TextField
+                  label="End time"
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  fullWidth
+                />
+              </Stack>
+              <TextField
+                select
+                label="Home / away"
+                value={homeAwayPreference}
+                onChange={(e) => setHomeAwayPreference(e.target.value as HomeAwayPreference)}
+                fullWidth
+              >
+                {HOME_AWAY.map((h) => (
+                  <MenuItem key={h} value={h}>
+                    {h}
+                  </MenuItem>
+                ))}
+              </TextField>
 
-        {homeAwayPreference !== 'AWAY' && venues.length > 0 && (
-          <TextField select label="Venue" value={venueId} onChange={(e) => setVenueId(e.target.value)} fullWidth>
-            {venues.map((v) => (
-              <MenuItem key={v.id} value={v.id}>
-                {v.name}
-              </MenuItem>
-            ))}
-          </TextField>
-        )}
+              {homeAwayPreference !== 'AWAY' && venues.length > 0 && (
+                <TextField select label="Venue" value={venueId} onChange={(e) => setVenueId(e.target.value)} fullWidth>
+                  {venues.map((v) => (
+                    <MenuItem key={v.id} value={v.id}>
+                      {v.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
 
-        <TextField
-          label="Notes (optional)"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value.slice(0, 280))}
-          helperText={`${notes.length}/280`}
-          multiline
-          minRows={2}
-          fullWidth
-        />
+              <TextField
+                label="Notes (optional)"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value.slice(0, 280))}
+                helperText={`${notes.length}/280`}
+                multiline
+                minRows={2}
+                fullWidth
+              />
+            </Stack>
+          </CardContent>
+        </Card>
 
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 

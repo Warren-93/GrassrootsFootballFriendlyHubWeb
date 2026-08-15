@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Button, Container, Stack, TextField } from '@mui/material';
+import { Alert, Button, Card, Container, Stack, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { clubRepository } from '../../api/clubRepository';
 import { PostcodeLocationField } from '../../components/PostcodeLocationField';
@@ -39,30 +39,32 @@ export function CreateClubPage() {
 
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
-      <Stack spacing={3}>
-        <PageHeader title="Create your club" />
+      <Card sx={{ p: 4, borderRadius: 4 }}>
+        <Stack spacing={3}>
+          <PageHeader title="Create your club" />
 
-        <TextField label="Club name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
-        <PostcodeLocationField
-          postcode={postcode}
-          onPostcodeChange={setPostcode}
-          coordinates={coordinates}
-          onCoordinatesChange={setCoordinates}
-        />
-        <TextField label="Website (optional)" value={website} onChange={(e) => setWebsite(e.target.value)} fullWidth />
-        <TextField
-          label="Contact email (optional)"
-          value={contactEmail}
-          onChange={(e) => setContactEmail(e.target.value)}
-          fullWidth
-        />
+          <TextField label="Club name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
+          <PostcodeLocationField
+            postcode={postcode}
+            onPostcodeChange={setPostcode}
+            coordinates={coordinates}
+            onCoordinatesChange={setCoordinates}
+          />
+          <TextField label="Website (optional)" value={website} onChange={(e) => setWebsite(e.target.value)} fullWidth />
+          <TextField
+            label="Contact email (optional)"
+            value={contactEmail}
+            onChange={(e) => setContactEmail(e.target.value)}
+            fullWidth
+          />
 
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+          {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-        <Button variant="contained" size="large" disabled={submitting || !canSubmit} onClick={handleSubmit}>
-          {submitting ? 'Creating…' : 'Continue'}
-        </Button>
-      </Stack>
+          <Button variant="contained" size="large" disabled={submitting || !canSubmit} onClick={handleSubmit}>
+            {submitting ? 'Creating…' : 'Continue'}
+          </Button>
+        </Stack>
+      </Card>
     </Container>
   );
 }

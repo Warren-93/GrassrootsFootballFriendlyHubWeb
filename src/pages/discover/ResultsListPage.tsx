@@ -9,13 +9,9 @@ import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { teamRepository } from '../../api/teamRepository';
 import { geocodeOutcode } from '../../lib/geocodeOutcode';
 import { PageHeader } from '../../components/PageHeader';
+import { MatchScoreChip } from '../../components/brand/MatchScoreChip';
+import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import type { MatchSummary } from '../../api/types';
-
-const BAND_COLOR: Record<string, 'success' | 'warning' | 'default'> = {
-  EXCELLENT: 'success',
-  GOOD: 'success',
-  FAIR: 'warning',
-};
 
 function homeIcon(): L.DivIcon {
   return L.divIcon({
@@ -103,18 +99,21 @@ export function ResultsListPage() {
             <Card key={match.team.id} variant="outlined">
               <CardActionArea onClick={() => navigate(`/opponent/${match.team.id}`)}>
                 <CardContent>
-                  <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                        {match.team.name}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {match.team.clubName} · {match.team.generalArea} · {match.milesApart.toFixed(1)} mi
-                      </Typography>
-                    </Box>
-                    <Chip label={`${match.score}%`} color={BAND_COLOR[match.band] ?? 'default'} />
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+                    <CrestAvatar name={match.team.name} />
+                    <Stack direction="row" sx={{ flex: 1, minWidth: 0, justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                          {match.team.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {match.team.clubName} &middot; {match.team.generalArea} &middot; {match.milesApart.toFixed(1)} mi
+                        </Typography>
+                      </Box>
+                      <MatchScoreChip score={match.score} />
+                    </Stack>
                   </Stack>
-                  <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap' }}>
+                  <Stack direction="row" spacing={1} sx={{ mt: 1, ml: '46px', flexWrap: 'wrap' }}>
                     {match.reasons.slice(0, 3).map((reason) => (
                       <Chip key={reason} size="small" label={reason} variant="outlined" />
                     ))}

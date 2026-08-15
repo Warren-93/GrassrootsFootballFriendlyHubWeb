@@ -5,6 +5,7 @@ import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { useInvitationDraftStore, useSearchResultsStore } from '../../session/SearchState';
 import { addMinutesToTime } from '../../utils/time';
 import { PageHeader } from '../../components/PageHeader';
+import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import type { CostShare, HomeAwayPreference, RefereeArrangement } from '../../api/types';
 
 const COST_SHARES: CostShare[] = ['SPLIT', 'HOST_PAYS', 'VISITOR_PAYS', 'NONE'];
@@ -59,8 +60,11 @@ export function InvitationComposerPage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={3}>
-        <PageHeader title={`Propose to ${match.team.name}`} />
-        <Typography variant="body2" color="text.secondary">
+        <PageHeader title="Propose a friendly" action={<CrestAvatar name={match.team.name} />} />
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mt: -1 }}>
+          {match.team.name}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: -2 }}>
           {date}, {startTime} - {endTime}
         </Typography>
 

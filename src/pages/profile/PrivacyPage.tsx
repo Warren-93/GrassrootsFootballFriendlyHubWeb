@@ -20,6 +20,7 @@ import { privacyRepository } from '../../api/privacyRepository';
 import { useAuth } from '../../auth/AuthContext';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import type { AccountExport } from '../../api/types';
+import { brand } from '../../theme/theme';
 
 // SCR-PR-10 Privacy and data. Purpose: let a user see and remove what the
 // platform holds on them.
@@ -85,10 +86,12 @@ export function PrivacyPage() {
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
         {data && (
-          <Card variant="outlined">
+          <Card variant="outlined" sx={{ borderLeft: `3px solid ${brand.void}`, borderRadius: 2.5 }}>
             <CardContent>
-              <Typography variant="subtitle2">What we hold on you</Typography>
-              <Typography variant="body2" sx={{ mt: 1 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', fontSize: 11, color: brand.muted }}>
+                What we hold on you
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 1, fontWeight: 700 }}>
                 {data.displayName} · {data.email}
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -108,7 +111,7 @@ export function PrivacyPage() {
         <Divider />
 
         <Stack spacing={1}>
-          <Typography variant="subtitle2" color="error">
+          <Typography variant="subtitle2" sx={{ color: brand.coral, fontWeight: 700 }}>
             Delete account
           </Typography>
           <Typography variant="body2" color="text.secondary">

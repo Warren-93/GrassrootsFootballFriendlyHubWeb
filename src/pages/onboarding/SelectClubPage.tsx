@@ -14,6 +14,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { clubRepository } from '../../api/clubRepository';
 import type { ClubSearchView } from '../../api/types';
+import { PageHeader } from '../../components/PageHeader';
+import { brand } from '../../theme/theme';
 
 /** SCR-ON-01's "my club already exists" path - search for the real club instead of silently creating a duplicate. */
 export function SelectClubPage() {
@@ -42,12 +44,7 @@ export function SelectClubPage() {
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
       <Stack spacing={3}>
-        <Button variant="text" onClick={() => navigate(-1)} sx={{ alignSelf: 'flex-start' }}>
-          Back
-        </Button>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Find your club
-        </Typography>
+        <PageHeader title="Find your club" />
         <Typography variant="body2" color="text.secondary">
           Search for the club your team already belongs to. You'll need to be one of its admins to add a team
           under it.
@@ -77,10 +74,10 @@ export function SelectClubPage() {
 
         <List sx={{ p: 0 }}>
           {results.map((club) => (
-            <Card key={club.id} variant="outlined" sx={{ mb: 1 }}>
+            <Card key={club.id} variant="outlined" sx={{ mb: 1, borderLeft: `3px solid ${brand.pitch}`, borderRadius: 2.5 }}>
               <CardActionArea onClick={() => selectClub(club)}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                     {club.name}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">

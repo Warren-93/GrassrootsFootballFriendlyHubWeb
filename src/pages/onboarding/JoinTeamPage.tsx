@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Alert, Button, Container, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Button, Card, Container, Stack, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { memberRepository } from '../../api/memberRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { PageHeader } from '../../components/PageHeader';
 
 /** Self-service alternative to the create-club/create-team flow - redeem a manager's join code directly. */
 export function JoinTeamPage() {
@@ -27,32 +28,29 @@ export function JoinTeamPage() {
 
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
-      <Stack spacing={3}>
-        <Button variant="text" onClick={() => navigate(-1)} sx={{ alignSelf: 'flex-start' }}>
-          Back
-        </Button>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Join a team
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Enter the code your team manager shared with you.
-        </Typography>
+      <Card sx={{ p: 4, borderRadius: 4 }}>
+        <Stack spacing={3}>
+          <PageHeader title="Join a team" />
+          <Typography variant="body2" color="text.secondary">
+            Enter the code your team manager shared with you.
+          </Typography>
 
-        <TextField
-          label="Join code"
-          value={code}
-          onChange={(e) => setCode(e.target.value.toUpperCase())}
-          onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-          fullWidth
-          slotProps={{ htmlInput: { maxLength: 6, style: { letterSpacing: '0.2em', textTransform: 'uppercase' } } }}
-        />
+          <TextField
+            label="Join code"
+            value={code}
+            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+            fullWidth
+            slotProps={{ htmlInput: { maxLength: 6, style: { letterSpacing: '0.2em', textTransform: 'uppercase' } } }}
+          />
 
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+          {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-        <Button variant="contained" size="large" disabled={submitting || code.trim().length !== 6} onClick={handleSubmit}>
-          {submitting ? 'Joining…' : 'Join team'}
-        </Button>
-      </Stack>
+          <Button variant="contained" size="large" disabled={submitting || code.trim().length !== 6} onClick={handleSubmit}>
+            {submitting ? 'Joining…' : 'Join team'}
+          </Button>
+        </Stack>
+      </Card>
     </Container>
   );
 }

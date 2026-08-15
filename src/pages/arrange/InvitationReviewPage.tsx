@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Button, Container, Stack, Typography } from '@mui/material';
+import { Alert, Button, Card, CardContent, Container, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { useInvitationDraftStore } from '../../session/SearchState';
@@ -53,19 +53,26 @@ export function InvitationReviewPage() {
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
+    <Container maxWidth="xs" sx={{ py: 4 }}>
       <Stack spacing={2}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Review invitation
+        <Typography variant="h4" sx={{ fontWeight: 400 }}>
+          Review before sending
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Double-check the details - you can still edit anything.
         </Typography>
 
-        <Typography variant="body2">Date: {draft.date}</Typography>
-        <Typography variant="body2">
-          Time: {draft.startTime.slice(0, 5)} - {draft.endTime.slice(0, 5)}
-        </Typography>
-        <Typography variant="body2">Home team: {draft.homeTeamId === active.teamId ? 'Us' : 'Them'}</Typography>
-        <Typography variant="body2">Cost share: {draft.costShare.replace(/_/g, ' ')}</Typography>
-        <Typography variant="body2">Referee: {draft.refereeArrangement.replace(/_/g, ' ')}</Typography>
+        <Card variant="outlined">
+          <CardContent>
+            <Stack spacing={1}>
+              <Row label="Date" value={draft.date} />
+              <Row label="Time" value={`${draft.startTime.slice(0, 5)} - ${draft.endTime.slice(0, 5)}`} />
+              <Row label="Home team" value={draft.homeTeamId === active.teamId ? 'Us' : 'Them'} />
+              <Row label="Cost share" value={draft.costShare.replace(/_/g, ' ')} />
+              <Row label="Referee" value={draft.refereeArrangement.replace(/_/g, ' ')} />
+            </Stack>
+          </CardContent>
+        </Card>
         {draft.message && <Typography variant="body2">Message: "{draft.message}"</Typography>}
 
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
@@ -78,5 +85,18 @@ export function InvitationReviewPage() {
         </Button>
       </Stack>
     </Container>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+      <Typography variant="body2" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography variant="body2" sx={{ fontWeight: 600, textAlign: 'right' }}>
+        {value}
+      </Typography>
+    </Stack>
   );
 }

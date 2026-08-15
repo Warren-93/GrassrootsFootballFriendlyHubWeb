@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Container, FormControlLabel, Stack, Switch, Typography } from '@mui/material';
+import { Alert, Button, Card, Container, FormControlLabel, Stack, Switch, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { notificationRepository } from '../../api/notificationRepository';
 import type { NotificationPreferenceView } from '../../api/types';
+import { brand } from '../../theme/theme';
 
 const LABELS: { key: keyof NotificationPreferenceView; label: string; help: string }[] = [
   { key: 'friendlyRequests', label: 'Friendly requests', help: 'New requests, declines, suggested changes and withdrawals' },
@@ -62,23 +63,25 @@ export function NotificationPreferencesPage() {
 
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-        <Stack spacing={1}>
-          {LABELS.map(({ key, label, help }) => (
-            <Stack key={key} direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-              <Stack sx={{ pr: 2 }}>
-                <Typography>{label}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {help}
-                </Typography>
+        <Card variant="outlined" sx={{ borderRadius: 2.5 }}>
+          <Stack divider={<Stack sx={{ borderBottom: `1px solid ${brand.border}` }} />} sx={{ px: 2 }}>
+            {LABELS.map(({ key, label, help }) => (
+              <Stack key={key} direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', py: 1.5 }}>
+                <Stack sx={{ pr: 2 }}>
+                  <Typography sx={{ fontWeight: 700 }}>{label}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {help}
+                  </Typography>
+                </Stack>
+                <FormControlLabel
+                  control={<Switch checked={prefs[key]} onChange={() => toggle(key)} disabled={saving} />}
+                  label=""
+                  sx={{ m: 0 }}
+                />
               </Stack>
-              <FormControlLabel
-                control={<Switch checked={prefs[key]} onChange={() => toggle(key)} disabled={saving} />}
-                label=""
-                sx={{ m: 0 }}
-              />
-            </Stack>
-          ))}
-        </Stack>
+            ))}
+          </Stack>
+        </Card>
 
         <Button variant="text" onClick={() => navigate(-1)}>
           Back

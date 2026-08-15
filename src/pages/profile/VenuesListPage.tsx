@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { venueRepository } from '../../api/venueRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import type { VenueView } from '../../api/types';
+import { HeroBand } from '../../components/brand/HeroBand';
 
 // SCR-PR-05 Venues list. Purpose: see and manage every pitch the club can host at.
 export function VenuesListPage() {
@@ -40,7 +41,8 @@ export function VenuesListPage() {
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
+    <Container maxWidth="xs" sx={{ py: 3 }}>
+      <HeroBand compact title="Venues" subtitle="Shared across all squads in this club" />
       <Stack spacing={2}>
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
@@ -51,12 +53,12 @@ export function VenuesListPage() {
         ) : (
           <Stack spacing={1}>
             {venues.map((v) => (
-              <Card key={v.id} variant="outlined">
+              <Card key={v.id} variant="outlined" sx={{ borderRadius: 2.5 }}>
                 <CardActionArea onClick={() => navigate(`/venues/${v.id}/edit`)}>
                   <CardContent>
                     <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
                       <Stack>
-                        <Typography sx={{ fontWeight: 600 }}>{v.name}</Typography>
+                        <Typography sx={{ fontWeight: 700 }}>{v.name}</Typography>
                         <Typography variant="body2" color="text.secondary">
                           {v.address}
                         </Typography>

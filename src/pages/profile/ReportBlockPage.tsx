@@ -15,6 +15,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { reportRepository } from '../../api/reportRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import type { ReportSeverity, ReportType } from '../../api/types';
+import { brand } from '../../theme/theme';
 
 const REASONS: { value: ReportType; label: string; severity: ReportSeverity; blockByDefault: boolean }[] = [
   { value: 'SAFEGUARDING', label: 'Safeguarding concern', severity: 'SAFEGUARDING', blockByDefault: true },
@@ -123,7 +124,9 @@ export function ReportBlockPage() {
         </Alert>
 
         <Stack spacing={0.5}>
-          <Typography variant="subtitle2">Reason</Typography>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', fontSize: 11, color: brand.muted }}>
+            Reason
+          </Typography>
           <RadioGroup value={reason} onChange={(e) => selectReason(e.target.value as ReportType)}>
             {REASONS.map((r) => (
               <FormControlLabel key={r.value} value={r.value} control={<Radio />} label={r.label} />

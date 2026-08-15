@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { Alert, Button, Chip, Container, Stack, Typography } from '@mui/material';
+import { Alert, Button, Card, CardContent, Chip, Container, Stack, Typography } from '@mui/material';
 import TuneIcon from '@mui/icons-material/Tune';
+import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { useSearchFilterStore, useSearchResultsStore } from '../../session/SearchState';
 import { matchRepository } from '../../api/matchRepository';
+import { HeroBand } from '../../components/brand/HeroBand';
+import { brand } from '../../theme/theme';
 
 export function SearchEntryPage() {
   const navigate = useNavigate();
@@ -50,33 +53,49 @@ export function SearchEntryPage() {
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
-      <Stack spacing={3}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Find a friendly
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          We'll match your published availability against nearby teams, ranked by fit.
-        </Typography>
+    <Container maxWidth="sm" sx={{ py: 3 }}>
+      <HeroBand
+        eyebrow="Discover"
+        title="Find a friendly"
+        subtitle="We'll match your published availability against nearby teams, ranked by fit."
+      />
 
-        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-          {activeFilterChips.length === 0 ? (
-            <Chip label="No filters set" variant="outlined" />
-          ) : (
-            activeFilterChips.map((chip) => <Chip key={chip} label={chip} />)
-          )}
-        </Stack>
+      <Card variant="outlined" sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>
+            Active filters
+          </Typography>
+          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mb: 2 }}>
+            {activeFilterChips.length === 0 ? (
+              <Chip label="No filters set" variant="outlined" />
+            ) : (
+              activeFilterChips.map((chip) => (
+                <Chip key={chip} label={chip} sx={{ bgcolor: brand.mist, color: brand.ink2 }} />
+              ))
+            )}
+          </Stack>
+          <Button variant="outlined" startIcon={<TuneIcon />} onClick={() => navigate('/filters')}>
+            Adjust filters
+          </Button>
+        </CardContent>
+      </Card>
 
-        <Button variant="outlined" startIcon={<TuneIcon />} onClick={() => navigate('/filters')}>
-          Adjust filters
-        </Button>
+      {errorMessage && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errorMessage}
+        </Alert>
+      )}
 
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
-
-        <Button variant="contained" size="large" disabled={searching || !active} onClick={handleSearch}>
-          {searching ? 'Searching…' : 'Search'}
-        </Button>
-      </Stack>
+      <Button
+        variant="contained"
+        size="large"
+        fullWidth
+        startIcon={!searching ? <SearchIcon /> : undefined}
+        disabled={searching || !active}
+        onClick={handleSearch}
+      >
+        {searching ? 'Searching…' : 'Search'}
+      </Button>
     </Container>
   );
 }

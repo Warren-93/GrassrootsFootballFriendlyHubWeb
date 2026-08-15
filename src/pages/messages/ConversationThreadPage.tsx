@@ -5,6 +5,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { conversationRepository } from '../../api/conversationRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { PageHeader } from '../../components/PageHeader';
+import { CrestAvatar } from '../../components/brand/CrestAvatar';
+import { brand } from '../../theme/theme';
 import type { ConversationView, MessageView } from '../../api/types';
 
 const POLL_MS = 4000;
@@ -79,9 +81,13 @@ export function ConversationThreadPage() {
 
   return (
     <Box sx={{ height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ px: 3, pt: 3, pb: 1 }}>
-        <PageHeader title={conversation.otherTeam.name} onBack={() => navigate('/messages')} />
-        <Typography variant="body2" color="text.secondary">
+      <Box sx={{ px: 3, pt: 3, pb: 1.5, borderBottom: 1, borderColor: 'divider' }}>
+        <PageHeader
+          title={conversation.otherTeam.name}
+          onBack={() => navigate('/messages')}
+          action={<CrestAvatar name={conversation.otherTeam.name} size={32} />}
+        />
+        <Typography variant="body2" color="text.secondary" sx={{ ml: 5 }}>
           {conversation.otherTeam.clubName}
         </Typography>
       </Box>
@@ -100,11 +106,12 @@ export function ConversationThreadPage() {
                   <Box
                     sx={{
                       maxWidth: '75%',
-                      px: 1.5,
+                      px: 1.75,
                       py: 1,
-                      borderRadius: 2,
-                      bgcolor: isMine ? 'primary.main' : 'action.hover',
-                      color: isMine ? 'primary.contrastText' : 'text.primary',
+                      borderRadius: 2.5,
+                      ...(isMine
+                        ? { bgcolor: brand.void, color: '#fff', borderBottomRightRadius: 6 }
+                        : { bgcolor: brand.mist, color: brand.ink, borderBottomLeftRadius: 6 }),
                     }}
                   >
                     <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>

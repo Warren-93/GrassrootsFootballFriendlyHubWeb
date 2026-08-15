@@ -17,6 +17,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { brand } from '../../theme/theme';
 
 /**
  * SCR-PR-08 Settings. Purpose: account, notification, privacy and support
@@ -42,10 +43,16 @@ export function SettingsPage() {
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={2}>
-        <Card variant="outlined">
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          Settings
+        </Typography>
+
+        <Card variant="outlined" sx={{ borderLeft: `3px solid ${brand.pitch}`, borderRadius: 2.5 }}>
           <CardContent>
-            <Typography variant="subtitle2">Account</Typography>
-            <Typography variant="body1" sx={{ mt: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: brand.muted, textTransform: 'uppercase', letterSpacing: '.05em', fontSize: 11 }}>
+              Account
+            </Typography>
+            <Typography variant="body1" sx={{ mt: 1, fontWeight: 700 }}>
               {session?.displayName}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -56,30 +63,30 @@ export function SettingsPage() {
                 label="Verify your email"
                 size="small"
                 onClick={() => navigate('/email-verification')}
-                sx={{ mt: 1 }}
+                sx={{ mt: 1, bgcolor: brand.amberBg, color: brand.amber, fontWeight: 700 }}
               />
             )}
           </CardContent>
         </Card>
 
-        <Card variant="outlined">
+        <Card variant="outlined" sx={{ borderRadius: 2.5 }}>
           <CardActionArea onClick={() => navigate('/settings/notifications')}>
             <CardContent sx={{ '&:last-child': { pb: 2 } }}>
-              <Typography>Notifications</Typography>
+              <Typography sx={{ fontWeight: 700 }}>Notifications</Typography>
             </CardContent>
           </CardActionArea>
         </Card>
-        <Card variant="outlined">
+        <Card variant="outlined" sx={{ borderRadius: 2.5 }}>
           <CardActionArea onClick={() => navigate('/settings/privacy')}>
             <CardContent sx={{ '&:last-child': { pb: 2 } }}>
-              <Typography>Privacy and data</Typography>
+              <Typography sx={{ fontWeight: 700 }}>Privacy and data</Typography>
             </CardContent>
           </CardActionArea>
         </Card>
-        <Card variant="outlined">
+        <Card variant="outlined" sx={{ borderRadius: 2.5 }}>
           <CardActionArea onClick={() => navigate('/settings/help')}>
             <CardContent sx={{ '&:last-child': { pb: 2 } }}>
-              <Typography>Help and support</Typography>
+              <Typography sx={{ fontWeight: 700 }}>Help and support</Typography>
             </CardContent>
           </CardActionArea>
         </Card>

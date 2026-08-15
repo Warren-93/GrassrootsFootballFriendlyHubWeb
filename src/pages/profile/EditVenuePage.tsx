@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   Alert,
   Button,
+  Card,
   CircularProgress,
   Container,
   Dialog,
@@ -115,43 +116,45 @@ export function EditVenuePage() {
 
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
-      <Stack spacing={3}>
-        <PageHeader title={isNew ? 'Add venue' : 'Edit venue'} onBack={() => navigate('/venues')} />
+      <Card sx={{ p: 4, borderRadius: 4 }}>
+        <Stack spacing={3}>
+          <PageHeader title={isNew ? 'Add venue' : 'Edit venue'} onBack={() => navigate('/venues')} />
 
-        <TextField label="Venue name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
-        <TextField label="Address" value={address} onChange={(e) => setAddress(e.target.value)} fullWidth />
-        <PostcodeLocationField
-          postcode={postcode}
-          onPostcodeChange={setPostcode}
-          coordinates={coordinates}
-          onCoordinatesChange={setCoordinates}
-        />
-        {!isNew && !postcode && (
-          <Typography variant="caption" color="text.secondary">
-            Keeping the existing location. Enter a postcode above to change it.
-          </Typography>
-        )}
-        <TextField select label="Pitch surface" value={pitchSurface} onChange={(e) => setPitchSurface(e.target.value as PitchSurface)} fullWidth>
-          {PITCH_SURFACES.map((p) => (
-            <MenuItem key={p} value={p}>
-              {PITCH_SURFACE_LABELS[p]}
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField label="Access notes" value={accessNotes} onChange={(e) => setAccessNotes(e.target.value)} multiline minRows={2} fullWidth />
-        <TextField label="Parking notes" value={parkingNotes} onChange={(e) => setParkingNotes(e.target.value)} multiline minRows={2} fullWidth />
+          <TextField label="Venue name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
+          <TextField label="Address" value={address} onChange={(e) => setAddress(e.target.value)} fullWidth />
+          <PostcodeLocationField
+            postcode={postcode}
+            onPostcodeChange={setPostcode}
+            coordinates={coordinates}
+            onCoordinatesChange={setCoordinates}
+          />
+          {!isNew && !postcode && (
+            <Typography variant="caption" color="text.secondary">
+              Keeping the existing location. Enter a postcode above to change it.
+            </Typography>
+          )}
+          <TextField select label="Pitch surface" value={pitchSurface} onChange={(e) => setPitchSurface(e.target.value as PitchSurface)} fullWidth>
+            {PITCH_SURFACES.map((p) => (
+              <MenuItem key={p} value={p}>
+                {PITCH_SURFACE_LABELS[p]}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField label="Access notes" value={accessNotes} onChange={(e) => setAccessNotes(e.target.value)} multiline minRows={2} fullWidth />
+          <TextField label="Parking notes" value={parkingNotes} onChange={(e) => setParkingNotes(e.target.value)} multiline minRows={2} fullWidth />
 
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+          {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-        <Button variant="contained" size="large" disabled={submitting || !canSubmit} onClick={handleSubmit}>
-          {submitting ? 'Saving…' : 'Save venue'}
-        </Button>
-        {!isNew && (
-          <Button variant="text" color="error" onClick={() => setConfirmDelete(true)}>
-            Delete venue
+          <Button variant="contained" size="large" disabled={submitting || !canSubmit} onClick={handleSubmit}>
+            {submitting ? 'Saving…' : 'Save venue'}
           </Button>
-        )}
-      </Stack>
+          {!isNew && (
+            <Button variant="text" color="error" onClick={() => setConfirmDelete(true)}>
+              Delete venue
+            </Button>
+          )}
+        </Stack>
+      </Card>
 
       <Dialog open={confirmDelete} onClose={() => setConfirmDelete(false)}>
         <DialogTitle>Delete this venue?</DialogTitle>

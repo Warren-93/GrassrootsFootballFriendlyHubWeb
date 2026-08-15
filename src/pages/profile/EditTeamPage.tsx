@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   Alert,
   Button,
+  Card,
   CircularProgress,
   Container,
   Dialog,
@@ -17,6 +18,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { teamRepository } from '../../api/teamRepository';
 import type { AbilityLevel, HomeAwayPreference, TeamView } from '../../api/types';
+import { PageHeader } from '../../components/PageHeader';
 
 const ABILITY_LEVELS: AbilityLevel[] = ['DEVELOPMENT', 'INTERMEDIATE', 'COMPETITIVE'];
 const HOME_AWAY: HomeAwayPreference[] = ['HOME', 'AWAY', 'EITHER'];
@@ -78,13 +80,9 @@ export function EditTeamPage() {
 
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
-      <Stack spacing={3}>
-        <Button variant="text" onClick={() => navigate(-1)} sx={{ alignSelf: 'flex-start' }}>
-          Back
-        </Button>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Edit team
-        </Typography>
+      <Card sx={{ p: 4, borderRadius: 4 }}>
+        <Stack spacing={3}>
+        <PageHeader title="Edit team" />
         <Typography variant="caption" color="text.secondary">
           Age group and format lock after the first confirmed fixture, so they're not editable here.
         </Typography>
@@ -158,7 +156,8 @@ export function EditTeamPage() {
         <Button variant="text" color="error" onClick={() => setConfirmArchive(true)}>
           Archive this team
         </Button>
-      </Stack>
+        </Stack>
+      </Card>
 
       <Dialog open={confirmArchive} onClose={() => setConfirmArchive(false)}>
         <DialogTitle>Archive this team?</DialogTitle>

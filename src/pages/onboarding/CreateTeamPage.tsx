@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   Alert,
   Button,
+  Card,
   Container,
   MenuItem,
   Stack,
@@ -99,8 +100,9 @@ export function CreateTeamPage() {
 
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
-      <Stack spacing={3}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+      <Card sx={{ p: { xs: 3, sm: 4 }, borderRadius: 4 }}>
+        <Stack spacing={3}>
+        <Typography variant="h5" sx={{ fontWeight: 700, textAlign: 'center' }}>
           Create your team
         </Typography>
 
@@ -230,7 +232,8 @@ export function CreateTeamPage() {
             </Button>
           )}
         </Stack>
-      </Stack>
+        </Stack>
+      </Card>
     </Container>
   );
 }

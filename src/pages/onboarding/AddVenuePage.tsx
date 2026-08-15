@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Button, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Button, Card, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { venueRepository } from '../../api/venueRepository';
 import { teamRepository } from '../../api/teamRepository';
@@ -59,42 +59,44 @@ export function AddVenuePage() {
 
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
-      <Stack spacing={3}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Add your home venue
-        </Typography>
+      <Card sx={{ p: 4, borderRadius: 4 }}>
+        <Stack spacing={3}>
+          <Typography variant="h5" sx={{ fontWeight: 700, textAlign: 'center' }}>
+            Add your home venue
+          </Typography>
 
-        <TextField label="Venue name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
-        <TextField label="Address" value={address} onChange={(e) => setAddress(e.target.value)} fullWidth />
-        <PostcodeLocationField
-          postcode={postcode}
-          onPostcodeChange={setPostcode}
-          coordinates={coordinates}
-          onCoordinatesChange={setCoordinates}
-        />
-        <TextField
-          select
-          label="Pitch surface"
-          value={pitchSurface}
-          onChange={(e) => setPitchSurface(e.target.value as PitchSurface)}
-          fullWidth
-        >
-          {PITCH_SURFACES.map((p) => (
-            <MenuItem key={p} value={p}>
-              {PITCH_SURFACE_LABELS[p]}
-            </MenuItem>
-          ))}
-        </TextField>
+          <TextField label="Venue name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
+          <TextField label="Address" value={address} onChange={(e) => setAddress(e.target.value)} fullWidth />
+          <PostcodeLocationField
+            postcode={postcode}
+            onPostcodeChange={setPostcode}
+            coordinates={coordinates}
+            onCoordinatesChange={setCoordinates}
+          />
+          <TextField
+            select
+            label="Pitch surface"
+            value={pitchSurface}
+            onChange={(e) => setPitchSurface(e.target.value as PitchSurface)}
+            fullWidth
+          >
+            {PITCH_SURFACES.map((p) => (
+              <MenuItem key={p} value={p}>
+                {PITCH_SURFACE_LABELS[p]}
+              </MenuItem>
+            ))}
+          </TextField>
 
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+          {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-        <Button variant="contained" size="large" disabled={submitting || !canSubmit} onClick={handleSubmit}>
-          {submitting ? 'Saving…' : 'Save venue'}
-        </Button>
-        <Button variant="text" onClick={skip}>
-          Skip for now
-        </Button>
-      </Stack>
+          <Button variant="contained" size="large" disabled={submitting || !canSubmit} onClick={handleSubmit}>
+            {submitting ? 'Saving…' : 'Save venue'}
+          </Button>
+          <Button variant="text" onClick={skip}>
+            Skip for now
+          </Button>
+        </Stack>
+      </Card>
     </Container>
   );
 }

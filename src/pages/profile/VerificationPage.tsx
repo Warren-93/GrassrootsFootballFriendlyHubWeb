@@ -4,6 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { teamRepository } from '../../api/teamRepository';
 import { verificationRepository } from '../../api/verificationRepository';
 import type { TeamView, VerificationRequestView } from '../../api/types';
+import { HeroBand } from '../../components/brand/HeroBand';
+import { brand } from '../../theme/theme';
 
 // SCR-PR-07 Verification submission. Purpose: let a manager put their team
 // forward for admin review (ADM-03), and see where that review stands.
@@ -71,11 +73,9 @@ export function VerificationPage() {
   const underReview = request?.status === 'PENDING' || request?.status === 'AWAITING_SECOND_REJECTION';
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
+    <Container maxWidth="xs" sx={{ py: 3 }}>
+      <HeroBand compact title="Verification" />
       <Stack spacing={2.5}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Verification
-        </Typography>
         <Chip
           label={team.verification}
           color={team.verification === 'VERIFIED' ? 'success' : team.verification === 'REJECTED' ? 'error' : 'default'}
@@ -85,14 +85,21 @@ export function VerificationPage() {
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
         {team.verification === 'VERIFIED' && (
-          <Alert severity="success">This team is verified. Verified teams get priority visibility in search.</Alert>
+          <Card sx={{ bgcolor: '#E4F4E4', border: `1px solid ${brand.lime}` }}>
+            <CardContent>
+              <Typography sx={{ fontWeight: 700, color: brand.pitchDeep }}>Verified</Typography>
+              <Typography variant="body2" sx={{ color: brand.pitchDeep }}>
+                This team is verified. Verified teams get priority visibility in search.
+              </Typography>
+            </CardContent>
+          </Card>
         )}
 
         {underReview && request && (
-          <Card variant="outlined">
+          <Card sx={{ bgcolor: brand.amberBg, border: `1px solid ${brand.amber}` }}>
             <CardContent>
-              <Typography sx={{ fontWeight: 600 }}>Under review</Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography sx={{ fontWeight: 700, color: brand.amber }}>Pending review</Typography>
+              <Typography variant="body2" sx={{ color: brand.amber }}>
                 Submitted {new Date(request.submittedAt).toLocaleDateString()}. We'll let you know once an admin has
                 reviewed it.
               </Typography>

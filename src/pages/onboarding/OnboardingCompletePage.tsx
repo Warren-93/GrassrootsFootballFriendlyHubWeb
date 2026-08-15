@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Button, CircularProgress, Container, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CircularProgress, Container, Stack, Typography } from '@mui/material';
+import CheckIcon from '@mui/icons-material/Check';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { teamRepository } from '../../api/teamRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { brand } from '../../theme/theme';
 
 export function OnboardingCompletePage() {
   const navigate = useNavigate();
@@ -36,17 +38,33 @@ export function OnboardingCompletePage() {
 
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
-      <Stack spacing={3}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          You're all set
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Your team is ready. Head to your dashboard to review what's next.
-        </Typography>
-        <Button variant="contained" size="large" onClick={() => navigate('/')}>
-          Go to dashboard
-        </Button>
-      </Stack>
+      <Card sx={{ p: 4, borderRadius: 4 }}>
+        <Stack spacing={3} sx={{ alignItems: 'center', textAlign: 'center' }}>
+          <Box
+            sx={{
+              width: 72,
+              height: 72,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: '#E4F4E4',
+              border: `3px solid ${brand.lime}`,
+            }}
+          >
+            <CheckIcon sx={{ fontSize: 36, color: brand.pitchDeep }} />
+          </Box>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            You're all set
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Your team is ready. Head to your dashboard to review what's next.
+          </Typography>
+          <Button variant="contained" size="large" fullWidth onClick={() => navigate('/')}>
+            Go to dashboard
+          </Button>
+        </Stack>
+      </Card>
     </Container>
   );
 }

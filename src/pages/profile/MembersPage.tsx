@@ -24,6 +24,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { memberRepository } from '../../api/memberRepository';
 import { useAuth } from '../../auth/AuthContext';
 import type { MemberRole, MemberView } from '../../api/types';
+import { HeroBand } from '../../components/brand/HeroBand';
+import { brand } from '../../theme/theme';
 
 const ROLES: MemberRole[] = ['USER', 'TEAM_MANAGER', 'CLUB_ADMIN'];
 const ROLE_LABELS: Record<MemberRole, string> = {
@@ -138,15 +140,13 @@ export function MembersPage() {
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
+    <Container maxWidth="xs" sx={{ py: 3 }}>
+      <HeroBand
+        compact
+        title="Officials"
+        subtitle="Club admins can manage every squad the club runs. Team managers can only manage this one."
+      />
       <Stack spacing={2.5}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Team members and permissions
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Club admins can manage every squad the club runs. Team managers can only manage this one.
-        </Typography>
-
         {errorMessage && (
           <Alert severity="error" onClose={() => setErrorMessage(null)}>
             {errorMessage}
@@ -200,24 +200,26 @@ export function MembersPage() {
           {members.length === 0 && <Typography color="text.secondary">No officials yet.</Typography>}
         </Stack>
 
-        <Card variant="outlined">
+        <Card sx={{ bgcolor: brand.void, color: '#fff', border: 'none' }}>
           <CardContent>
-            <Typography variant="subtitle2">Join code</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ color: brand.lime, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', fontSize: 11 }}>
+              Join code
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,.72)', mb: 1.5, mt: 0.5 }}>
               Share this code so anyone can join the team directly, without you adding them by email.
             </Typography>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
               <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: '0.2em' }}>
                 {joinCode ?? '······'}
               </Typography>
-              <Button size="small" onClick={handleCopyCode} disabled={!joinCode}>
+              <Button size="small" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,.4)' }} onClick={handleCopyCode} disabled={!joinCode}>
                 {copied ? 'Copied' : 'Copy'}
               </Button>
-              <Button size="small" onClick={handleRegenerateCode} disabled={regenerating}>
+              <Button size="small" sx={{ color: 'rgba(255,255,255,.85)' }} onClick={handleRegenerateCode} disabled={regenerating}>
                 {regenerating ? 'Regenerating…' : 'Regenerate'}
               </Button>
             </Stack>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,.6)' }}>
               Regenerating immediately invalidates the old code.
             </Typography>
           </CardContent>

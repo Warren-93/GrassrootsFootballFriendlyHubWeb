@@ -1,12 +1,22 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Chip, CircularProgress, Container, Stack, Typography } from '@mui/material';
+import { Alert, Button, Card, CardContent, Chip, CircularProgress, Container, Stack, Typography } from '@mui/material';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import { useNavigate, useParams } from 'react-router-dom';
 import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
 import { conversationRepository } from '../../api/conversationRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { PageHeader } from '../../components/PageHeader';
+import { brand } from '../../theme/theme';
 import type { FriendlyRequestView } from '../../api/types';
+
+const STATUS_STYLE: Record<string, { bgcolor: string; color: string }> = {
+  ACCEPTED: { bgcolor: '#E4F4E4', color: brand.pitchDeep },
+  CONFIRMED: { bgcolor: '#E4F4E4', color: brand.pitchDeep },
+  DECLINED: { bgcolor: brand.coralBg, color: brand.coral },
+  SENT: { bgcolor: brand.amberBg, color: brand.amber },
+  CHANGES_REQUESTED: { bgcolor: brand.amberBg, color: brand.amber },
+  UPDATED: { bgcolor: brand.amberBg, color: brand.amber },
+};
 
 const DIRECT_ACTIONS = new Set(['accept', 'withdraw', 'cancel']);
 
@@ -81,17 +91,22 @@ export function RequestDetailPage() {
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
+    <Container maxWidth="xs" sx={{ py: 4 }}>
       <Stack spacing={2}>
         <PageHeader title="Friendly request" />
-        <Chip label={request.status} sx={{ alignSelf: 'flex-start' }} />
+        <Chip label={request.status.replace(/_/g, ' ')} sx={{ alignSelf: 'flex-start', ...(STATUS_STYLE[request.status] ?? {}) }} />
 
-        <Typography variant="body2">Date: {request.date}</Typography>
-        <Typography variant="body2">
-          Time: {request.startTime.slice(0, 5)} - {request.endTime.slice(0, 5)}
-        </Typography>
-        <Typography variant="body2">Cost share: {request.costShare.replace(/_/g, ' ')}</Typography>
-        <Typography variant="body2">Referee: {request.refereeArrangement.replace(/_/g, ' ')}</Typography>
+        <Card variant="outlined">
+          <CardContent>
+            <Stack spacing={1}>
+              <Row label="Date" value={request.date} />
+              <Row label="Time" value={`${request.startTime.slice(0, 5)} - ${request.endTime.slice(0, 5)}`} />
+              <Row label="Cost share" value={request.costShare.replace(/_/g, ' ')} />
+              <Row label="Referee" value={request.refereeArrangement.replace(/_/g, ' ')} />
+            </Stack>
+          </CardContent>
+        </Card>
+
         {request.message && <Typography variant="body2">Message: "{request.message}"</Typography>}
         {request.actionReason && (
           <Typography variant="body2">
@@ -100,19 +115,21 @@ export function RequestDetailPage() {
         )}
 
         {(request.senderContact || request.recipientContact) && (
-          <Stack spacing={0.5}>
-            <Typography variant="subtitle2">Contact details</Typography>
-            {request.senderContact?.managerName && (
-              <Typography variant="body2">
-                Sender: {request.senderContact.managerName} {request.senderContact.contactPhone ?? ''}
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+                Contact details
               </Typography>
-            )}
-            {request.recipientContact?.managerName && (
-              <Typography variant="body2">
-                Recipient: {request.recipientContact.managerName} {request.recipientContact.contactPhone ?? ''}
-              </Typography>
-            )}
-          </Stack>
+              <Stack spacing={1}>
+                {request.senderContact?.managerName && (
+                  <Row label="Sender" value={`${request.senderContact.managerName} ${request.senderContact.contactPhone ?? ''}`} />
+                )}
+                {request.recipientContact?.managerName && (
+                  <Row label="Recipient" value={`${request.recipientContact.managerName} ${request.recipientContact.contactPhone ?? ''}`} />
+                )}
+              </Stack>
+            </CardContent>
+          </Card>
         )}
 
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
@@ -156,5 +173,18 @@ export function RequestDetailPage() {
         )}
       </Stack>
     </Container>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+      <Typography variant="body2" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography variant="body2" sx={{ fontWeight: 600, textAlign: 'right' }}>
+        {value}
+      </Typography>
+    </Stack>
   );
 }

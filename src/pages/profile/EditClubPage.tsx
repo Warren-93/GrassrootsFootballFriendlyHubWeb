@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, CircularProgress, Container, Stack, TextField } from '@mui/material';
+import { Alert, Button, Card, CircularProgress, Container, Stack, TextField } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { clubRepository } from '../../api/clubRepository';
 import { PostcodeLocationField } from '../../components/PostcodeLocationField';
@@ -66,26 +66,28 @@ export function EditClubPage() {
 
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
-      <Stack spacing={3}>
-        <PageHeader title="Edit club" onBack={() => navigate('/club')} />
+      <Card sx={{ p: 4, borderRadius: 4 }}>
+        <Stack spacing={3}>
+          <PageHeader title="Edit club" onBack={() => navigate('/club')} />
 
-        <TextField label="Club name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
-        <TextField label="Badge URL" value={badgeUrl} onChange={(e) => setBadgeUrl(e.target.value)} fullWidth />
-        <PostcodeLocationField
-          postcode={postcode}
-          onPostcodeChange={setPostcode}
-          coordinates={coordinates}
-          onCoordinatesChange={setCoordinates}
-        />
-        <TextField label="Website" value={website} onChange={(e) => setWebsite(e.target.value)} fullWidth />
-        <TextField label="Contact email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} fullWidth />
+          <TextField label="Club name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
+          <TextField label="Badge URL" value={badgeUrl} onChange={(e) => setBadgeUrl(e.target.value)} fullWidth />
+          <PostcodeLocationField
+            postcode={postcode}
+            onPostcodeChange={setPostcode}
+            coordinates={coordinates}
+            onCoordinatesChange={setCoordinates}
+          />
+          <TextField label="Website" value={website} onChange={(e) => setWebsite(e.target.value)} fullWidth />
+          <TextField label="Contact email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} fullWidth />
 
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+          {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-        <Button variant="contained" size="large" disabled={submitting || !name || !postcode || !coordinates} onClick={handleSubmit}>
-          {submitting ? 'Saving…' : 'Save club'}
-        </Button>
-      </Stack>
+          <Button variant="contained" size="large" disabled={submitting || !name || !postcode || !coordinates} onClick={handleSubmit}>
+            {submitting ? 'Saving…' : 'Save club'}
+          </Button>
+        </Stack>
+      </Card>
     </Container>
   );
 }
