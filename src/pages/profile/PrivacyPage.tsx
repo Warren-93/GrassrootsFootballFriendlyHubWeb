@@ -1,38 +1,24 @@
 import { useEffect, useState } from 'react';
-import {
-  Alert,
-  Button,
-  Card,
-  CardContent,
-  CircularProgress,
-  Container,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Divider,
-  Stack,
-  Typography,
-} from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Alert, Button, Card, CardContent, CircularProgress, Container, Typography } from '@mui/material';
 import { privacyRepository } from '../../api/privacyRepository';
-import { useAuth } from '../../auth/AuthContext';
-import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import type { AccountExport } from '../../api/types';
+import { AccountTabs } from '../../components/AccountTabs';
+import { SettingRow } from '../../components/SettingRow';
 import { brand } from '../../theme/theme';
 
-// SCR-PR-10 Privacy and data. Purpose: let a user see and remove what the
-// platform holds on them.
+// SCR-PR-10 Privacy and data. Purpose: let a user see and export what the
+// platform holds on them. The concept's mock also shows a togglable
+// "Profile visibility" and "Share contact details" and a partial
+// "Delete your data (keep account)" - none of those exist server-side:
+// there's no visibility setting, contact sharing on a confirmed fixture
+// isn't user-configurable, and the only real erasure the API supports is
+// a full account delete (now on Settings), not a data-only wipe. Shown
+// here are only the two capabilities that are real: what's held, and
+// downloading it.
 export function PrivacyPage() {
-  const navigate = useNavigate();
-  const { signOut } = useAuth();
-  const { clear } = useCurrentTeam();
   const [data, setData] = useState<AccountExport | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     privacyRepository.export().then((result) => {
@@ -53,95 +39,61 @@ export function PrivacyPage() {
     URL.revokeObjectURL(url);
   }
 
-  async function handleDelete() {
-    setDeleting(true);
-    setErrorMessage(null);
-    const result = await privacyRepository.deleteAccount();
-    setDeleting(false);
-    setConfirmDelete(false);
-    if (result.ok) {
-      signOut();
-      clear();
-      navigate('/welcome');
-    } else {
-      setErrorMessage(result.message);
-    }
-  }
-
   if (loading) {
     return (
-      <Container maxWidth="xs" sx={{ py: 6, textAlign: 'center' }}>
+      <Container maxWidth="lg" sx={{ py: 6, textAlign: 'center' }}>
         <CircularProgress />
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
-      <Stack spacing={2.5}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Privacy and data
-        </Typography>
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+      <AccountTabs />
 
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+      <Typography variant="h5" sx={{ fontWeight: 700, mb: 2.5 }}>
+        Privacy &amp; data
+      </Typography>
 
-        {data && (
-          <Card variant="outlined" sx={{ borderLeft: `3px solid ${brand.void}`, borderRadius: 2.5 }}>
-            <CardContent>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', fontSize: 11, color: brand.muted }}>
-                What we hold on you
-              </Typography>
-              <Typography variant="body2" sx={{ mt: 1, fontWeight: 700 }}>
-                {data.displayName} · {data.email}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Account created {new Date(data.createdAt).toLocaleDateString()}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                {data.memberships.length} team/club role{data.memberships.length === 1 ? '' : 's'}
-              </Typography>
-            </CardContent>
-          </Card>
-        )}
+      {errorMessage && (
+        <Alert severity="error" sx={{ mb: 2, maxWidth: 640 }}>
+          {errorMessage}
+        </Alert>
+      )}
 
-        <Button variant="outlined" onClick={handleDownload} disabled={!data}>
-          Download my data
-        </Button>
+      {data && (
+        <Card variant="outlined" sx={{ borderLeft: `3px solid ${brand.void}`, borderRadius: 3, maxWidth: 640, mb: 2.5 }}>
+          <CardContent>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', fontSize: 11, color: brand.muted }}>
+              What we hold on you
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 1, fontWeight: 700 }}>
+              {data.displayName} &middot; {data.email}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Account created {new Date(data.createdAt).toLocaleDateString()}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              {data.memberships.length} team/club role{data.memberships.length === 1 ? '' : 's'}
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
 
-        <Divider />
-
-        <Stack spacing={1}>
-          <Typography variant="subtitle2" sx={{ color: brand.coral, fontWeight: 700 }}>
-            Delete account
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Permanently deletes your account and every team/club role you hold. If you're the only admin of a club,
-            you'll need to promote someone else there first.
-          </Typography>
-          <Button variant="outlined" color="error" onClick={() => setConfirmDelete(true)}>
-            Delete my account
-          </Button>
-        </Stack>
-
-        <Button variant="text" onClick={() => navigate(-1)}>
-          Back
-        </Button>
-      </Stack>
-
-      <Dialog open={confirmDelete} onClose={() => setConfirmDelete(false)}>
-        <DialogTitle>Delete your account?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            This can't be undone. Your account, and every team/club role tied to it, will be permanently removed.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmDelete(false)}>Cancel</Button>
-          <Button color="error" onClick={handleDelete} disabled={deleting}>
-            {deleting ? 'Deleting…' : 'Delete account'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Card variant="outlined" sx={{ borderRadius: 3, maxWidth: 640 }}>
+        <CardContent sx={{ px: { xs: 2, sm: 2.75 }, py: 0.5, '&:last-child': { pb: 0.5 } }}>
+          <SettingRow
+            title="Download your data"
+            subtitle="Export everything PitchMate holds about your team"
+            last
+            control={
+              <Button variant="outlined" size="small" onClick={handleDownload} disabled={!data}>
+                Download
+              </Button>
+            }
+          />
+        </CardContent>
+      </Card>
     </Container>
   );
 }
