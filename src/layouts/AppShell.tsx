@@ -12,6 +12,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  ListSubheader,
   Menu,
   MenuItem,
   Select,
@@ -24,6 +25,7 @@ import type { SelectChangeEvent } from '@mui/material';
 import type { TeamView } from '../api/types';
 import { useTheme } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SearchIcon from '@mui/icons-material/Search';
@@ -33,6 +35,7 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined
 import GroupsIcon from '@mui/icons-material/Groups';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import PlaceIcon from '@mui/icons-material/Place';
+import PeopleIcon from '@mui/icons-material/People';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -41,41 +44,53 @@ import { useCurrentTeam } from '../session/CurrentTeamContext';
 import { notificationRepository } from '../api/notificationRepository';
 import { teamRepository } from '../api/teamRepository';
 
-const DRAWER_WIDTH = 240;
-
-interface NavItem {
+interface NavLink {
   label: string;
-  icon: ReactNode;
   path: string;
-  /** Only shown once a team is active - these pages don't make sense without one. */
+  /** Only enabled once a team is active - these pages don't make sense without one. */
   requiresTeam?: boolean;
 }
 
-function useNavItems(teamId: string | undefined): NavItem[] {
+/** The five always-visible top-nav destinations - Team & club and Account live one level deeper (dropdown / avatar menu) so the bar stays flat rather than trying to fit nine items across. */
+function usePrimaryLinks(): NavLink[] {
   return [
-    { label: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-    { label: 'Find a friendly', icon: <SearchIcon />, path: '/search', requiresTeam: true },
-    { label: 'Requests & fixtures', icon: <SportsSoccerIcon />, path: '/fixtures', requiresTeam: true },
-    { label: 'Messages', icon: <ChatBubbleOutlineIcon />, path: '/messages', requiresTeam: true },
-    { label: 'Calendar', icon: <CalendarMonthIcon />, path: '/calendar', requiresTeam: true },
-    { label: 'Team profile', icon: <GroupsIcon />, path: teamId ? `/team/${teamId}` : '/role-selection', requiresTeam: true },
-    { label: 'Club', icon: <ApartmentIcon />, path: '/club', requiresTeam: true },
-    { label: 'Venues', icon: <PlaceIcon />, path: '/venues', requiresTeam: true },
-    { label: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+    { label: 'Home', path: '/' },
+    { label: 'Publish availability', path: '/calendar', requiresTeam: true },
+    { label: 'Discover', path: '/search', requiresTeam: true },
+    { label: 'Arrange & fixtures', path: '/fixtures', requiresTeam: true },
+    { label: 'Messages', path: '/messages', requiresTeam: true },
+  ];
+}
+
+function useTeamClubLinks(teamId: string | undefined): NavLink[] {
+  return [
+    { label: 'Team profile', path: teamId ? `/team/${teamId}` : '/role-selection', requiresTeam: true },
+    { label: 'Members', path: teamId ? `/team/${teamId}/members` : '/role-selection', requiresTeam: true },
+    { label: 'Club', path: '/club', requiresTeam: true },
+    { label: 'Venues', path: '/venues', requiresTeam: true },
   ];
 }
 
 /**
- * The persistent shell for every "dashboard" screen - sidebar + top bar,
- * so switching between sections never depends on the browser's back button
- * the way a screen-stack mobile app does. Onboarding routes (create-club,
- * create-team, etc.) deliberately render outside this shell: there's no
- * team yet for the sidebar to be about.
+ * The persistent shell for every "dashboard" screen - a top nav bar (logo,
+ * flat section links, notification bell, account menu) rather than a
+ * permanent sidebar, so the frame stays out of the way of the content below
+ * it. "Team & club" is a dropdown of its four sub-pages rather than its own
+ * top-level link, since flattening all nine destinations into one bar
+ * doesn't fit; on narrow viewports the whole nav collapses into a drawer
+ * behind a menu button instead of trying to wrap. Onboarding routes
+ * (create-club, create-team, etc.) deliberately render outside this shell:
+ * there's no team yet for the nav to be about.
  */
 export function AppShell() {
   const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  // noSsr: this is a client-only SPA, so there's no hydration mismatch to
+  // guard against - without it, useMediaQuery defaults to false on first
+  // render and only corrects itself once its effect settles, which can leave
+  // the mobile nav showing on a desktop-width first paint.
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'), { noSsr: true });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [teamMenuAnchor, setTeamMenuAnchor] = useState<null | HTMLElement>(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [myTeams, setMyTeams] = useState<TeamView[]>([]);
@@ -83,7 +98,8 @@ export function AppShell() {
   const location = useLocation();
   const { session, signOut } = useAuth();
   const { active, setActive, clear } = useCurrentTeam();
-  const navItems = useNavItems(active?.teamId);
+  const primaryLinks = usePrimaryLinks();
+  const teamClubLinks = useTeamClubLinks(active?.teamId);
 
   useEffect(() => {
     notificationRepository.unreadCount().then((result) => {
@@ -132,8 +148,23 @@ export function AppShell() {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   }
 
-  const drawerContent = (
-    <Box sx={{ width: DRAWER_WIDTH, display: 'flex', flexDirection: 'column', height: '100%' }}>
+  const teamClubActive = teamClubLinks.some((item) => isActive(item.path));
+  const settingsActive = isActive('/settings');
+
+  const iconFor: Record<string, ReactNode> = {
+    Home: <DashboardIcon />,
+    'Publish availability': <CalendarMonthIcon />,
+    Discover: <SearchIcon />,
+    'Arrange & fixtures': <SportsSoccerIcon />,
+    Messages: <ChatBubbleOutlineIcon />,
+    'Team profile': <GroupsIcon />,
+    Members: <PeopleIcon />,
+    Club: <ApartmentIcon />,
+    Venues: <PlaceIcon />,
+  };
+
+  const mobileDrawer = (
+    <Box sx={{ width: 280, display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Toolbar sx={{ gap: 1 }}>
         <Box component="img" src="/favicon.svg" alt="" sx={{ width: 28, height: 28 }} />
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -141,82 +172,170 @@ export function AppShell() {
         </Typography>
       </Toolbar>
       <Divider />
-      <List sx={{ flexGrow: 1, py: 1 }}>
-        {navItems.map((item) => {
-          const disabled = item.requiresTeam && !active;
-          return (
-            <ListItemButton
-              key={item.path}
-              selected={isActive(item.path)}
-              disabled={disabled}
-              onClick={() => {
-                navigate(item.path);
-                setMobileOpen(false);
-              }}
-              sx={{ mx: 1, borderRadius: 1 }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} />
-            </ListItemButton>
-          );
-        })}
+      <List sx={{ flexGrow: 1, py: 1, overflowY: 'auto' }}>
+        {primaryLinks.map((item) => (
+          <ListItemButton
+            key={item.path}
+            selected={isActive(item.path)}
+            disabled={item.requiresTeam && !active}
+            onClick={() => {
+              navigate(item.path);
+              setMobileOpen(false);
+            }}
+            sx={{ mx: 1, borderRadius: 1 }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>{iconFor[item.label]}</ListItemIcon>
+            <ListItemText primary={item.label} />
+          </ListItemButton>
+        ))}
+        <ListSubheader sx={{ mt: 1 }}>Team &amp; club</ListSubheader>
+        {teamClubLinks.map((item) => (
+          <ListItemButton
+            key={item.path}
+            selected={isActive(item.path)}
+            disabled={item.requiresTeam && !active}
+            onClick={() => {
+              navigate(item.path);
+              setMobileOpen(false);
+            }}
+            sx={{ mx: 1, borderRadius: 1 }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>{iconFor[item.label]}</ListItemIcon>
+            <ListItemText primary={item.label} />
+          </ListItemButton>
+        ))}
+        <ListSubheader sx={{ mt: 1 }}>Account</ListSubheader>
+        <ListItemButton
+          selected={settingsActive}
+          onClick={() => {
+            navigate('/settings');
+            setMobileOpen(false);
+          }}
+          sx={{ mx: 1, borderRadius: 1 }}
+        >
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <SettingsIcon />
+          </ListItemIcon>
+          <ListItemText primary="Settings" />
+        </ListItemButton>
       </List>
-      {active && (
-        <>
-          <Divider />
-          <Box sx={{ p: 2 }}>
-            <Typography variant="caption" color="text.secondary">
-              Current team
-            </Typography>
-            {myTeams.length > 1 ? (
-              <Select
-                value={active.teamId}
-                onChange={handleTeamSwitch}
-                size="small"
-                fullWidth
-                sx={{ mt: 0.5 }}
-              >
-                {myTeams.map((t) => (
-                  <MenuItem key={t.id} value={t.id}>
-                    {t.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            ) : (
-              <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
-                {active.teamName}
-              </Typography>
-            )}
-          </Box>
-        </>
-      )}
     </Box>
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <AppBar
-        position="fixed"
-        color="inherit"
-        elevation={0}
-        sx={{
-          borderBottom: 1,
-          borderColor: 'divider',
-          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
-          ml: { md: `${DRAWER_WIDTH}px` },
-        }}
-      >
-        <Toolbar sx={{ justifyContent: 'space-between' }}>
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            {!isDesktop && (
-              <IconButton edge="start" onClick={() => setMobileOpen(true)} aria-label="Open navigation">
-                <MenuIcon />
-              </IconButton>
-            )}
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-              {navItems.find((item) => isActive(item.path))?.label ?? ''}
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <AppBar position="fixed" color="inherit" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Toolbar sx={{ gap: 3 }}>
+          {!isDesktop && (
+            <IconButton edge="start" onClick={() => setMobileOpen(true)} aria-label="Open navigation">
+              <MenuIcon />
+            </IconButton>
+          )}
+
+          <Stack
+            direction="row"
+            spacing={0.75}
+            sx={{ alignItems: 'center', cursor: 'pointer' }}
+            onClick={() => navigate('/')}
+          >
+            <Box component="img" src="/favicon.svg" alt="" sx={{ width: 26, height: 26 }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
+              Pitch<Box component="span" sx={{ color: 'primary.main' }}>Mate</Box>
             </Typography>
           </Stack>
+
+          {isDesktop && (
+            <Stack direction="row" spacing={0.5} sx={{ flexGrow: 1, alignItems: 'center' }}>
+              {primaryLinks.map((item) => {
+                const disabled = item.requiresTeam && !active;
+                return (
+                  <Box
+                    key={item.path}
+                    component="button"
+                    disabled={disabled}
+                    onClick={() => navigate(item.path)}
+                    sx={{
+                      font: 'inherit',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      background: 'none',
+                      border: 'none',
+                      cursor: disabled ? 'default' : 'pointer',
+                      color: disabled ? 'text.disabled' : isActive(item.path) ? 'primary.main' : 'text.primary',
+                      px: 1.25,
+                      py: 0.75,
+                      borderRadius: 1,
+                      '&:hover': disabled ? undefined : { bgcolor: 'action.hover' },
+                    }}
+                  >
+                    {item.label}
+                  </Box>
+                );
+              })}
+
+              <Box
+                component="button"
+                disabled={!active}
+                onClick={(e) => setTeamMenuAnchor(e.currentTarget)}
+                sx={{
+                  font: 'inherit',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  background: 'none',
+                  border: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  cursor: active ? 'pointer' : 'default',
+                  color: !active ? 'text.disabled' : teamClubActive ? 'primary.main' : 'text.primary',
+                  px: 1.25,
+                  py: 0.75,
+                  borderRadius: 1,
+                  '&:hover': !active ? undefined : { bgcolor: 'action.hover' },
+                }}
+              >
+                Team &amp; club
+                <ExpandMoreIcon sx={{ fontSize: 18, ml: 0.25 }} />
+              </Box>
+              <Menu anchorEl={teamMenuAnchor} open={!!teamMenuAnchor} onClose={() => setTeamMenuAnchor(null)}>
+                {teamClubLinks.map((item) => (
+                  <MenuItem
+                    key={item.path}
+                    selected={isActive(item.path)}
+                    onClick={() => {
+                      setTeamMenuAnchor(null);
+                      navigate(item.path);
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 32 }}>{iconFor[item.label]}</ListItemIcon>
+                    {item.label}
+                  </MenuItem>
+                ))}
+              </Menu>
+
+              <Box
+                component="button"
+                onClick={() => navigate('/settings')}
+                sx={{
+                  font: 'inherit',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: settingsActive ? 'primary.main' : 'text.primary',
+                  px: 1.25,
+                  py: 0.75,
+                  borderRadius: 1,
+                  '&:hover': { bgcolor: 'action.hover' },
+                }}
+              >
+                Account
+              </Box>
+            </Stack>
+          )}
+
+          {!isDesktop && <Box sx={{ flexGrow: 1 }} />}
+
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
             <IconButton onClick={() => navigate('/notifications')} aria-label="Notifications">
               <Badge badgeContent={unreadCount} color="error">
@@ -237,6 +356,20 @@ export function AppShell() {
                   </Typography>
                 </Stack>
               </MenuItem>
+              {active && myTeams.length > 1 && (
+                <Box sx={{ px: 2, py: 1 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Current team
+                  </Typography>
+                  <Select value={active.teamId} onChange={handleTeamSwitch} size="small" fullWidth sx={{ mt: 0.5 }}>
+                    {myTeams.map((t) => (
+                      <MenuItem key={t.id} value={t.id}>
+                        {t.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Box>
+              )}
               <Divider />
               <MenuItem
                 onClick={() => {
@@ -259,28 +392,17 @@ export function AppShell() {
         </Toolbar>
       </AppBar>
 
-      <Box component="nav" sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}>
-        <Drawer
-          variant={isDesktop ? 'permanent' : 'temporary'}
-          open={isDesktop || mobileOpen}
-          onClose={() => setMobileOpen(false)}
-          ModalProps={{ keepMounted: true }}
-          sx={{
-            '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' },
-          }}
-        >
-          {drawerContent}
-        </Drawer>
-      </Box>
-
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
-          minWidth: 0,
-        }}
+      <Drawer
+        variant="temporary"
+        open={!isDesktop && mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        ModalProps={{ keepMounted: true }}
+        sx={{ '& .MuiDrawer-paper': { width: 280, boxSizing: 'border-box' } }}
       >
+        {mobileDrawer}
+      </Drawer>
+
+      <Box component="main" sx={{ flexGrow: 1, minWidth: 0 }}>
         <Toolbar />
         <Outlet />
       </Box>

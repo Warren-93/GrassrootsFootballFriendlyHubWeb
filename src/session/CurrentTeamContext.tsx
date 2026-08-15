@@ -1,8 +1,8 @@
 // Mirrors the mobile client's CurrentTeamStore: which team the app is acting
 // as. Set once onboarding completes; every tab-root screen reads it and
 // AppShell reconciles it against GET /api/v1/teams/mine on every signed-in
-// session, offering a real switcher (a Select in the sidebar) whenever that
-// call returns more than one team.
+// session, offering a real switcher (a Select in the account menu) whenever
+// that call returns more than one team.
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
