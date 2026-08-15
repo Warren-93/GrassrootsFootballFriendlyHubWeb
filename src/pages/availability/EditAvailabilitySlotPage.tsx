@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Card, CardContent, CircularProgress, Container, MenuItem, Stack, TextField } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { availabilityRepository } from '../../api/availabilityRepository';
 import { venueRepository } from '../../api/venueRepository';
 import type { HomeAwayPreference, VenueView } from '../../api/types';
-import { PageHeader } from '../../components/PageHeader';
 import { brand } from '../../theme/theme';
 
 const HOME_AWAY: HomeAwayPreference[] = ['HOME', 'AWAY', 'EITHER'];
@@ -78,85 +77,91 @@ export function EditAvailabilitySlotPage() {
 
   if (loading) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6, textAlign: 'center' }}>
+      <Container maxWidth="lg" sx={{ py: 6, textAlign: 'center' }}>
         <CircularProgress sx={{ color: brand.pitch }} />
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Stack spacing={3}>
-        <PageHeader title={isEdit ? 'Edit availability' : 'Add availability'} />
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          {isEdit ? 'Edit availability' : 'Add availability'}
+        </Typography>
+      </Box>
 
-        <Card variant="outlined">
-          <CardContent>
-            <Stack spacing={2.5}>
-              <TextField
-                label="Date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                slotProps={{ inputLabel: { shrink: true } }}
-                fullWidth
-              />
-              <Stack direction="row" spacing={2}>
-                <TextField
-                  label="Start time"
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  fullWidth
-                />
-                <TextField
-                  label="End time"
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  fullWidth
-                />
-              </Stack>
-              <TextField
-                select
-                label="Home / away"
-                value={homeAwayPreference}
-                onChange={(e) => setHomeAwayPreference(e.target.value as HomeAwayPreference)}
-                fullWidth
-              >
-                {HOME_AWAY.map((h) => (
-                  <MenuItem key={h} value={h}>
-                    {h}
+      <Card variant="outlined" sx={{ borderRadius: 3 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 2, mb: 2.5 }}>
+            <TextField
+              label="Date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+              fullWidth
+            />
+            <TextField
+              label="Start time"
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+              fullWidth
+            />
+            <TextField
+              label="End time"
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+              fullWidth
+            />
+            <TextField
+              select
+              label="Home / away"
+              value={homeAwayPreference}
+              onChange={(e) => setHomeAwayPreference(e.target.value as HomeAwayPreference)}
+              fullWidth
+            >
+              {HOME_AWAY.map((h) => (
+                <MenuItem key={h} value={h}>
+                  {h}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            {homeAwayPreference !== 'AWAY' && venues.length > 0 && (
+              <TextField select label="Venue" value={venueId} onChange={(e) => setVenueId(e.target.value)} fullWidth>
+                {venues.map((v) => (
+                  <MenuItem key={v.id} value={v.id}>
+                    {v.name}
                   </MenuItem>
                 ))}
               </TextField>
+            )}
+          </Box>
 
-              {homeAwayPreference !== 'AWAY' && venues.length > 0 && (
-                <TextField select label="Venue" value={venueId} onChange={(e) => setVenueId(e.target.value)} fullWidth>
-                  {venues.map((v) => (
-                    <MenuItem key={v.id} value={v.id}>
-                      {v.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              )}
+          <TextField
+            label="Notes (optional)"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value.slice(0, 280))}
+            helperText={`${notes.length}/280`}
+            multiline
+            minRows={2}
+            fullWidth
+          />
+        </CardContent>
+      </Card>
 
-              <TextField
-                label="Notes (optional)"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value.slice(0, 280))}
-                helperText={`${notes.length}/280`}
-                multiline
-                minRows={2}
-                fullWidth
-              />
-            </Stack>
-          </CardContent>
-        </Card>
+      {errorMessage && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {errorMessage}
+        </Alert>
+      )}
 
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
-
+      <Stack direction="row" spacing={1.5} sx={{ mt: 2.5 }}>
         <Button variant="contained" size="large" disabled={submitting} onClick={handleSubmit}>
           {submitting ? 'Saving…' : isEdit ? 'Save' : 'Publish'}
         </Button>

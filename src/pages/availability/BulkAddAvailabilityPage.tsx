@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Alert,
+  Box,
   Button,
   Card,
   CardContent,
@@ -16,7 +17,6 @@ import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { availabilityRepository } from '../../api/availabilityRepository';
 import { venueRepository } from '../../api/venueRepository';
 import type { HomeAwayPreference, VenueView } from '../../api/types';
-import { PageHeader } from '../../components/PageHeader';
 import { StatTile } from '../../components/brand/StatTile';
 import { brand } from '../../theme/theme';
 
@@ -117,7 +117,7 @@ export function BulkAddAvailabilityPage() {
 
   if (!active) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6 }}>
+      <Container maxWidth="lg" sx={{ py: 6 }}>
         <Typography>No active team.</Typography>
       </Container>
     );
@@ -125,9 +125,11 @@ export function BulkAddAvailabilityPage() {
 
   if (result) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6 }}>
-        <Stack spacing={2.5}>
-          <PageHeader title="Published" onBack={() => navigate('/calendar')} />
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        <Stack spacing={2.5} sx={{ maxWidth: 480 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Published
+          </Typography>
           <Alert severity="success">
             {result.createdCount} date{result.createdCount === 1 ? '' : 's'} published.
           </Alert>
@@ -146,77 +148,67 @@ export function BulkAddAvailabilityPage() {
   }
 
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Stack spacing={3}>
-        <PageHeader title="Bulk add availability" />
-        <Typography variant="body2" color="text.secondary" sx={{ mt: -2 }}>
-          Publish the same time window on every matching weekday between two dates.
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          Bulk add availability
         </Typography>
+        <Typography color="text.secondary" sx={{ fontSize: 13.5 }}>
+          Apply the same slot across several weeks at once.
+        </Typography>
+      </Box>
 
-        <Card variant="outlined">
-          <CardContent>
-            <Stack spacing={2.5}>
-              <Stack direction="row" spacing={2}>
-                <TextField
-                  label="From"
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  fullWidth
-                />
-                <TextField
-                  label="To"
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  fullWidth
-                />
-              </Stack>
+      <Card variant="outlined" sx={{ borderRadius: 3 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
+          <Stack spacing={1} sx={{ mb: 2.5 }}>
+            <Typography sx={{ fontSize: 11, fontWeight: 700, color: brand.muted, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+              Repeat on
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+              {WEEKDAYS.map((w) => {
+                const selected = weekdays.has(w.value);
+                return (
+                  <Chip
+                    key={w.value}
+                    label={w.label}
+                    onClick={() => toggleWeekday(w.value)}
+                    sx={
+                      selected
+                        ? { bgcolor: brand.void, color: '#fff', fontWeight: 700 }
+                        : { bgcolor: brand.mist, color: brand.ink2, fontWeight: 700 }
+                    }
+                  />
+                );
+              })}
+            </Stack>
+          </Stack>
 
-              <Stack spacing={1}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                  Repeat on
-                </Typography>
-                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-                  {WEEKDAYS.map((w) => {
-                    const selected = weekdays.has(w.value);
-                    return (
-                      <Chip
-                        key={w.value}
-                        label={w.label}
-                        onClick={() => toggleWeekday(w.value)}
-                        sx={
-                          selected
-                            ? { bgcolor: brand.pitch, color: '#fff' }
-                            : { bgcolor: brand.mist, color: brand.ink2 }
-                        }
-                      />
-                    );
-                  })}
-                </Stack>
-              </Stack>
-
-              <Stack direction="row" spacing={2}>
-                <TextField
-                  label="Start time"
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  fullWidth
-                />
-                <TextField
-                  label="End time"
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  fullWidth
-                />
-              </Stack>
-
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 2, mb: 2.5 }}>
+            <TextField
+              label="Start time"
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+              fullWidth
+            />
+            <TextField
+              label="End time"
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+              fullWidth
+            />
+            {venues.length > 0 && homeAwayPreference !== 'AWAY' ? (
+              <TextField select label="Venue" value={venueId} onChange={(e) => setVenueId(e.target.value)} fullWidth>
+                {venues.map((v) => (
+                  <MenuItem key={v.id} value={v.id}>
+                    {v.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            ) : (
               <TextField
                 select
                 label="Home / away"
@@ -230,33 +222,71 @@ export function BulkAddAvailabilityPage() {
                   </MenuItem>
                 ))}
               </TextField>
-
-              {homeAwayPreference !== 'AWAY' && venues.length > 0 && (
-                <TextField select label="Venue" value={venueId} onChange={(e) => setVenueId(e.target.value)} fullWidth>
-                  {venues.map((v) => (
-                    <MenuItem key={v.id} value={v.id}>
-                      {v.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              )}
-
+            )}
+            <TextField
+              label="Start date"
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+              fullWidth
+            />
+            <TextField
+              label="End date"
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+              fullWidth
+            />
+            {venues.length > 0 && homeAwayPreference !== 'AWAY' && (
               <TextField
-                label="Notes (optional)"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value.slice(0, 280))}
-                multiline
-                minRows={2}
+                select
+                label="Home / away"
+                value={homeAwayPreference}
+                onChange={(e) => setHomeAwayPreference(e.target.value as HomeAwayPreference)}
                 fullWidth
-              />
-            </Stack>
-          </CardContent>
-        </Card>
+              >
+                {HOME_AWAY.map((h) => (
+                  <MenuItem key={h} value={h}>
+                    {h}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          </Box>
 
+          <TextField
+            label="Notes (optional)"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value.slice(0, 280))}
+            multiline
+            minRows={2}
+            fullWidth
+            sx={{ mb: 1.75 }}
+          />
+
+          <Typography variant="caption" color="text.secondary">
+            Applies to{' '}
+            <Box component="span" sx={{ color: brand.ink, fontWeight: 700 }}>
+              {previewDates.length} date{previewDates.length === 1 ? '' : 's'}
+            </Box>{' '}
+            between {fromDate} and {toDate}.
+          </Typography>
+        </CardContent>
+      </Card>
+
+      <Stack direction="row" spacing={2} sx={{ mt: 2.5, alignItems: 'center' }}>
         <StatTile label="Dates to publish" value={previewDates.length} sub={previewDates.length === 1 ? 'date' : 'dates'} />
+      </Stack>
 
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+      {errorMessage && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {errorMessage}
+        </Alert>
+      )}
 
+      <Stack direction="row" spacing={1.5} sx={{ mt: 2.5 }}>
         <Button variant="contained" size="large" disabled={!canSubmit || submitting} onClick={handleSubmit}>
           {submitting ? 'Publishing…' : `Publish ${previewDates.length} date${previewDates.length === 1 ? '' : 's'}`}
         </Button>
