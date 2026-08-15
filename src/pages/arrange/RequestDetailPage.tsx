@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Card, CardContent, Chip, CircularProgress, Container, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Container, Stack, Typography } from '@mui/material';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import { useNavigate, useParams } from 'react-router-dom';
 import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
 import { conversationRepository } from '../../api/conversationRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
-import { PageHeader } from '../../components/PageHeader';
 import { brand } from '../../theme/theme';
 import type { FriendlyRequestView } from '../../api/types';
 
@@ -76,7 +75,7 @@ export function RequestDetailPage() {
 
   if (loading) {
     return (
-      <Container maxWidth="xs" sx={{ py: 6, textAlign: 'center' }}>
+      <Container maxWidth="lg" sx={{ py: 6, textAlign: 'center' }}>
         <CircularProgress />
       </Container>
     );
@@ -84,61 +83,74 @@ export function RequestDetailPage() {
 
   if (!request) {
     return (
-      <Container maxWidth="xs" sx={{ py: 6 }}>
+      <Container maxWidth="lg" sx={{ py: 6 }}>
         <Typography>Request not found.</Typography>
       </Container>
     );
   }
 
-  return (
-    <Container maxWidth="xs" sx={{ py: 4 }}>
-      <Stack spacing={2}>
-        <PageHeader title="Friendly request" />
-        <Chip label={request.status.replace(/_/g, ' ')} sx={{ alignSelf: 'flex-start', ...(STATUS_STYLE[request.status] ?? {}) }} />
+  const style = STATUS_STYLE[request.status] ?? { bgcolor: brand.mist, color: brand.muted };
 
-        <Card variant="outlined">
-          <CardContent>
-            <Stack spacing={1}>
-              <Row label="Date" value={request.date} />
-              <Row label="Time" value={`${request.startTime.slice(0, 5)} - ${request.endTime.slice(0, 5)}`} />
-              <Row label="Cost share" value={request.costShare.replace(/_/g, ' ')} />
-              <Row label="Referee" value={request.refereeArrangement.replace(/_/g, ' ')} />
-            </Stack>
+  return (
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Box sx={{ maxWidth: 560 }}>
+        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-end', mb: 3 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Friendly request
+          </Typography>
+          <Box sx={{ fontSize: 12, fontWeight: 700, px: 1.25, py: 0.5, borderRadius: 5, ...style }}>
+            {request.status.replace(/_/g, ' ')}
+          </Box>
+        </Stack>
+
+        <Card variant="outlined" sx={{ borderRadius: 3 }}>
+          <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
+            <Row label="Date" value={request.date} />
+            <Row label="Time" value={`${request.startTime.slice(0, 5)} - ${request.endTime.slice(0, 5)}`} />
+            <Row label="Cost share" value={request.costShare.replace(/_/g, ' ')} />
+            <Row label="Referee" value={request.refereeArrangement.replace(/_/g, ' ')} last />
           </CardContent>
         </Card>
 
-        {request.message && <Typography variant="body2">Message: "{request.message}"</Typography>}
+        {request.message && (
+          <Typography variant="body2" sx={{ mt: 2 }}>
+            Message: "{request.message}"
+          </Typography>
+        )}
         {request.actionReason && (
-          <Typography variant="body2">
+          <Typography variant="body2" sx={{ mt: 1 }}>
             {request.status === 'DECLINED' ? 'Reason for declining' : 'Requested changes'}: "{request.actionReason}"
           </Typography>
         )}
 
         {(request.senderContact || request.recipientContact) && (
-          <Card variant="outlined">
-            <CardContent>
+          <Card variant="outlined" sx={{ borderRadius: 3, mt: 2 }}>
+            <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                 Contact details
               </Typography>
-              <Stack spacing={1}>
-                {request.senderContact?.managerName && (
-                  <Row label="Sender" value={`${request.senderContact.managerName} ${request.senderContact.contactPhone ?? ''}`} />
-                )}
-                {request.recipientContact?.managerName && (
-                  <Row label="Recipient" value={`${request.recipientContact.managerName} ${request.recipientContact.contactPhone ?? ''}`} />
-                )}
-              </Stack>
+              {request.senderContact?.managerName && (
+                <Row label="Sender" value={`${request.senderContact.managerName} ${request.senderContact.contactPhone ?? ''}`} />
+              )}
+              {request.recipientContact?.managerName && (
+                <Row label="Recipient" value={`${request.recipientContact.managerName} ${request.recipientContact.contactPhone ?? ''}`} last />
+              )}
             </CardContent>
           </Card>
         )}
 
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+        {errorMessage && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {errorMessage}
+          </Alert>
+        )}
 
-        <Stack spacing={1}>
+        <Stack direction="row" spacing={1.5} sx={{ mt: 2.5, flexWrap: 'wrap' }}>
           {request.availableActions.map((action) => (
             <Button
               key={action}
               variant={DIRECT_ACTIONS.has(action) ? 'contained' : 'outlined'}
+              color={action === 'decline' ? 'error' : 'primary'}
               disabled={acting}
               onClick={() => handleAction(action)}
             >
@@ -147,38 +159,43 @@ export function RequestDetailPage() {
           ))}
         </Stack>
 
-        {active && (
-          <Button
-            variant="outlined"
-            startIcon={<ChatBubbleOutlineIcon />}
-            disabled={opening}
-            onClick={handleMessage}
-          >
-            {opening ? 'Opening…' : 'Message the other team'}
-          </Button>
-        )}
+        <Stack direction="row" spacing={1.5} sx={{ mt: 1.5, flexWrap: 'wrap' }}>
+          {active && (
+            <Button
+              variant="outlined"
+              startIcon={<ChatBubbleOutlineIcon />}
+              disabled={opening}
+              onClick={handleMessage}
+            >
+              {opening ? 'Opening…' : 'Message the other team'}
+            </Button>
+          )}
 
-        {active && (
-          <Button
-            variant="text"
-            color="error"
-            onClick={() => {
-              const otherTeamId =
-                active.teamId === request.senderTeamId ? request.recipientTeamId : request.senderTeamId;
-              navigate(`/report?teamId=${otherTeamId}`);
-            }}
-          >
-            Report or block
-          </Button>
-        )}
-      </Stack>
+          {active && (
+            <Button
+              variant="text"
+              color="error"
+              onClick={() => {
+                const otherTeamId =
+                  active.teamId === request.senderTeamId ? request.recipientTeamId : request.senderTeamId;
+                navigate(`/report?teamId=${otherTeamId}`);
+              }}
+            >
+              Report or block
+            </Button>
+          )}
+        </Stack>
+      </Box>
     </Container>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value, last }: { label: string; value: string; last?: boolean }) {
   return (
-    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+    <Stack
+      direction="row"
+      sx={{ justifyContent: 'space-between', alignItems: 'baseline', py: 1.25, borderBottom: last ? 'none' : 1, borderColor: 'divider' }}
+    >
       <Typography variant="body2" color="text.secondary">
         {label}
       </Typography>

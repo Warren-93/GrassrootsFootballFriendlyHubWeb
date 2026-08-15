@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Button, Card, CardContent, Container, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Container, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { useInvitationDraftStore } from '../../session/SearchState';
@@ -19,7 +19,7 @@ export function InvitationReviewPage() {
 
   if (!draft || !active) {
     return (
-      <Container maxWidth="xs" sx={{ py: 6 }}>
+      <Container maxWidth="lg" sx={{ py: 6 }}>
         <Typography>No invitation in progress.</Typography>
       </Container>
     );
@@ -53,44 +53,59 @@ export function InvitationReviewPage() {
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 4 }}>
-      <Stack spacing={2}>
-        <Typography variant="h4" sx={{ fontWeight: 400 }}>
-          Review before sending
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Double-check the details - you can still edit anything.
-        </Typography>
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Box sx={{ maxWidth: 560 }}>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Review before sending
+          </Typography>
+          <Typography color="text.secondary" sx={{ fontSize: 13.5 }}>
+            Double-check the details - you can still edit anything.
+          </Typography>
+        </Box>
 
-        <Card variant="outlined">
-          <CardContent>
-            <Stack spacing={1}>
+        <Card variant="outlined" sx={{ borderRadius: 3 }}>
+          <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
+            <Stack spacing={0}>
               <Row label="Date" value={draft.date} />
               <Row label="Time" value={`${draft.startTime.slice(0, 5)} - ${draft.endTime.slice(0, 5)}`} />
               <Row label="Home team" value={draft.homeTeamId === active.teamId ? 'Us' : 'Them'} />
               <Row label="Cost share" value={draft.costShare.replace(/_/g, ' ')} />
-              <Row label="Referee" value={draft.refereeArrangement.replace(/_/g, ' ')} />
+              <Row label="Referee" value={draft.refereeArrangement.replace(/_/g, ' ')} last />
             </Stack>
+            {draft.message && (
+              <Typography variant="body2" sx={{ mt: 2 }}>
+                Message: "{draft.message}"
+              </Typography>
+            )}
           </CardContent>
         </Card>
-        {draft.message && <Typography variant="body2">Message: "{draft.message}"</Typography>}
 
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+        {errorMessage && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {errorMessage}
+          </Alert>
+        )}
 
-        <Button variant="contained" size="large" disabled={submitting} onClick={handleSend}>
-          {submitting ? 'Sending…' : 'Send invitation'}
-        </Button>
-        <Button variant="text" onClick={() => navigate(-1)}>
-          Back
-        </Button>
-      </Stack>
+        <Stack direction="row" spacing={1.5} sx={{ mt: 2.5, justifyContent: 'flex-end' }}>
+          <Button variant="outlined" onClick={() => navigate(-1)}>
+            Edit details
+          </Button>
+          <Button variant="contained" size="large" disabled={submitting} onClick={handleSend}>
+            {submitting ? 'Sending…' : 'Send request'}
+          </Button>
+        </Stack>
+      </Box>
     </Container>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value, last }: { label: string; value: string; last?: boolean }) {
   return (
-    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+    <Stack
+      direction="row"
+      sx={{ justifyContent: 'space-between', alignItems: 'baseline', py: 1.25, borderBottom: last ? 'none' : 1, borderColor: 'divider' }}
+    >
       <Typography variant="body2" color="text.secondary">
         {label}
       </Typography>

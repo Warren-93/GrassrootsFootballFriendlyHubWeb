@@ -21,8 +21,8 @@ export function SuggestChangesPage() {
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
-      <Stack spacing={3}>
+    <Container maxWidth="lg" sx={{ py: 6 }}>
+      <Stack spacing={3} sx={{ maxWidth: 480 }}>
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           Suggest changes
         </Typography>
@@ -35,12 +35,14 @@ export function SuggestChangesPage() {
           fullWidth
         />
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
-        <Button variant="contained" size="large" disabled={submitting} onClick={handleSubmit}>
-          {submitting ? 'Sending…' : 'Send'}
-        </Button>
-        <Button variant="text" onClick={() => navigate(-1)}>
-          Cancel
-        </Button>
+        <Stack direction="row" spacing={1.5}>
+          <Button variant="contained" size="large" disabled={submitting} onClick={handleSubmit}>
+            {submitting ? 'Sending…' : 'Send'}
+          </Button>
+          <Button variant="text" onClick={() => navigate(-1)}>
+            Cancel
+          </Button>
+        </Stack>
       </Stack>
     </Container>
   );

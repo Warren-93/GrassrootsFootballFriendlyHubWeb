@@ -62,7 +62,7 @@ export function FixtureDetailPage() {
 
   if (loading) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6, textAlign: 'center' }}>
+      <Container maxWidth="lg" sx={{ py: 6, textAlign: 'center' }}>
         <CircularProgress />
       </Container>
     );
@@ -70,7 +70,7 @@ export function FixtureDetailPage() {
 
   if (!fixture) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6 }}>
+      <Container maxWidth="lg" sx={{ py: 6 }}>
         <Typography>Fixture not found.</Typography>
       </Container>
     );
@@ -93,7 +93,7 @@ export function FixtureDetailPage() {
   }
 
   return (
-    <Container maxWidth="sm" sx={{ py: 3 }}>
+    <Container maxWidth="lg" sx={{ py: 3 }}>
       <Stack spacing={2}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <IconButton onClick={() => navigate(-1)} aria-label="Back" edge="start">

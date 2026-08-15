@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardActionArea, CardContent, Chip, CircularProgress, Container, Stack, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Button, Card, CardActionArea, CardContent, Chip, CircularProgress, Container, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
 import { fixtureRepository } from '../../api/fixtureRepository';
+import { teamRepository } from '../../api/teamRepository';
+import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import type { FixtureView, FriendlyRequestView } from '../../api/types';
-import { HeroBand } from '../../components/brand/HeroBand';
 import { brand } from '../../theme/theme';
 
 const OPEN_STATUSES = new Set(['SENT', 'CHANGES_REQUESTED', 'UPDATED']);
@@ -15,7 +16,9 @@ export function FixturesPage() {
   const { active } = useCurrentTeam();
   const [requests, setRequests] = useState<FriendlyRequestView[]>([]);
   const [fixtures, setFixtures] = useState<FixtureView[]>([]);
+  const [opponents, setOpponents] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [acting, setActing] = useState<string | null>(null);
   const [tab, setTab] = useState(0);
 
   useEffect(() => {
@@ -28,11 +31,30 @@ export function FixturesPage() {
         friendlyRequestRepository.list(active.teamId),
         fixtureRepository.list(active.teamId),
       ]);
-      if (requestsResult.ok) setRequests(requestsResult.value);
       if (fixturesResult.ok) setFixtures(fixturesResult.value);
+
+      if (requestsResult.ok) {
+        setRequests(requestsResult.value);
+        const pending = requestsResult.value.filter((r) => OPEN_STATUSES.has(r.status));
+        const entries = await Promise.all(
+          pending.map(async (r) => {
+            const otherTeamId = active.teamId === r.senderTeamId ? r.recipientTeamId : r.senderTeamId;
+            const otherTeamResult = await teamRepository.get(otherTeamId);
+            return [r.id, otherTeamResult.ok ? otherTeamResult.value.name : 'Opponent'] as const;
+          }),
+        );
+        setOpponents(Object.fromEntries(entries));
+      }
       setLoading(false);
     })();
   }, [active]);
+
+  async function accept(requestId: string) {
+    setActing(requestId);
+    const result = await friendlyRequestRepository.act(requestId, 'accept');
+    setActing(null);
+    if (result.ok) setRequests((prev) => prev.map((r) => (r.id === requestId ? result.value : r)));
+  }
 
   const pending = requests.filter((r) => OPEN_STATUSES.has(r.status));
   const confirmed = fixtures.filter((f) => f.status === 'CONFIRMED');
@@ -40,15 +62,24 @@ export function FixturesPage() {
 
   if (loading) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6, textAlign: 'center' }}>
+      <Container maxWidth="lg" sx={{ py: 6, textAlign: 'center' }}>
         <CircularProgress />
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="sm" sx={{ py: 3 }}>
-      <HeroBand compact title="Arrange & fixtures" subtitle="Requests, responses and confirmed friendlies in one place." />
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          Arrange &amp; fixtures
+        </Typography>
+        <Typography color="text.secondary" sx={{ fontSize: 13.5 }}>
+          {tab === 0
+            ? `Needs a response · ${pending.length}`
+            : 'Requests, responses and confirmed friendlies in one place.'}
+        </Typography>
+      </Box>
 
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>
         <Tab label={`Pending (${pending.length})`} />
@@ -61,23 +92,48 @@ export function FixturesPage() {
           (pending.length === 0 ? (
             <Typography color="text.secondary">No pending requests.</Typography>
           ) : (
-            pending.map((r) => (
-              <Card key={r.id} variant="outlined">
-                <CardActionArea onClick={() => navigate(`/request/${r.id}`)}>
-                  <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box>
-                      <Typography variant="body1" sx={{ fontWeight: 700 }}>
-                        {r.date}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Needs a response
-                      </Typography>
+            pending.map((r) => {
+              const opponent = opponents[r.id] ?? '…';
+              const incoming = active && r.recipientTeamId === active.teamId;
+              const canAcceptDirect = r.availableActions.includes('accept');
+              return (
+                <Card key={r.id} variant="outlined" sx={{ borderRadius: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.75, p: 2, flexWrap: 'wrap' }}>
+                    <Box sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.75, flex: 1, minWidth: 220 }} onClick={() => navigate(`/request/${r.id}`)}>
+                      <CrestAvatar name={opponent} />
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: 14 }}>
+                          {incoming ? `${opponent} wants to play` : `Request sent to ${opponent}`}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {r.date} &middot; {r.startTime.slice(0, 5)}
+                        </Typography>
+                      </Box>
                     </Box>
-                    <Chip label={r.status.replace('_', ' ')} size="small" sx={{ bgcolor: brand.amberBg, color: brand.amber }} />
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            ))
+                    <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
+                      {canAcceptDirect && (
+                        <Button variant="contained" size="small" disabled={acting === r.id} onClick={() => accept(r.id)}>
+                          Accept
+                        </Button>
+                      )}
+                      {r.availableActions.includes('suggestChanges') && (
+                        <Button variant="outlined" size="small" onClick={() => navigate(`/request/${r.id}/suggest-changes`)}>
+                          Suggest change
+                        </Button>
+                      )}
+                      {r.availableActions.includes('decline') && (
+                        <Button variant="outlined" color="error" size="small" onClick={() => navigate(`/request/${r.id}/decline`)}>
+                          Decline
+                        </Button>
+                      )}
+                      {!canAcceptDirect && !r.availableActions.includes('decline') && (
+                        <Chip label={r.status.replace(/_/g, ' ')} size="small" sx={{ bgcolor: brand.amberBg, color: brand.amber }} />
+                      )}
+                    </Stack>
+                  </Box>
+                </Card>
+              );
+            })
           ))}
 
         {tab === 1 &&
@@ -104,7 +160,7 @@ function FixtureRow({ fixture, status, onClick }: { fixture: FixtureView; status
   const month = Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, { month: 'short' }).toUpperCase();
 
   return (
-    <Card variant="outlined">
+    <Card variant="outlined" sx={{ borderRadius: 3 }}>
       <CardActionArea onClick={onClick}>
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box sx={{ width: 44, textAlign: 'center', flex: 'none' }}>
