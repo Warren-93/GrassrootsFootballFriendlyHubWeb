@@ -1,45 +1,32 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { Alert, Box, Button, Container, Typography } from '@mui/material';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import PlaceIcon from '@mui/icons-material/Place';
+import { Alert, Box, Button, Checkbox, Container, Menu, MenuItem, Select, Typography } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { useSearchFilterStore, useSearchResultsStore } from '../../session/SearchState';
 import { matchRepository } from '../../api/matchRepository';
+import type { AbilityLevel, Format } from '../../api/types';
 import { brand } from '../../theme/theme';
 
-function FieldBox({ label, value, icon, onClick }: { label: string; value: string; icon?: ReactNode; onClick: () => void }) {
+const FORMATS: Format[] = ['FIVE_A_SIDE', 'SEVEN_A_SIDE', 'NINE_A_SIDE', 'ELEVEN_A_SIDE'];
+const ABILITY_LEVELS: AbilityLevel[] = ['DEVELOPMENT', 'INTERMEDIATE', 'COMPETITIVE'];
+const DISTANCE_PRESETS = [5, 10, 15, 25, 40, 50];
+
+const fieldBoxSx = {
+  fontSize: 13,
+  color: brand.ink2,
+  '.MuiOutlinedInput-notchedOutline': { borderColor: brand.border },
+  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: brand.pitch },
+  '.MuiSelect-select': { py: '9px', display: 'flex', alignItems: 'center' },
+};
+
+function FieldLabel({ children }: { children: ReactNode }) {
   return (
-    <Box sx={{ flex: '1 1 150px', minWidth: 150 }}>
-      <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: brand.muted, textTransform: 'uppercase', letterSpacing: '.04em', mb: 0.5 }}>
-        {label}
-      </Typography>
-      <Box
-        component="button"
-        onClick={onClick}
-        sx={{
-          font: 'inherit',
-          width: '100%',
-          border: `1px solid ${brand.border}`,
-          borderRadius: 1.5,
-          bgcolor: 'transparent',
-          cursor: 'pointer',
-          p: '9px 10px',
-          fontSize: 13,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          color: brand.ink2,
-          textAlign: 'left',
-          '&:hover': { borderColor: brand.pitch },
-        }}
-      >
-        {value}
-        {icon ?? <ChevronRightIcon sx={{ fontSize: 16, color: brand.muted }} />}
-      </Box>
-    </Box>
+    <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: brand.muted, textTransform: 'uppercase', letterSpacing: '.04em', mb: 0.5 }}>
+      {children}
+    </Typography>
   );
 }
 
@@ -50,6 +37,7 @@ export function SearchEntryPage() {
   const setResponse = useSearchResultsStore((s) => s.setResponse);
   const [searching, setSearching] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [moreAnchor, setMoreAnchor] = useState<null | HTMLElement>(null);
 
   async function handleSearch() {
     if (!active) return;
@@ -74,7 +62,6 @@ export function SearchEntryPage() {
     }
   }
 
-  const distanceLabel = filters.ignoreTravelRadius ? 'All distances' : filters.maxDistanceMiles ? `${filters.maxDistanceMiles} miles` : 'Any';
   const extrasCount = (filters.verifiedOnly ? 1 : 0) + (filters.venueRequired ? 1 : 0);
 
   return (
@@ -100,10 +87,110 @@ export function SearchEntryPage() {
           mb: 3,
         }}
       >
-        <FieldBox label="Formats" value={filters.formats.length ? filters.formats.map((f) => f.replace(/_/g, ' ')).join(', ') : 'Any'} onClick={() => navigate('/filters')} />
-        <FieldBox label="Ability level" value={filters.abilityLevels.length ? filters.abilityLevels.join(', ') : 'Any'} onClick={() => navigate('/filters')} />
-        <FieldBox label="Distance" value={distanceLabel} icon={<PlaceIcon sx={{ fontSize: 16, color: brand.muted }} />} onClick={() => navigate('/filters')} />
-        <FieldBox label="More filters" value={extrasCount > 0 ? `${extrasCount} active` : 'None'} onClick={() => navigate('/filters')} />
+        <Box sx={{ flex: '1 1 160px', minWidth: 160 }}>
+          <FieldLabel>Formats</FieldLabel>
+          <Select
+            multiple
+            fullWidth
+            size="small"
+            displayEmpty
+            value={filters.formats}
+            onChange={(e) => filters.setFilters({ formats: e.target.value as string[] })}
+            renderValue={(selected) => ((selected as string[]).length ? (selected as string[]).map((f) => f.replace(/_/g, ' ')).join(', ') : 'Any')}
+            IconComponent={ExpandMoreIcon}
+            sx={fieldBoxSx}
+          >
+            {FORMATS.map((f) => (
+              <MenuItem key={f} value={f}>
+                <Checkbox checked={filters.formats.includes(f)} size="small" />
+                {f.replace(/_/g, ' ')}
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
+
+        <Box sx={{ flex: '1 1 160px', minWidth: 160 }}>
+          <FieldLabel>Ability level</FieldLabel>
+          <Select
+            multiple
+            fullWidth
+            size="small"
+            displayEmpty
+            value={filters.abilityLevels}
+            onChange={(e) => filters.setFilters({ abilityLevels: e.target.value as string[] })}
+            renderValue={(selected) => ((selected as string[]).length ? (selected as string[]).join(', ') : 'Any')}
+            IconComponent={ExpandMoreIcon}
+            sx={fieldBoxSx}
+          >
+            {ABILITY_LEVELS.map((a) => (
+              <MenuItem key={a} value={a}>
+                <Checkbox checked={filters.abilityLevels.includes(a)} size="small" />
+                {a}
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
+
+        <Box sx={{ flex: '1 1 160px', minWidth: 160 }}>
+          <FieldLabel>Distance</FieldLabel>
+          <Select
+            fullWidth
+            size="small"
+            value={filters.ignoreTravelRadius ? 'any' : String(filters.maxDistanceMiles ?? 25)}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === 'any') filters.setFilters({ ignoreTravelRadius: true });
+              else filters.setFilters({ ignoreTravelRadius: false, maxDistanceMiles: Number(v) });
+            }}
+            IconComponent={ExpandMoreIcon}
+            sx={fieldBoxSx}
+          >
+            {DISTANCE_PRESETS.map((m) => (
+              <MenuItem key={m} value={String(m)}>
+                {m} miles
+              </MenuItem>
+            ))}
+            <MenuItem value="any">All distances</MenuItem>
+          </Select>
+        </Box>
+
+        <Box sx={{ flex: '1 1 160px', minWidth: 160 }}>
+          <FieldLabel>More filters</FieldLabel>
+          <Box
+            component="button"
+            onClick={(e) => setMoreAnchor(e.currentTarget)}
+            sx={{
+              font: 'inherit',
+              width: '100%',
+              border: `1px solid ${brand.border}`,
+              borderRadius: 1.5,
+              bgcolor: 'transparent',
+              cursor: 'pointer',
+              p: '9px 10px',
+              fontSize: 13,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              color: brand.ink2,
+              textAlign: 'left',
+              '&:hover': { borderColor: brand.pitch },
+            }}
+          >
+            {extrasCount > 0 ? `${extrasCount} active` : 'None'}
+            <ExpandMoreIcon sx={{ fontSize: 18, color: brand.muted }} />
+          </Box>
+          <Menu anchorEl={moreAnchor} open={!!moreAnchor} onClose={() => setMoreAnchor(null)}>
+            <MenuItem onClick={() => filters.setFilters({ verifiedOnly: !filters.verifiedOnly })}>
+              <Checkbox checked={filters.verifiedOnly} size="small" />
+              Verified teams only
+            </MenuItem>
+            <MenuItem onClick={() => filters.setFilters({ venueRequired: !filters.venueRequired })}>
+              <Checkbox checked={filters.venueRequired} size="small" />
+              Venue confirmed only
+            </MenuItem>
+          </Menu>
+        </Box>
+
         <Box sx={{ alignSelf: 'flex-end' }}>
           <Button
             variant="contained"

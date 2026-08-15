@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardActionArea, CardContent, Chip, Container, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { Box, Button, Card, CardActionArea, CardContent, Container, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useSearchResultsStore } from '../../session/SearchState';
+import { useSearchFilterStore, useSearchResultsStore } from '../../session/SearchState';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { teamRepository } from '../../api/teamRepository';
 import { geocodeOutcode } from '../../lib/geocodeOutcode';
 import { PageHeader } from '../../components/PageHeader';
 import { MatchScoreChip } from '../../components/brand/MatchScoreChip';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
-import type { MatchSummary } from '../../api/types';
+import { brand } from '../../theme/theme';
+import type { MatchSummary, TeamView } from '../../api/types';
 
 function homeIcon(): L.DivIcon {
   return L.divIcon({
@@ -35,10 +36,19 @@ export function ResultsListPage() {
   const navigate = useNavigate();
   const response = useSearchResultsStore((s) => s.response);
   const { active } = useCurrentTeam();
+  const filters = useSearchFilterStore();
   const [view, setView] = useState<'list' | 'map'>('list');
+  const [team, setTeam] = useState<TeamView | null>(null);
   const [homeCoords, setHomeCoords] = useState<[number, number] | null>(null);
   const [markers, setMarkers] = useState<{ match: MatchSummary; position: [number, number] }[]>([]);
   const [mapLoading, setMapLoading] = useState(false);
+
+  useEffect(() => {
+    if (!active) return;
+    teamRepository.get(active.teamId).then((result) => {
+      if (result.ok) setTeam(result.value);
+    });
+  }, [active?.teamId]);
 
   useEffect(() => {
     if (view !== 'map' || !response || !active) return;
@@ -80,12 +90,14 @@ export function ResultsListPage() {
   }
 
   const center = homeCoords ?? (markers[0]?.position as [number, number] | undefined) ?? [51.5074, -0.1276];
+  const radiusLabel = filters.ignoreTravelRadius ? '' : ` within ${filters.maxDistanceMiles ?? 25} miles`;
+  const mapTitle = view === 'map' ? `${markers.length} team${markers.length === 1 ? '' : 's'}${radiusLabel}` : `${response.totalResults} matches found`;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Stack spacing={2}>
         <PageHeader
-          title={`${response.totalResults} matches found`}
+          title={mapTitle}
           action={
             <ToggleButtonGroup size="small" exclusive value={view} onChange={(_, v) => v && setView(v)}>
               <ToggleButton value="list">List</ToggleButton>
@@ -93,30 +105,50 @@ export function ResultsListPage() {
             </ToggleButtonGroup>
           }
         />
+        {view === 'map' && team?.postcode && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: -1.5 }}>
+            {team.postcode}
+          </Typography>
+        )}
 
         {view === 'list' ? (
           response.results.map((match) => (
-            <Card key={match.team.id} variant="outlined">
+            <Card key={match.team.id} variant="outlined" sx={{ borderRadius: 3 }}>
               <CardActionArea onClick={() => navigate(`/opponent/${match.team.id}`)}>
-                <CardContent>
-                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
-                    <CrestAvatar name={match.team.name} />
-                    <Stack direction="row" sx={{ flex: 1, minWidth: 0, justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                          {match.team.name}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {match.team.clubName} &middot; {match.team.generalArea} &middot; {match.milesApart.toFixed(1)} mi
-                        </Typography>
-                      </Box>
-                      <MatchScoreChip score={match.score} />
-                    </Stack>
-                  </Stack>
-                  <Stack direction="row" spacing={1} sx={{ mt: 1, ml: '46px', flexWrap: 'wrap' }}>
-                    {match.reasons.slice(0, 3).map((reason) => (
-                      <Chip key={reason} size="small" label={reason} variant="outlined" />
-                    ))}
+                <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.75, py: 1.75 }}>
+                  <CrestAvatar name={match.team.name} />
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }} noWrap>
+                      {match.team.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" noWrap>
+                      {match.team.generalArea} &middot; {match.milesApart.toFixed(1)} mi away
+                    </Typography>
+                    {match.reasons.length > 0 && (
+                      <Stack direction="row" spacing={0.5} sx={{ mt: 0.5, flexWrap: 'wrap' }}>
+                        {match.reasons.slice(0, 3).map((reason) => (
+                          <Box
+                            key={reason}
+                            sx={{ fontSize: 10.5, bgcolor: brand.mist, color: brand.ink2, px: 0.875, py: 0.25, borderRadius: 10 }}
+                          >
+                            {reason}
+                          </Box>
+                        ))}
+                      </Stack>
+                    )}
+                  </Box>
+                  <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center', flexShrink: 0 }}>
+                    <MatchScoreChip score={match.score} />
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/invite/${match.team.id}`);
+                      }}
+                    >
+                      Request
+                    </Button>
                   </Stack>
                 </CardContent>
               </CardActionArea>
