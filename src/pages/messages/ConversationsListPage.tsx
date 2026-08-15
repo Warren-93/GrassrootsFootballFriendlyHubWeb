@@ -1,6 +1,5 @@
 import { Box, Typography, useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { HeroBand } from '../../components/brand/HeroBand';
 import { ConversationListPanel } from './ConversationListPanel';
 
 /**
@@ -18,8 +17,10 @@ export function ConversationsListPage() {
     return (
       <Box sx={{ display: 'flex', height: 'calc(100vh - 64px)' }}>
         <Box sx={{ width: 258, flexShrink: 0, borderRight: 1, borderColor: 'divider', overflowY: 'auto' }}>
-          <Box sx={{ px: 2, pt: 2 }}>
-            <HeroBand compact title="Messages" subtitle="Every conversation tied to a friendly or fixture." />
+          <Box sx={{ px: 2, pt: 2.5, pb: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 16 }}>
+              Messages
+            </Typography>
           </Box>
           <ConversationListPanel />
         </Box>
@@ -31,8 +32,10 @@ export function ConversationsListPage() {
   }
 
   return (
-    <Box sx={{ px: 2, py: 3 }}>
-      <HeroBand compact title="Messages" subtitle="Every conversation tied to a friendly or fixture." />
+    <Box sx={{ px: 2, py: 2.5 }}>
+      <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 18, mb: 1 }}>
+        Messages
+      </Typography>
       <ConversationListPanel />
     </Box>
   );

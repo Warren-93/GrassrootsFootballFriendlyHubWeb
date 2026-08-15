@@ -12,6 +12,14 @@ interface ConversationListPanelProps {
   selectedConversationId?: string;
 }
 
+function relativeTime(iso: string): string {
+  const minutes = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.round(hours / 24)}d`;
+}
+
 /**
  * The inbox list - every team you're chatting with, most recently active
  * first. Reused as the left pane of the two-pane desktop layout (both on
@@ -84,8 +92,8 @@ export function ConversationListPanel({ selectedConversationId }: ConversationLi
                   </Typography>
                 </Stack>
                 {c.lastMessageAt && (
-                  <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
-                    {new Date(c.lastMessageAt).toLocaleDateString()}
+                  <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, fontSize: 10.5 }}>
+                    {relativeTime(c.lastMessageAt)}
                   </Typography>
                 )}
               </Stack>
