@@ -1,13 +1,47 @@
 import { useState } from 'react';
-import { Alert, Button, Card, CardContent, Chip, Container, Stack, Typography } from '@mui/material';
-import TuneIcon from '@mui/icons-material/Tune';
+import type { ReactNode } from 'react';
+import { Alert, Box, Button, Container, Typography } from '@mui/material';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import PlaceIcon from '@mui/icons-material/Place';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { useSearchFilterStore, useSearchResultsStore } from '../../session/SearchState';
 import { matchRepository } from '../../api/matchRepository';
-import { HeroBand } from '../../components/brand/HeroBand';
 import { brand } from '../../theme/theme';
+
+function FieldBox({ label, value, icon, onClick }: { label: string; value: string; icon?: ReactNode; onClick: () => void }) {
+  return (
+    <Box sx={{ flex: '1 1 150px', minWidth: 150 }}>
+      <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: brand.muted, textTransform: 'uppercase', letterSpacing: '.04em', mb: 0.5 }}>
+        {label}
+      </Typography>
+      <Box
+        component="button"
+        onClick={onClick}
+        sx={{
+          font: 'inherit',
+          width: '100%',
+          border: `1px solid ${brand.border}`,
+          borderRadius: 1.5,
+          bgcolor: 'transparent',
+          cursor: 'pointer',
+          p: '9px 10px',
+          fontSize: 13,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          color: brand.ink2,
+          textAlign: 'left',
+          '&:hover': { borderColor: brand.pitch },
+        }}
+      >
+        {value}
+        {icon ?? <ChevronRightIcon sx={{ fontSize: 16, color: brand.muted }} />}
+      </Box>
+    </Box>
+  );
+}
 
 export function SearchEntryPage() {
   const navigate = useNavigate();
@@ -16,18 +50,6 @@ export function SearchEntryPage() {
   const setResponse = useSearchResultsStore((s) => s.setResponse);
   const [searching, setSearching] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const activeFilterChips = [
-    ...filters.formats,
-    ...filters.abilityLevels,
-    filters.ignoreTravelRadius
-      ? 'All distances'
-      : filters.maxDistanceMiles
-        ? `${filters.maxDistanceMiles} miles`
-        : null,
-    filters.verifiedOnly ? 'Verified only' : null,
-    filters.venueRequired ? 'Venue required' : null,
-  ].filter((x): x is string => !!x);
 
   async function handleSearch() {
     if (!active) return;
@@ -52,50 +74,49 @@ export function SearchEntryPage() {
     }
   }
 
+  const distanceLabel = filters.ignoreTravelRadius ? 'All distances' : filters.maxDistanceMiles ? `${filters.maxDistanceMiles} miles` : 'Any';
+  const extrasCount = (filters.verifiedOnly ? 1 : 0) + (filters.venueRequired ? 1 : 0);
+
   return (
-    <Container maxWidth="sm" sx={{ py: 3 }}>
-      <HeroBand
-        eyebrow="Discover"
-        title="Find a friendly"
-        subtitle="We'll match your published availability against nearby teams, ranked by fit."
-      />
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          Find a friendly
+        </Typography>
+        <Typography color="text.secondary" sx={{ fontSize: 13.5 }}>
+          We'll match your published availability against nearby teams, ranked by fit.
+        </Typography>
+      </Box>
 
-      <Card variant="outlined" sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>
-            Active filters
-          </Typography>
-          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mb: 2 }}>
-            {activeFilterChips.length === 0 ? (
-              <Chip label="No filters set" variant="outlined" />
-            ) : (
-              activeFilterChips.map((chip) => (
-                <Chip key={chip} label={chip} sx={{ bgcolor: brand.mist, color: brand.ink2 }} />
-              ))
-            )}
-          </Stack>
-          <Button variant="outlined" startIcon={<TuneIcon />} onClick={() => navigate('/filters')}>
-            Adjust filters
-          </Button>
-        </CardContent>
-      </Card>
-
-      {errorMessage && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {errorMessage}
-        </Alert>
-      )}
-
-      <Button
-        variant="contained"
-        size="large"
-        fullWidth
-        startIcon={!searching ? <SearchIcon /> : undefined}
-        disabled={searching || !active}
-        onClick={handleSearch}
+      <Box
+        sx={{
+          display: 'flex',
+          gap: 1.5,
+          flexWrap: 'wrap',
+          bgcolor: brand.paper,
+          border: `1px solid ${brand.border}`,
+          borderRadius: 3,
+          p: 2,
+          mb: 3,
+        }}
       >
-        {searching ? 'Searching…' : 'Search'}
-      </Button>
+        <FieldBox label="Formats" value={filters.formats.length ? filters.formats.map((f) => f.replace(/_/g, ' ')).join(', ') : 'Any'} onClick={() => navigate('/filters')} />
+        <FieldBox label="Ability level" value={filters.abilityLevels.length ? filters.abilityLevels.join(', ') : 'Any'} onClick={() => navigate('/filters')} />
+        <FieldBox label="Distance" value={distanceLabel} icon={<PlaceIcon sx={{ fontSize: 16, color: brand.muted }} />} onClick={() => navigate('/filters')} />
+        <FieldBox label="More filters" value={extrasCount > 0 ? `${extrasCount} active` : 'None'} onClick={() => navigate('/filters')} />
+        <Box sx={{ alignSelf: 'flex-end' }}>
+          <Button
+            variant="contained"
+            startIcon={!searching ? <SearchIcon /> : undefined}
+            disabled={searching || !active}
+            onClick={handleSearch}
+          >
+            {searching ? 'Searching…' : 'Search'}
+          </Button>
+        </Box>
+      </Box>
+
+      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
     </Container>
   );
 }
