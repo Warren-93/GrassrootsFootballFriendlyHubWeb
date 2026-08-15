@@ -38,6 +38,10 @@ import ApartmentIcon from '@mui/icons-material/Apartment';
 import PlaceIcon from '@mui/icons-material/Place';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import SettingsIcon from '@mui/icons-material/Settings';
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
+import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
+import ReportOutlinedIcon from '@mui/icons-material/ReportOutlined';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutlineOutlined';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
@@ -73,6 +77,16 @@ function useTeamClubLinks(teamId: string | undefined): NavLink[] {
   ];
 }
 
+function useAccountLinks(): NavLink[] {
+  return [
+    { label: 'Settings', path: '/settings' },
+    { label: 'Notifications', path: '/settings/notifications' },
+    { label: 'Privacy & data', path: '/settings/privacy' },
+    { label: 'Report & block', path: '/settings/report' },
+    { label: 'Help', path: '/settings/help' },
+  ];
+}
+
 /**
  * The persistent shell for every "dashboard" screen - a top nav bar (logo,
  * flat section links, notification bell, account menu) rather than a
@@ -93,6 +107,7 @@ export function AppShell() {
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'), { noSsr: true });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [teamMenuAnchor, setTeamMenuAnchor] = useState<null | HTMLElement>(null);
+  const [accountMenuAnchor, setAccountMenuAnchor] = useState<null | HTMLElement>(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [myTeams, setMyTeams] = useState<TeamView[]>([]);
@@ -103,6 +118,7 @@ export function AppShell() {
   const { setNavStyle } = useNavPreference();
   const primaryLinks = usePrimaryLinks();
   const teamClubLinks = useTeamClubLinks(active?.teamId);
+  const accountLinks = useAccountLinks();
 
   useEffect(() => {
     notificationRepository.unreadCount().then((result) => {
@@ -157,11 +173,16 @@ export function AppShell() {
   }
 
   const teamClubActive = teamClubLinks.some((item) => isActive(item.path));
-  const settingsActive = isActive('/settings');
-  // Nested routes like /team/:id and /team/:id/verification both match the
-  // prefix test above, which would highlight both menu items at once - only
-  // the most specific (longest) matching path should win.
+  const accountActive = accountLinks.some((item) => isActive(item.path));
+  // Nested routes like /team/:id and /team/:id/verification (or /settings
+  // and /settings/notifications) both match the prefix test above, which
+  // would highlight two menu items at once - only the most specific
+  // (longest) matching path should win.
   const currentTeamClubItem = teamClubLinks.reduce<NavLink | null>(
+    (best, item) => (isActive(item.path) && (!best || item.path.length > best.path.length) ? item : best),
+    null,
+  );
+  const currentAccountItem = accountLinks.reduce<NavLink | null>(
     (best, item) => (isActive(item.path) && (!best || item.path.length > best.path.length) ? item : best),
     null,
   );
@@ -176,6 +197,11 @@ export function AppShell() {
     'Club & members': <ApartmentIcon />,
     Venues: <PlaceIcon />,
     Verification: <VerifiedUserIcon />,
+    Settings: <SettingsIcon />,
+    Notifications: <NotificationsNoneIcon />,
+    'Privacy & data': <PrivacyTipIcon />,
+    'Report & block': <ReportOutlinedIcon />,
+    Help: <HelpOutlineIcon />,
   };
 
   const mobileDrawer = (
@@ -232,19 +258,20 @@ export function AppShell() {
           </ListItemIcon>
           <ListItemText primary="Dashboard" />
         </ListItemButton>
-        <ListItemButton
-          selected={settingsActive}
-          onClick={() => {
-            navigate('/settings');
-            setMobileOpen(false);
-          }}
-          sx={{ mx: 1, borderRadius: 1 }}
-        >
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <SettingsIcon />
-          </ListItemIcon>
-          <ListItemText primary="Settings" />
-        </ListItemButton>
+        {accountLinks.map((item) => (
+          <ListItemButton
+            key={item.path}
+            selected={item === currentAccountItem}
+            onClick={() => {
+              navigate(item.path);
+              setMobileOpen(false);
+            }}
+            sx={{ mx: 1, borderRadius: 1 }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>{iconFor[item.label]}</ListItemIcon>
+            <ListItemText primary={item.label} />
+          </ListItemButton>
+        ))}
       </List>
     </Box>
   );
@@ -341,15 +368,17 @@ export function AppShell() {
 
               <Box
                 component="button"
-                onClick={() => navigate('/settings')}
+                onClick={(e) => setAccountMenuAnchor(e.currentTarget)}
                 sx={{
                   font: 'inherit',
                   fontSize: '0.875rem',
                   fontWeight: 600,
                   background: 'none',
                   border: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
                   cursor: 'pointer',
-                  color: settingsActive ? 'primary.main' : 'text.primary',
+                  color: accountActive ? 'primary.main' : 'text.primary',
                   px: 1.25,
                   py: 0.75,
                   borderRadius: 1,
@@ -357,7 +386,23 @@ export function AppShell() {
                 }}
               >
                 Account
+                <ExpandMoreIcon sx={{ fontSize: 18, ml: 0.25 }} />
               </Box>
+              <Menu anchorEl={accountMenuAnchor} open={!!accountMenuAnchor} onClose={() => setAccountMenuAnchor(null)}>
+                {accountLinks.map((item) => (
+                  <MenuItem
+                    key={item.path}
+                    selected={item === currentAccountItem}
+                    onClick={() => {
+                      setAccountMenuAnchor(null);
+                      navigate(item.path);
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 32 }}>{iconFor[item.label]}</ListItemIcon>
+                    {item.label}
+                  </MenuItem>
+                ))}
+              </Menu>
             </Stack>
           )}
 

@@ -126,12 +126,20 @@ describe('AppShell', () => {
     expect(within(menu).getByText('Verification')).toBeInTheDocument();
   });
 
-  it('navigates to the settings route when Account is clicked', async () => {
+  it('navigates to the settings route via the Account menu, and exposes the other account destinations', async () => {
     mockedUseCurrentTeam.mockReturnValue({ active: null, setActive: vi.fn(), clear: vi.fn() });
 
     renderShell();
 
     await userEvent.click(screen.getByRole('button', { name: 'Account' }));
+
+    const menu = await screen.findByRole('menu');
+    expect(within(menu).getByText('Notifications')).toBeInTheDocument();
+    expect(within(menu).getByText('Privacy & data')).toBeInTheDocument();
+    expect(within(menu).getByText('Report & block')).toBeInTheDocument();
+    expect(within(menu).getByText('Help')).toBeInTheDocument();
+
+    await userEvent.click(within(menu).getByText('Settings'));
 
     expect(await screen.findByText('Settings content')).toBeInTheDocument();
   });

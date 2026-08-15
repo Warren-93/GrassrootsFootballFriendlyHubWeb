@@ -17,6 +17,7 @@ import { TeamProfilePage } from './pages/profile/TeamProfilePage';
 import { EditTeamPage } from './pages/profile/EditTeamPage';
 import { SettingsPage } from './pages/profile/SettingsPage';
 import { ReportBlockPage } from './pages/profile/ReportBlockPage';
+import { AccountReportPage } from './pages/profile/AccountReportPage';
 import { VenuesListPage } from './pages/profile/VenuesListPage';
 import { EditVenuePage } from './pages/profile/EditVenuePage';
 import { ClubProfilePage } from './pages/profile/ClubProfilePage';
@@ -96,6 +97,7 @@ function App() {
           <Route path="/messages" element={<ConversationsListPage />} />
           <Route path="/messages/:conversationId" element={<ConversationThreadPage />} />
           <Route path="/settings/privacy" element={<PrivacyPage />} />
+          <Route path="/settings/report" element={<AccountReportPage />} />
           <Route path="/settings/help" element={<HelpPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/calendar/:date" element={<DayDetailPage />} />
