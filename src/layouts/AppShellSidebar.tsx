@@ -26,6 +26,7 @@ import { useTheme } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
 import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import HomeIcon from '@mui/icons-material/Home';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SearchIcon from '@mui/icons-material/Search';
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
@@ -55,7 +56,7 @@ interface NavItem {
 
 function useNavItems(): NavItem[] {
   return [
-    { label: 'Home', icon: <DashboardIcon />, path: '/' },
+    { label: 'Home', icon: <HomeIcon />, path: '/' },
     { label: 'Publish availability', icon: <CalendarMonthIcon />, path: '/calendar', requiresTeam: true },
     { label: 'Discover', icon: <SearchIcon />, path: '/search', requiresTeam: true },
     { label: 'Arrange & fixtures', icon: <SportsSoccerIcon />, path: '/fixtures', requiresTeam: true },
@@ -286,7 +287,7 @@ export function AppShellSidebar() {
               </IconButton>
             )}
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              {[...navItems, ...manageItems].find((item) => isActive(item.path))?.label ?? ''}
+              {isActive('/dashboard') ? 'Dashboard' : [...navItems, ...manageItems].find((item) => isActive(item.path))?.label ?? ''}
             </Typography>
           </Stack>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -317,6 +318,18 @@ export function AppShellSidebar() {
                 }}
               >
                 Switch to top nav
+              </MenuItem>
+              <MenuItem
+                selected={isActive('/dashboard')}
+                onClick={() => {
+                  setUserMenuAnchor(null);
+                  navigate('/dashboard');
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 32 }}>
+                  <DashboardIcon fontSize="small" />
+                </ListItemIcon>
+                Dashboard
               </MenuItem>
               <MenuItem
                 onClick={() => {

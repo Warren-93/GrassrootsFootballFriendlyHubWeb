@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Box, Button, Card, CardActionArea, CardContent, Chip, Container, Stack, Typography } from '@mui/material';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
@@ -23,11 +24,13 @@ function addDaysIso(days: number): string {
 }
 
 /**
- * The lightweight landing page everyone sees on sign-in - a quick "where do
- * things stand" glance, not the dense stats dashboard (see DashboardPage,
- * reached separately from the account menu).
+ * The wide, stats-heavy dashboard - reached deliberately from the account
+ * menu ("Dashboard"), which also switches the app chrome to the sidebar
+ * shell. Kept separate from HomePage: Home is the lightweight landing page
+ * everyone sees on sign-in, this is the denser at-a-glance view for people
+ * who want it.
  */
-export function HomePage() {
+export function DashboardPage() {
   const navigate = useNavigate();
   const { session } = useAuth();
   const { active } = useCurrentTeam();
@@ -70,11 +73,11 @@ export function HomePage() {
   const publishedDates = new Set(futureSlots.map((s) => s.date)).size;
 
   return (
-    <Container maxWidth="md" sx={{ py: 3 }}>
+    <Container maxWidth="lg" sx={{ py: 3 }}>
       <HeroBand
         eyebrow={active?.teamName}
-        title={`Welcome back, ${session?.displayName ?? ''}`}
-        subtitle={active ? 'Here’s where things stand for your team.' : 'Set up a team to get started.'}
+        title="Dashboard"
+        subtitle={active ? `Hi ${session?.displayName ?? ''} - here’s where things stand for your team.` : 'Set up a team to get started.'}
         action={
           session?.emailVerified === false ? (
             <Chip
@@ -125,58 +128,70 @@ export function HomePage() {
             </Box>
           )}
 
-          <Stack spacing={2}>
-            {actionItems.length > 0 && (
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },
+              gap: 3,
+            }}
+          >
+            <Stack spacing={2}>
+              {actionItems.length > 0 && (
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
+                      Needs your attention
+                    </Typography>
+                    {actionItems.map((item) => (
+                      <Typography key={item} variant="body2" color="text.secondary">
+                        &bull; {item}
+                      </Typography>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
               <Card variant="outlined">
-                <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
-                    Needs your attention
-                  </Typography>
-                  {actionItems.map((item) => (
-                    <Typography key={item} variant="body2" color="text.secondary">
-                      &bull; {item}
-                    </Typography>
-                  ))}
-                </CardContent>
+                <CardActionArea onClick={() => navigate('/suggested-matches')}>
+                  <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                        Suggested matches
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Opponents worth considering right now
+                      </Typography>
+                    </Box>
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', color: brand.pitchDeep, fontWeight: 700 }}>
+                      <Typography variant="button" sx={{ color: 'inherit' }}>See all</Typography>
+                      <ArrowForwardIcon sx={{ fontSize: 18 }} />
+                    </Stack>
+                  </CardContent>
+                </CardActionArea>
               </Card>
-            )}
+            </Stack>
 
-            <Card variant="outlined">
-              <CardActionArea onClick={() => navigate('/suggested-matches')}>
-                <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                      Suggested matches
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Opponents worth considering right now
-                    </Typography>
-                  </Box>
-                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', color: brand.pitchDeep, fontWeight: 700 }}>
-                    <Typography variant="button" sx={{ color: 'inherit' }}>See all</Typography>
-                  </Stack>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-
-            <Card variant="outlined">
-              <CardActionArea onClick={() => navigate('/calendar')}>
-                <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                      Availability
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {loaded ? `${publishedDates} date(s) published` : 'Loading…'}
-                    </Typography>
-                  </Box>
-                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', color: brand.pitchDeep, fontWeight: 700 }}>
-                    <Typography variant="button" sx={{ color: 'inherit' }}>Open calendar</Typography>
-                  </Stack>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          </Stack>
+            <Stack spacing={2}>
+              <Card variant="outlined">
+                <CardActionArea onClick={() => navigate('/calendar')}>
+                  <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                        Availability
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {loaded ? `${publishedDates} date(s) published` : 'Loading…'}
+                      </Typography>
+                    </Box>
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', color: brand.pitchDeep, fontWeight: 700 }}>
+                      <Typography variant="button" sx={{ color: 'inherit' }}>Open calendar</Typography>
+                      <ArrowForwardIcon sx={{ fontSize: 18 }} />
+                    </Stack>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Stack>
+          </Box>
         </>
       )}
     </Container>

@@ -27,6 +27,7 @@ import { useTheme } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import HomeIcon from '@mui/icons-material/Home';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SearchIcon from '@mui/icons-material/Search';
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
@@ -41,6 +42,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useCurrentTeam } from '../session/CurrentTeamContext';
+import { useNavPreference } from '../session/NavPreferenceContext';
 import { notificationRepository } from '../api/notificationRepository';
 import { teamRepository } from '../api/teamRepository';
 
@@ -98,6 +100,7 @@ export function AppShell() {
   const location = useLocation();
   const { session, signOut } = useAuth();
   const { active, setActive, clear } = useCurrentTeam();
+  const { setNavStyle } = useNavPreference();
   const primaryLinks = usePrimaryLinks();
   const teamClubLinks = useTeamClubLinks(active?.teamId);
 
@@ -138,6 +141,11 @@ export function AppShell() {
     navigate('/welcome');
   }
 
+  function goToDashboard() {
+    setNavStyle('sidebar');
+    navigate('/dashboard');
+  }
+
   function handleTeamSwitch(event: SelectChangeEvent) {
     const t = myTeams.find((team) => team.id === event.target.value);
     if (t) setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId });
@@ -152,7 +160,7 @@ export function AppShell() {
   const settingsActive = isActive('/settings');
 
   const iconFor: Record<string, ReactNode> = {
-    Home: <DashboardIcon />,
+    Home: <HomeIcon />,
     'Publish availability': <CalendarMonthIcon />,
     Discover: <SearchIcon />,
     'Arrange & fixtures': <SportsSoccerIcon />,
@@ -205,6 +213,18 @@ export function AppShell() {
           </ListItemButton>
         ))}
         <ListSubheader sx={{ mt: 1 }}>Account</ListSubheader>
+        <ListItemButton
+          onClick={() => {
+            goToDashboard();
+            setMobileOpen(false);
+          }}
+          sx={{ mx: 1, borderRadius: 1 }}
+        >
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <DashboardIcon />
+          </ListItemIcon>
+          <ListItemText primary="Dashboard" />
+        </ListItemButton>
         <ListItemButton
           selected={settingsActive}
           onClick={() => {
@@ -371,6 +391,17 @@ export function AppShell() {
                 </Box>
               )}
               <Divider />
+              <MenuItem
+                onClick={() => {
+                  setUserMenuAnchor(null);
+                  goToDashboard();
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 32 }}>
+                  <DashboardIcon fontSize="small" />
+                </ListItemIcon>
+                Dashboard
+              </MenuItem>
               <MenuItem
                 onClick={() => {
                   setUserMenuAnchor(null);

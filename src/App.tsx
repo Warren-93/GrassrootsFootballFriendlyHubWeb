@@ -28,6 +28,7 @@ import { HelpPage } from './pages/profile/HelpPage';
 import { NotificationPreferencesPage } from './pages/profile/NotificationPreferencesPage';
 import { NotificationsPage } from './pages/Home/NotificationsPage';
 import { HomePage } from './pages/Home/HomePage';
+import { DashboardPage } from './pages/Home/DashboardPage';
 import { ConversationsListPage } from './pages/messages/ConversationsListPage';
 import { ConversationThreadPage } from './pages/messages/ConversationThreadPage';
 import { CalendarPage } from './pages/availability/CalendarPage';
@@ -79,6 +80,7 @@ function App() {
 
         <Route element={<AppShellSwitch />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/team/:teamId" element={<TeamProfilePage />} />
           <Route path="/team/:teamId/edit" element={<EditTeamPage />} />
           <Route path="/settings" element={<SettingsPage />} />

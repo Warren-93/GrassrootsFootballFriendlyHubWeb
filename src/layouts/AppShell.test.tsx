@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppShell } from './AppShell';
 import { useAuth } from '../auth/AuthContext';
 import { useCurrentTeam } from '../session/CurrentTeamContext';
+import { NavPreferenceProvider } from '../session/NavPreferenceContext';
 import { notificationRepository } from '../api/notificationRepository';
 import { teamRepository } from '../api/teamRepository';
 
@@ -39,16 +40,18 @@ function setDesktop(matches: boolean) {
 
 function renderShell(initialPath = '/') {
   return render(
-    <MemoryRouter initialEntries={[initialPath]}>
-      <Routes>
-        <Route element={<AppShell />}>
-          <Route path="/" element={<div>Dashboard content</div>} />
-          <Route path="/calendar" element={<div>Calendar content</div>} />
-          <Route path="/settings" element={<div>Settings content</div>} />
-          <Route path="/team/team-1" element={<div>Team profile content</div>} />
-        </Route>
-      </Routes>
-    </MemoryRouter>,
+    <NavPreferenceProvider>
+      <MemoryRouter initialEntries={[initialPath]}>
+        <Routes>
+          <Route element={<AppShell />}>
+            <Route path="/" element={<div>Dashboard content</div>} />
+            <Route path="/calendar" element={<div>Calendar content</div>} />
+            <Route path="/settings" element={<div>Settings content</div>} />
+            <Route path="/team/team-1" element={<div>Team profile content</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </NavPreferenceProvider>,
   );
 }
 
