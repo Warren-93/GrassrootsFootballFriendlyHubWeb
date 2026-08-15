@@ -34,7 +34,7 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined
 import GroupsIcon from '@mui/icons-material/Groups';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import PlaceIcon from '@mui/icons-material/Place';
-import PeopleIcon from '@mui/icons-material/People';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
@@ -66,9 +66,9 @@ function useNavItems(): NavItem[] {
 function useManageItems(teamId: string | undefined): NavItem[] {
   return [
     { label: 'Team profile', icon: <GroupsIcon />, path: teamId ? `/team/${teamId}` : '/role-selection', requiresTeam: true },
-    { label: 'Members', icon: <PeopleIcon />, path: teamId ? `/team/${teamId}/members` : '/role-selection', requiresTeam: true },
-    { label: 'Club', icon: <ApartmentIcon />, path: '/club', requiresTeam: true },
+    { label: 'Club & members', icon: <ApartmentIcon />, path: '/club', requiresTeam: true },
     { label: 'Venues', icon: <PlaceIcon />, path: '/venues', requiresTeam: true },
+    { label: 'Verification', icon: <VerifiedUserIcon />, path: teamId ? `/team/${teamId}/verification` : '/role-selection', requiresTeam: true },
     { label: 'Account', icon: <SettingsIcon />, path: '/settings' },
   ];
 }
@@ -141,6 +141,14 @@ export function AppShellSidebar() {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   }
 
+  // Nested routes like /team/:id and /team/:id/verification both match the
+  // prefix test above, which would highlight both nav items at once - only
+  // the most specific (longest) matching path should win.
+  const currentNavItem = [...navItems, ...manageItems].reduce<NavItem | null>(
+    (best, item) => (isActive(item.path) && (!best || item.path.length > best.path.length) ? item : best),
+    null,
+  );
+
   const drawerContent = (
     <Box sx={{ width: DRAWER_WIDTH, display: 'flex', flexDirection: 'column', height: '100%', bgcolor: brand.void, color: '#AEC2B5' }}>
       <Toolbar sx={{ gap: 1 }}>
@@ -155,7 +163,7 @@ export function AppShellSidebar() {
         </ListSubheader>
         {navItems.map((item) => {
           const disabled = item.requiresTeam && !active;
-          const active_ = isActive(item.path);
+          const active_ = item === currentNavItem;
           return (
             <ListItemButton
               key={item.path}
@@ -189,7 +197,7 @@ export function AppShellSidebar() {
         </ListSubheader>
         {manageItems.map((item) => {
           const disabled = item.requiresTeam && !active;
-          const active_ = isActive(item.path);
+          const active_ = item === currentNavItem;
           return (
             <ListItemButton
               key={item.path}
@@ -270,7 +278,7 @@ export function AppShellSidebar() {
               </IconButton>
             )}
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              {isActive('/dashboard') ? 'Dashboard' : [...navItems, ...manageItems].find((item) => isActive(item.path))?.label ?? ''}
+              {isActive('/dashboard') ? 'Dashboard' : currentNavItem?.label ?? ''}
             </Typography>
           </Stack>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>

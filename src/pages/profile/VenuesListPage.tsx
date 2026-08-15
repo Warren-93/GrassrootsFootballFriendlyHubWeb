@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Alert, Box, Button, Card, CardActionArea, CardContent, Chip, CircularProgress, Container, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardActionArea, CardContent, CircularProgress, Container, Stack, Typography } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
@@ -7,7 +8,31 @@ import 'leaflet/dist/leaflet.css';
 import { venueRepository } from '../../api/venueRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import type { VenueView } from '../../api/types';
-import { HeroBand } from '../../components/brand/HeroBand';
+import { TeamClubTabs } from '../../components/TeamClubTabs';
+import { brand } from '../../theme/theme';
+
+const SURFACE_LABEL: Record<string, string> = {
+  GRASS: 'Grass',
+  THREE_G: '3G',
+  FOUR_G: '4G',
+  ASTRO: 'Astro',
+  INDOOR: 'Indoor',
+};
+const FACILITY_LABEL: Record<string, string> = {
+  CHANGING_ROOMS: 'Changing rooms',
+  PARKING: 'Parking',
+  FLOODLIGHTS: 'Floodlit',
+  REFRESHMENTS: 'Refreshments',
+  TOILETS: 'Toilets',
+  SPECTATOR_AREA: 'Spectator area',
+};
+
+function venueSubtitle(v: VenueView): string {
+  const parts = [v.address];
+  if (v.pitchSurface) parts.push(SURFACE_LABEL[v.pitchSurface]);
+  if (v.facilities.length > 0) parts.push(v.facilities.map((f) => FACILITY_LABEL[f]).join(', '));
+  return parts.join(' · ');
+}
 
 function venueIcon(): L.DivIcon {
   return L.divIcon({
@@ -46,7 +71,7 @@ export function VenuesListPage() {
 
   if (!active) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6 }}>
+      <Container maxWidth="lg" sx={{ py: 6 }}>
         <Typography>No team selected.</Typography>
       </Container>
     );
@@ -58,70 +83,83 @@ export function VenuesListPage() {
     : [51.5074, -0.1276];
 
   return (
-    <Container maxWidth="sm" sx={{ py: 3 }}>
-      <HeroBand compact title="Venues" subtitle="Shared across all squads in this club" />
-      <Stack spacing={2}>
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+      <TeamClubTabs />
 
-        {loading ? (
-          <CircularProgress />
-        ) : (
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-            <Stack spacing={1}>
-              {venues.length === 0 ? (
-                <Typography color="text.secondary">No venues yet.</Typography>
-              ) : (
-                venues.map((v) => (
-                  <Card key={v.id} variant="outlined" sx={{ borderRadius: 2.5 }}>
-                    <CardActionArea onClick={() => navigate(`/venues/${v.id}/edit`)}>
-                      <CardContent>
-                        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Stack>
-                            <Typography sx={{ fontWeight: 700 }}>{v.name}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {v.address}
-                            </Typography>
-                          </Stack>
-                          {v.isDefault && <Chip label="Default" size="small" color="primary" />}
-                        </Stack>
-                      </CardContent>
-                    </CardActionArea>
-                    {!v.isDefault && (
-                      <Button size="small" onClick={() => setDefault(v.id)} sx={{ ml: 1, mb: 1 }}>
-                        Make default
-                      </Button>
-                    )}
-                  </Card>
-                ))
-              )}
-            </Stack>
-
-            {venuesWithCoords.length > 0 && (
-              <Box sx={{ height: { xs: 260, sm: '100%' }, minHeight: 260, borderRadius: 1, overflow: 'hidden' }}>
-                <MapContainer center={mapCenter} zoom={11} style={{ height: '100%', width: '100%' }}>
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  {venuesWithCoords.map((v) => (
-                    <Marker key={v.id} position={[v.latitude, v.longitude]} icon={venueIcon()}>
-                      <Popup>
-                        <strong>{v.name}</strong>
-                        <br />
-                        {v.address}
-                      </Popup>
-                    </Marker>
-                  ))}
-                </MapContainer>
-              </Box>
-            )}
-          </Box>
-        )}
-
-        <Button variant="contained" onClick={() => navigate('/venues/new')}>
+      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-end', mb: 2.5 }}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Venues
+          </Typography>
+          <Typography color="text.secondary" sx={{ fontSize: 13.5 }}>
+            {venues.length} saved {venues.length === 1 ? 'venue' : 'venues'}
+          </Typography>
+        </Box>
+        <Button variant="outlined" startIcon={<AddIcon />} onClick={() => navigate('/venues/new')}>
           Add venue
         </Button>
       </Stack>
+
+      {errorMessage && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errorMessage}
+        </Alert>
+      )}
+
+      {loading ? (
+        <CircularProgress />
+      ) : (
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' }, gap: 2.5 }}>
+          <Stack spacing={1.5}>
+            {venues.length === 0 ? (
+              <Typography color="text.secondary">No venues yet.</Typography>
+            ) : (
+              venues.map((v) => (
+                <Card key={v.id} variant="outlined" sx={{ borderRadius: 3 }}>
+                  <CardActionArea onClick={() => navigate(`/venues/${v.id}/edit`)}>
+                    <CardContent sx={{ p: { xs: 2, sm: 2.25 } }}>
+                      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{v.name}</Typography>
+                        {v.isDefault && (
+                          <Box sx={{ fontSize: 11, fontWeight: 700, px: 1, py: 0.3, borderRadius: 5, bgcolor: '#E4F4E4', color: brand.pitchDeep }}>
+                            Home
+                          </Box>
+                        )}
+                      </Stack>
+                      <Typography sx={{ fontSize: 12.5, color: brand.muted, mt: 0.5 }}>{venueSubtitle(v)}</Typography>
+                    </CardContent>
+                  </CardActionArea>
+                  {!v.isDefault && (
+                    <Button size="small" onClick={() => setDefault(v.id)} sx={{ ml: 1, mb: 1 }}>
+                      Make default
+                    </Button>
+                  )}
+                </Card>
+              ))
+            )}
+          </Stack>
+
+          {venuesWithCoords.length > 0 && (
+            <Box sx={{ height: { xs: 260, md: '100%' }, minHeight: 260, borderRadius: 2, overflow: 'hidden' }}>
+              <MapContainer center={mapCenter} zoom={11} style={{ height: '100%', width: '100%' }}>
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                {venuesWithCoords.map((v) => (
+                  <Marker key={v.id} position={[v.latitude, v.longitude]} icon={venueIcon()}>
+                    <Popup>
+                      <strong>{v.name}</strong>
+                      <br />
+                      {v.address}
+                    </Popup>
+                  </Marker>
+                ))}
+              </MapContainer>
+            </Box>
+          )}
+        </Box>
+      )}
     </Container>
   );
 }

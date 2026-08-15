@@ -105,7 +105,7 @@ describe('AppShell', () => {
     expect(screen.getByRole('button', { name: 'Account' })).toBeEnabled();
   });
 
-  it('enables team-scoped links and exposes Team profile / Members / Club / Venues via the Team & club menu once a team is active', async () => {
+  it('enables team-scoped links and exposes Team profile / Club & members / Venues / Verification via the Team & club menu once a team is active', async () => {
     mockedUseCurrentTeam.mockReturnValue({
       active: { teamId: 'team-1', teamName: 'Riverside FC', clubId: 'club-1' },
       setActive: vi.fn(),
@@ -121,9 +121,9 @@ describe('AppShell', () => {
 
     const menu = await screen.findByRole('menu');
     expect(within(menu).getByText('Team profile')).toBeInTheDocument();
-    expect(within(menu).getByText('Members')).toBeInTheDocument();
-    expect(within(menu).getByText('Club')).toBeInTheDocument();
+    expect(within(menu).getByText('Club & members')).toBeInTheDocument();
     expect(within(menu).getByText('Venues')).toBeInTheDocument();
+    expect(within(menu).getByText('Verification')).toBeInTheDocument();
   });
 
   it('navigates to the settings route when Account is clicked', async () => {

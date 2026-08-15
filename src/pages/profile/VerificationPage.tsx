@@ -1,16 +1,34 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Card, CardContent, Chip, CircularProgress, Container, Stack, TextField, Typography } from '@mui/material';
-import { useNavigate, useParams } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import { Alert, Box, Button, CircularProgress, Container, Stack, TextField, Typography } from '@mui/material';
+import ShieldIcon from '@mui/icons-material/Shield';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlineOutlined';
+import { useParams } from 'react-router-dom';
 import { teamRepository } from '../../api/teamRepository';
 import { verificationRepository } from '../../api/verificationRepository';
 import type { TeamView, VerificationRequestView } from '../../api/types';
-import { HeroBand } from '../../components/brand/HeroBand';
+import { TeamClubTabs } from '../../components/TeamClubTabs';
 import { brand } from '../../theme/theme';
+
+function VerifyCard({ tone, icon, title, subtitle }: { tone: 'approved' | 'pending' | 'rejected'; icon: ReactNode; title: string; subtitle: string }) {
+  const bg = tone === 'approved' ? '#E4F4E4' : tone === 'pending' ? brand.amberBg : brand.coralBg;
+  const iconColor = tone === 'approved' ? brand.pitchDeep : tone === 'pending' ? brand.amber : brand.coral;
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.75, p: 2, borderRadius: 3, bgcolor: bg, mb: 2 }}>
+      <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: brand.paper, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: iconColor }}>
+        {icon}
+      </Box>
+      <Box>
+        <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{title}</Typography>
+        <Typography sx={{ fontSize: 12.5, color: brand.muted }}>{subtitle}</Typography>
+      </Box>
+    </Box>
+  );
+}
 
 // SCR-PR-07 Verification submission. Purpose: let a manager put their team
 // forward for admin review (ADM-03), and see where that review stands.
 export function VerificationPage() {
-  const navigate = useNavigate();
   const { teamId } = useParams<{ teamId: string }>();
   const [team, setTeam] = useState<TeamView | null>(null);
   const [request, setRequest] = useState<VerificationRequestView | null>(null);
@@ -56,14 +74,14 @@ export function VerificationPage() {
 
   if (loading) {
     return (
-      <Container maxWidth="xs" sx={{ py: 6, textAlign: 'center' }}>
+      <Container maxWidth="lg" sx={{ py: 6, textAlign: 'center' }}>
         <CircularProgress />
       </Container>
     );
   }
   if (!team) {
     return (
-      <Container maxWidth="xs" sx={{ py: 6 }}>
+      <Container maxWidth="lg" sx={{ py: 6 }}>
         <Alert severity="error">{errorMessage ?? 'Team not found.'}</Alert>
       </Container>
     );
@@ -73,51 +91,47 @@ export function VerificationPage() {
   const underReview = request?.status === 'PENDING' || request?.status === 'AWAITING_SECOND_REJECTION';
 
   return (
-    <Container maxWidth="xs" sx={{ py: 3 }}>
-      <HeroBand compact title="Verification" />
-      <Stack spacing={2.5}>
-        <Chip
-          label={team.verification}
-          color={team.verification === 'VERIFIED' ? 'success' : team.verification === 'REJECTED' ? 'error' : 'default'}
-          sx={{ alignSelf: 'flex-start' }}
-        />
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+      <TeamClubTabs />
 
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+      <Box sx={{ maxWidth: 560 }}>
+        {errorMessage && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errorMessage}
+          </Alert>
+        )}
 
         {team.verification === 'VERIFIED' && (
-          <Card sx={{ bgcolor: '#E4F4E4', border: `1px solid ${brand.lime}` }}>
-            <CardContent>
-              <Typography sx={{ fontWeight: 700, color: brand.pitchDeep }}>Verified</Typography>
-              <Typography variant="body2" sx={{ color: brand.pitchDeep }}>
-                This team is verified. Verified teams get priority visibility in search.
-              </Typography>
-            </CardContent>
-          </Card>
+          <VerifyCard
+            tone="approved"
+            icon={<ShieldIcon sx={{ fontSize: 20 }} />}
+            title="Team verified"
+            subtitle={`${team.name}${request?.reviewedAt ? ` · verified ${new Date(request.reviewedAt).toLocaleDateString()}` : ''}`}
+          />
         )}
 
         {underReview && request && (
-          <Card sx={{ bgcolor: brand.amberBg, border: `1px solid ${brand.amber}` }}>
-            <CardContent>
-              <Typography sx={{ fontWeight: 700, color: brand.amber }}>Pending review</Typography>
-              <Typography variant="body2" sx={{ color: brand.amber }}>
-                Submitted {new Date(request.submittedAt).toLocaleDateString()}. We'll let you know once an admin has
-                reviewed it.
-              </Typography>
-            </CardContent>
-          </Card>
+          <VerifyCard
+            tone="pending"
+            icon={<ErrorOutlineIcon sx={{ fontSize: 20 }} />}
+            title="Verification in review"
+            subtitle={`Submitted ${new Date(request.submittedAt).toLocaleDateString()} · we'll let you know once an admin has reviewed it`}
+          />
         )}
 
         {request?.status === 'REJECTED' && (
-          <Alert severity="error">
+          <Alert severity="error" sx={{ mb: 2 }}>
             {request.finalRejectionReason ?? 'This submission was rejected.'} You can submit again below.
           </Alert>
         )}
 
+        <Typography sx={{ fontSize: 12.5, color: brand.muted, mb: 2 }}>
+          Verified teams get a badge on every result, appear higher in match suggestions, and can see full contact
+          details for other verified teams.
+        </Typography>
+
         {!underReview && team.verification !== 'VERIFIED' && (
           <Stack spacing={2}>
-            <Typography variant="body2" color="text.secondary">
-              Put this team forward for verification. An admin will review your details and evidence.
-            </Typography>
             <TextField
               label="League/FA affiliation number (optional)"
               value={affiliationNumber}
@@ -140,16 +154,12 @@ export function VerificationPage() {
               minRows={3}
               fullWidth
             />
-            <Button variant="contained" disabled={!canSubmit || submitting} onClick={handleSubmit}>
+            <Button variant="contained" disabled={!canSubmit || submitting} onClick={handleSubmit} sx={{ alignSelf: 'flex-start' }}>
               {submitting ? 'Submitting…' : 'Submit for verification'}
             </Button>
           </Stack>
         )}
-
-        <Button variant="text" onClick={() => navigate(-1)}>
-          Back
-        </Button>
-      </Stack>
+      </Box>
     </Container>
   );
 }
