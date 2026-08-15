@@ -1,8 +1,6 @@
-import { Box, Card, CardContent, Container, LinearProgress, Stack, Typography } from '@mui/material';
+import { Box, Card, CardContent, Container, Stack, Typography } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { useSearchResultsStore } from '../../session/SearchState';
-import { PageHeader } from '../../components/PageHeader';
-import { MatchScoreChip } from '../../components/brand/MatchScoreChip';
 import { brand } from '../../theme/theme';
 
 export function MatchExplanationPage() {
@@ -11,66 +9,47 @@ export function MatchExplanationPage() {
 
   if (!match) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6 }}>
-        <Stack spacing={2}>
-          <PageHeader title="Match explanation" />
-          <Typography>This opponent isn't in your last search results.</Typography>
-        </Stack>
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        <Typography>This opponent isn't in your last search results.</Typography>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Stack spacing={3}>
-        <PageHeader title={`Why ${match.team.name}?`} />
-
-        <Box sx={{ textAlign: 'center', py: 1 }}>
-          <Typography
-            sx={{
-              fontFamily: '"Bebas Neue","Inter",sans-serif',
-              fontSize: 'clamp(48px,10vw,72px)',
-              lineHeight: 0.96,
-              color: brand.pitchDeep,
-            }}
-          >
-            {match.score}%
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Card variant="outlined" sx={{ borderRadius: 3, maxWidth: 640 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
+          <Typography sx={{ fontWeight: 700, fontSize: 16, mb: 0.25 }}>
+            Why {match.team.name} is a {match.score}% match
           </Typography>
-          <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
-            <MatchScoreChip score={match.score} />
-          </Box>
-        </Box>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
+            Based on your team's profile and availability
+          </Typography>
 
-        <Stack spacing={2}>
-          {match.factors.map((factor) => (
-            <Card variant="outlined" key={factor.factor}>
-              <CardContent>
-                <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 0.75 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+          <Stack spacing={0}>
+            {match.factors.map((factor) => (
+              <Stack
+                key={factor.factor}
+                direction="row"
+                spacing={1.5}
+                sx={{ justifyContent: 'space-between', alignItems: 'center', py: 1.25, borderBottom: 1, borderColor: 'divider', '&:last-of-type': { borderBottom: 'none' } }}
+              >
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     {factor.label}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {factor.weight}% weight
+                    {factor.reason}
                   </Typography>
-                </Stack>
-                <LinearProgress
-                  variant="determinate"
-                  value={factor.ratio * 100}
-                  sx={{
-                    height: 8,
-                    borderRadius: 4,
-                    bgcolor: brand.mist,
-                    '& .MuiLinearProgress-bar': { borderRadius: 4, bgcolor: brand.pitch },
-                  }}
-                />
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.75, display: 'block' }}>
-                  {factor.reason}
-                </Typography>
-              </CardContent>
-            </Card>
-          ))}
-        </Stack>
-      </Stack>
+                </Box>
+                <Box sx={{ width: 110, height: 6, borderRadius: 3, bgcolor: brand.mist, flexShrink: 0, overflow: 'hidden' }}>
+                  <Box sx={{ width: `${Math.round(factor.ratio * 100)}%`, height: '100%', bgcolor: brand.pitch }} />
+                </Box>
+              </Stack>
+            ))}
+          </Stack>
+        </CardContent>
+      </Card>
     </Container>
   );
 }

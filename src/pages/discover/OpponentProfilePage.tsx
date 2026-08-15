@@ -6,7 +6,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useSearchResultsStore } from '../../session/SearchState';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { conversationRepository } from '../../api/conversationRepository';
-import { PageHeader } from '../../components/PageHeader';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { MatchScoreChip } from '../../components/brand/MatchScoreChip';
 import { StatTile, StatTileRow } from '../../components/brand/StatTile';
@@ -22,11 +21,8 @@ export function OpponentProfilePage() {
 
   if (!match) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6 }}>
-        <Stack spacing={2}>
-          <PageHeader title="Team profile" />
-          <Typography>This opponent isn't in your last search results.</Typography>
-        </Stack>
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        <Typography>This opponent isn't in your last search results.</Typography>
       </Container>
     );
   }
@@ -44,45 +40,41 @@ export function OpponentProfilePage() {
   }
 
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Stack spacing={3}>
-        <PageHeader title="Team profile" />
-
-        <Card variant="outlined">
-          <CardContent sx={{ display: 'flex', gap: 2, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Stack spacing={2}>
+        <Card variant="outlined" sx={{ borderRadius: 3 }}>
+          <CardContent sx={{ display: 'flex', gap: 2.5, alignItems: 'center', flexWrap: 'wrap' }}>
             <CrestAvatar name={team.name} size={64} />
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-                <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                  {team.name}
-                </Typography>
+              <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                {team.name}
+              </Typography>
+              <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
+                <MatchScoreChip score={match.score} />
                 {team.verified && (
                   <Chip
-                    icon={<VerifiedIcon sx={{ fontSize: 16 }} />}
+                    icon={<VerifiedIcon sx={{ fontSize: 14 }} />}
                     label="Verified"
                     size="small"
-                    sx={{ bgcolor: '#E4F4E4', color: brand.pitchDeep }}
+                    sx={{ bgcolor: brand.mist, color: brand.ink2 }}
                   />
                 )}
               </Stack>
-              <Typography variant="body2" color="text.secondary">
-                {team.clubName} &middot; {team.generalArea} &middot; {match.milesApart.toFixed(1)} mi
-              </Typography>
-              <Box sx={{ mt: 1 }}>
-                <MatchScoreChip score={match.score} />
-              </Box>
             </Box>
+            <Button variant="contained" size="large" onClick={() => navigate(`/invite/${team.id}`)}>
+              Send a request
+            </Button>
           </CardContent>
         </Card>
 
         <StatTileRow>
+          <StatTile label="Distance" value={`${match.milesApart.toFixed(1)} mi`} />
           <StatTile label="Age group" value={team.ageGroup} />
-          <StatTile label="Gender" value={team.gender} />
-          <StatTile label="Format" value={team.format} />
+          <StatTile label="Format" value={team.format.replace(/_/g, ' ')} />
           <StatTile label="Ability" value={team.abilityLevel} />
         </StatTileRow>
 
-        <Card variant="outlined">
+        <Card variant="outlined" sx={{ borderRadius: 3 }}>
           <CardContent>
             <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
               About
@@ -95,7 +87,7 @@ export function OpponentProfilePage() {
 
         {messageError && <Alert severity="error">{messageError}</Alert>}
 
-        <Stack spacing={1.5}>
+        <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
           <Button variant="outlined" onClick={() => navigate(`/match-explanation/${team.id}`)}>
             Why this match?
           </Button>
@@ -106,9 +98,6 @@ export function OpponentProfilePage() {
             onClick={handleMessage}
           >
             {opening ? 'Opening…' : 'Message this team'}
-          </Button>
-          <Button variant="contained" size="large" onClick={() => navigate(`/invite/${team.id}`)}>
-            Propose a friendly
           </Button>
           <Button
             variant="text"
