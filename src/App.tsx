@@ -21,7 +21,6 @@ import { VenuesListPage } from './pages/profile/VenuesListPage';
 import { EditVenuePage } from './pages/profile/EditVenuePage';
 import { ClubProfilePage } from './pages/profile/ClubProfilePage';
 import { EditClubPage } from './pages/profile/EditClubPage';
-import { MembersPage } from './pages/profile/MembersPage';
 import { VerificationPage } from './pages/profile/VerificationPage';
 import { PrivacyPage } from './pages/profile/PrivacyPage';
 import { HelpPage } from './pages/profile/HelpPage';
@@ -89,7 +88,8 @@ function App() {
           <Route path="/venues/:venueId/edit" element={<EditVenuePage />} />
           <Route path="/club" element={<ClubProfilePage />} />
           <Route path="/club/:clubId/edit" element={<EditClubPage />} />
-          <Route path="/team/:teamId/members" element={<MembersPage />} />
+          {/* Members now live on Club & members (see ClubProfilePage) - kept as a redirect in case anything still links here. */}
+          <Route path="/team/:teamId/members" element={<Navigate to="/club" replace />} />
           <Route path="/team/:teamId/verification" element={<VerificationPage />} />
           <Route path="/settings/notifications" element={<NotificationPreferencesPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />

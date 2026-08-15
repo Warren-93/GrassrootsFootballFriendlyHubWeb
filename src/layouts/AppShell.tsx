@@ -36,7 +36,7 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined
 import GroupsIcon from '@mui/icons-material/Groups';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import PlaceIcon from '@mui/icons-material/Place';
-import PeopleIcon from '@mui/icons-material/People';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -67,9 +67,9 @@ function usePrimaryLinks(): NavLink[] {
 function useTeamClubLinks(teamId: string | undefined): NavLink[] {
   return [
     { label: 'Team profile', path: teamId ? `/team/${teamId}` : '/role-selection', requiresTeam: true },
-    { label: 'Members', path: teamId ? `/team/${teamId}/members` : '/role-selection', requiresTeam: true },
-    { label: 'Club', path: '/club', requiresTeam: true },
+    { label: 'Club & members', path: '/club', requiresTeam: true },
     { label: 'Venues', path: '/venues', requiresTeam: true },
+    { label: 'Verification', path: teamId ? `/team/${teamId}/verification` : '/role-selection', requiresTeam: true },
   ];
 }
 
@@ -158,6 +158,13 @@ export function AppShell() {
 
   const teamClubActive = teamClubLinks.some((item) => isActive(item.path));
   const settingsActive = isActive('/settings');
+  // Nested routes like /team/:id and /team/:id/verification both match the
+  // prefix test above, which would highlight both menu items at once - only
+  // the most specific (longest) matching path should win.
+  const currentTeamClubItem = teamClubLinks.reduce<NavLink | null>(
+    (best, item) => (isActive(item.path) && (!best || item.path.length > best.path.length) ? item : best),
+    null,
+  );
 
   const iconFor: Record<string, ReactNode> = {
     Home: <HomeIcon />,
@@ -166,9 +173,9 @@ export function AppShell() {
     'Arrange & fixtures': <SportsSoccerIcon />,
     Messages: <ChatBubbleOutlineIcon />,
     'Team profile': <GroupsIcon />,
-    Members: <PeopleIcon />,
-    Club: <ApartmentIcon />,
+    'Club & members': <ApartmentIcon />,
     Venues: <PlaceIcon />,
+    Verification: <VerifiedUserIcon />,
   };
 
   const mobileDrawer = (
@@ -200,7 +207,7 @@ export function AppShell() {
         {teamClubLinks.map((item) => (
           <ListItemButton
             key={item.path}
-            selected={isActive(item.path)}
+            selected={item === currentTeamClubItem}
             disabled={item.requiresTeam && !active}
             onClick={() => {
               navigate(item.path);
@@ -320,7 +327,7 @@ export function AppShell() {
                 {teamClubLinks.map((item) => (
                   <MenuItem
                     key={item.path}
-                    selected={isActive(item.path)}
+                    selected={item === currentTeamClubItem}
                     onClick={() => {
                       setTeamMenuAnchor(null);
                       navigate(item.path);
