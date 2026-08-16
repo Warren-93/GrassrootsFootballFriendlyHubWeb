@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Card, CircularProgress, Container, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CircularProgress, Container, Stack, Typography, useTheme } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
@@ -25,6 +25,7 @@ function slotBadge(slot: SlotView): string {
 }
 
 export function CalendarPage() {
+  const theme = useTheme();
   const navigate = useNavigate();
   const { active } = useCurrentTeam();
   const [cursor, setCursor] = useState(new Date());
@@ -160,8 +161,8 @@ export function CalendarPage() {
                   key={date}
                   onClick={() => navigate(`/calendar/${date}`)}
                   sx={{
-                    bgcolor: brand.paper,
-                    border: `1px solid ${brand.border}`,
+                    bgcolor: theme.palette.background.paper,
+                    border: `1px solid ${theme.palette.divider}`,
                     borderRadius: 1.5,
                     minHeight: 78,
                     p: '6px 7px',
@@ -189,7 +190,7 @@ export function CalendarPage() {
                       {Number(date.slice(-2))}
                     </Box>
                   ) : (
-                    <Typography component="span" sx={{ fontWeight: 700, fontSize: 11, color: brand.ink2 }}>
+                    <Typography component="span" sx={{ fontWeight: 700, fontSize: 11, color: theme.palette.text.primary }}>
                       {Number(date.slice(-2))}
                     </Typography>
                   )}

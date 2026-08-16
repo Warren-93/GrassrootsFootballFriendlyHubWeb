@@ -42,11 +42,14 @@ import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
 import ReportOutlinedIcon from '@mui/icons-material/ReportOutlined';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutlineOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useCurrentTeam } from '../session/CurrentTeamContext';
 import { useNavPreference } from '../session/NavPreferenceContext';
+import { useThemeMode } from '../session/ThemeModeContext';
 import { notificationRepository } from '../api/notificationRepository';
 import { teamRepository } from '../api/teamRepository';
 import { NotificationsModal } from '../components/NotificationsModal';
@@ -106,6 +109,8 @@ export function AppShell() {
   // render and only corrects itself once its effect settles, which can leave
   // the mobile nav showing on a desktop-width first paint.
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'), { noSsr: true });
+  const { resolvedMode, toggle: toggleThemeMode } = useThemeMode();
+  const logoMark = resolvedMode === 'dark' ? '/icon-mark-reversed-transparent.png' : '/icon-mark-transparent.png';
   const [mobileOpen, setMobileOpen] = useState(false);
   const [teamMenuAnchor, setTeamMenuAnchor] = useState<null | HTMLElement>(null);
   const [accountMenuAnchor, setAccountMenuAnchor] = useState<null | HTMLElement>(null);
@@ -219,7 +224,7 @@ export function AppShell() {
   const mobileDrawer = (
     <Box sx={{ width: 280, display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Toolbar sx={{ gap: 1 }}>
-        <Box component="img" src="/favicon.svg" alt="" sx={{ width: 28, height: 28 }} />
+        <Box component="img" src={logoMark} alt="" sx={{ width: 28, height: 28, objectFit: 'contain' }} />
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
           PitchMate
         </Typography>
@@ -304,7 +309,7 @@ export function AppShell() {
             sx={{ alignItems: 'center', cursor: 'pointer' }}
             onClick={() => navigate('/')}
           >
-            <Box component="img" src="/favicon.svg" alt="" sx={{ width: 26, height: 26 }} />
+            <Box component="img" src={logoMark} alt="" sx={{ width: 26, height: 26, objectFit: 'contain' }} />
             <Typography variant="subtitle1" sx={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
               Pitch<Box component="span" sx={{ color: 'primary.main' }}>Mate</Box>
             </Typography>
@@ -421,6 +426,12 @@ export function AppShell() {
           {!isDesktop && <Box sx={{ flexGrow: 1 }} />}
 
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <IconButton
+              onClick={toggleThemeMode}
+              aria-label={resolvedMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {resolvedMode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
+            </IconButton>
             <IconButton onClick={handleBellClick} aria-label="Notifications">
               <Badge badgeContent={unreadCount} color="error">
                 <NotificationsIcon />

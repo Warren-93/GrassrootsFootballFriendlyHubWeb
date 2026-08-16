@@ -23,9 +23,9 @@ export function SplashScreen() {
     >
       <Box
         component="img"
-        src="/favicon.svg"
+        src="/icon-mark-reversed-transparent.png"
         alt="PitchMate"
-        sx={{ width: 88, height: 88, animation: `${spin} 1.4s linear infinite` }}
+        sx={{ width: 88, height: 88, objectFit: 'contain', animation: `${spin} 1.4s linear infinite` }}
       />
       <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700, letterSpacing: 0.5 }}>
         PitchMate
