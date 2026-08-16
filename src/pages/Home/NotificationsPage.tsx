@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Alert, Box, Button, Card, CardActionArea, CardContent, CircularProgress, Container, Stack, Typography } from '@mui/material';
+import { Alert, Box, Card, CardContent, CircularProgress, Container, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { notificationRepository } from '../../api/notificationRepository';
 import type { NotificationView } from '../../api/types';
+import { NotificationRow } from '../../components/NotificationRow';
+import { brand } from '../../theme/theme';
 
 // SCR-HM-02 Notification centre. Purpose: one place to see everything that
-// happened across requests, fixtures, verification and messages.
+// happened across requests, fixtures, verification and messages - matches
+// the concept's Home > Notifications tab (.a-topbar + .c-row list).
 export function NotificationsPage() {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<NotificationView[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   function load() {
     notificationRepository.list().then((result) => {
@@ -37,65 +41,98 @@ export function NotificationsPage() {
     if (result.ok) load();
   }
 
+  async function clearAll() {
+    const result = await notificationRepository.clearAll();
+    if (result.ok) {
+      setNotifications([]);
+      setConfirmClear(false);
+    } else {
+      setErrorMessage(result.message);
+    }
+  }
+
   const hasUnread = notifications.some((n) => !n.read);
 
   if (loading) {
     return (
-      <Container maxWidth="xs" sx={{ py: 6, textAlign: 'center' }}>
+      <Container maxWidth="lg" sx={{ py: 6, textAlign: 'center' }}>
         <CircularProgress />
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="xs" sx={{ py: 6 }}>
-      <Stack spacing={2.5}>
-        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Notifications
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Stack direction="row" spacing={2} sx={{ alignItems: 'center', mb: 2.5 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, flex: 1 }}>
+          Notifications
+        </Typography>
+        {hasUnread && (
+          <Typography
+            component="button"
+            onClick={markAllRead}
+            sx={{ font: 'inherit', fontSize: 12.5, fontWeight: 700, color: brand.pitchDeep, background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            Mark all as read
           </Typography>
-          {hasUnread && (
-            <Button size="small" onClick={markAllRead}>
-              Mark all read
-            </Button>
-          )}
-        </Stack>
-
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
-
-        {notifications.length === 0 ? (
-          <Typography color="text.secondary">No notifications yet.</Typography>
-        ) : (
-          <Stack spacing={1}>
-            {notifications.map((n) => (
-              <Card key={n.id} variant="outlined" sx={{ bgcolor: n.read ? 'transparent' : 'action.hover' }}>
-                <CardActionArea onClick={() => open(n)}>
-                  <CardContent>
-                    <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
-                      {!n.read && (
-                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'primary.main', mt: 0.7, flexShrink: 0 }} />
-                      )}
-                      <Box sx={{ flexGrow: 1 }}>
-                        <Typography sx={{ fontWeight: n.read ? 400 : 700 }}>{n.title}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {n.body}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {new Date(n.createdAt).toLocaleString()}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            ))}
-          </Stack>
         )}
-
-        <Button variant="text" onClick={() => navigate(-1)}>
-          Back
-        </Button>
+        {notifications.length > 0 && (
+          <Typography
+            component="button"
+            onClick={() => setConfirmClear(true)}
+            sx={{ font: 'inherit', fontSize: 12.5, fontWeight: 700, color: brand.coral, background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            Clear all
+          </Typography>
+        )}
       </Stack>
+
+      {errorMessage && (
+        <Alert severity="error" sx={{ mb: 2, maxWidth: 640 }}>
+          {errorMessage}
+        </Alert>
+      )}
+
+      {confirmClear && (
+        <Alert
+          severity="warning"
+          sx={{ mb: 2, maxWidth: 640 }}
+          action={
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <Typography
+                component="button"
+                onClick={clearAll}
+                sx={{ font: 'inherit', fontSize: 12.5, fontWeight: 700, color: brand.coral, background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                Clear
+              </Typography>
+              <Typography
+                component="button"
+                onClick={() => setConfirmClear(false)}
+                sx={{ font: 'inherit', fontSize: 12.5, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                Cancel
+              </Typography>
+            </Stack>
+          }
+        >
+          Remove every notification? This can't be undone.
+        </Alert>
+      )}
+
+      {notifications.length === 0 ? (
+        <Typography color="text.secondary">No notifications yet.</Typography>
+      ) : (
+        <Card variant="outlined" sx={{ borderRadius: 3, maxWidth: 640 }}>
+          <CardContent sx={{ px: { xs: 2, sm: 2.75 }, py: 0.5, '&:last-child': { pb: 0.5 } }}>
+            <Box>
+              {notifications.map((n, i) => (
+                <NotificationRow key={n.id} notification={n} onClick={() => open(n)} last={i === notifications.length - 1} />
+              ))}
+            </Box>
+          </CardContent>
+        </Card>
+      )}
     </Container>
   );
 }

@@ -49,6 +49,7 @@ import { useCurrentTeam } from '../session/CurrentTeamContext';
 import { useNavPreference } from '../session/NavPreferenceContext';
 import { notificationRepository } from '../api/notificationRepository';
 import { teamRepository } from '../api/teamRepository';
+import { NotificationsModal } from '../components/NotificationsModal';
 
 interface NavLink {
   label: string;
@@ -110,6 +111,7 @@ export function AppShell() {
   const [accountMenuAnchor, setAccountMenuAnchor] = useState<null | HTMLElement>(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [myTeams, setMyTeams] = useState<TeamView[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
@@ -120,11 +122,21 @@ export function AppShell() {
   const teamClubLinks = useTeamClubLinks(active?.teamId);
   const accountLinks = useAccountLinks();
 
-  useEffect(() => {
+  function refreshUnreadCount() {
     notificationRepository.unreadCount().then((result) => {
       if (result.ok) setUnreadCount(result.value.count);
     });
-  }, [location.pathname]);
+  }
+
+  useEffect(refreshUnreadCount, [location.pathname]);
+
+  // Dashboard already shows notifications inline (see DashboardPage), so its
+  // bell keeps the old full-page navigation rather than opening a modal on
+  // top of content that's already there; every other page opens the modal.
+  function handleBellClick() {
+    if (location.pathname === '/dashboard') navigate('/notifications');
+    else setNotificationsOpen(true);
+  }
 
   // The active team is a local cache (see CurrentTeamContext) that sign-out
   // clears, so a fresh session has no way to know which team it's acting as
@@ -409,7 +421,7 @@ export function AppShell() {
           {!isDesktop && <Box sx={{ flexGrow: 1 }} />}
 
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <IconButton onClick={() => navigate('/notifications')} aria-label="Notifications">
+            <IconButton onClick={handleBellClick} aria-label="Notifications">
               <Badge badgeContent={unreadCount} color="error">
                 <NotificationsIcon />
               </Badge>
@@ -489,6 +501,14 @@ export function AppShell() {
         <Toolbar />
         <Outlet />
       </Box>
+
+      <NotificationsModal
+        open={notificationsOpen}
+        onClose={() => {
+          setNotificationsOpen(false);
+          refreshUnreadCount();
+        }}
+      />
     </Box>
   );
 }

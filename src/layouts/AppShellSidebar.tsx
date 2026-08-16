@@ -46,6 +46,7 @@ import { useCurrentTeam } from '../session/CurrentTeamContext';
 import { useNavPreference } from '../session/NavPreferenceContext';
 import { notificationRepository } from '../api/notificationRepository';
 import { teamRepository } from '../api/teamRepository';
+import { NotificationsModal } from '../components/NotificationsModal';
 import { brand } from '../theme/theme';
 
 const DRAWER_WIDTH = 232;
@@ -105,6 +106,7 @@ export function AppShellSidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [myTeams, setMyTeams] = useState<TeamView[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
@@ -115,11 +117,21 @@ export function AppShellSidebar() {
   const manageItems = useManageItems(active?.teamId);
   const accountItems = useAccountItems();
 
-  useEffect(() => {
+  function refreshUnreadCount() {
     notificationRepository.unreadCount().then((result) => {
       if (result.ok) setUnreadCount(result.value.count);
     });
-  }, [location.pathname]);
+  }
+
+  useEffect(refreshUnreadCount, [location.pathname]);
+
+  // Dashboard already shows notifications inline, so its bell keeps the old
+  // full-page navigation rather than opening a modal on top of content
+  // that's already there; every other page opens the modal.
+  function handleBellClick() {
+    if (location.pathname === '/dashboard') navigate('/notifications');
+    else setNotificationsOpen(true);
+  }
 
   useEffect(() => {
     if (!session) return;
@@ -323,7 +335,7 @@ export function AppShellSidebar() {
             </Typography>
           </Stack>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <IconButton onClick={() => navigate('/notifications')} aria-label="Notifications">
+            <IconButton onClick={handleBellClick} aria-label="Notifications">
               <Badge badgeContent={unreadCount} color="error">
                 <NotificationsIcon />
               </Badge>
@@ -392,6 +404,14 @@ export function AppShellSidebar() {
         <Toolbar />
         <Outlet />
       </Box>
+
+      <NotificationsModal
+        open={notificationsOpen}
+        onClose={() => {
+          setNotificationsOpen(false);
+          refreshUnreadCount();
+        }}
+      />
     </Box>
   );
 }

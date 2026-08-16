@@ -6,6 +6,7 @@ export const notificationRepository = {
   unreadCount: () => apiClient.get<{ count: number }>('/api/v1/notifications/unread-count'),
   markRead: (id: string) => apiClient.post<void>(`/api/v1/notifications/${id}/read`),
   markAllRead: () => apiClient.post<void>('/api/v1/notifications/read-all'),
+  clearAll: () => apiClient.delete<void>('/api/v1/notifications'),
   getPreferences: () => apiClient.get<NotificationPreferenceView>('/api/v1/me/notification-preferences'),
   updatePreferences: (request: NotificationPreferenceView) =>
     apiClient.patch<NotificationPreferenceView>('/api/v1/me/notification-preferences', request),
