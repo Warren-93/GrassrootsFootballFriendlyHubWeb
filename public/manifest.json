@@ -1,0 +1,14 @@
+{
+  "name": "PitchMate",
+  "short_name": "PitchMate",
+  "description": "Find, arrange and manage grassroots football friendlies.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#EEF1F5",
+  "theme_color": "#14213D",
+  "icons": [
+    { "src": "/android-chrome-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/android-chrome-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/maskable-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

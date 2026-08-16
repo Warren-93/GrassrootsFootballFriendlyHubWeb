@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { Alert, Box, Button, Checkbox, Container, Menu, MenuItem, Select, Typography } from '@mui/material';
+import { Alert, Box, Button, Checkbox, Container, Menu, MenuItem, Select, Typography, useTheme } from '@mui/material';
+import type { Theme } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
@@ -14,23 +15,27 @@ const FORMATS: Format[] = ['FIVE_A_SIDE', 'SEVEN_A_SIDE', 'NINE_A_SIDE', 'ELEVEN
 const ABILITY_LEVELS: AbilityLevel[] = ['DEVELOPMENT', 'INTERMEDIATE', 'COMPETITIVE'];
 const DISTANCE_PRESETS = [5, 10, 15, 25, 40, 50];
 
-const fieldBoxSx = {
-  fontSize: 13,
-  color: brand.ink2,
-  '.MuiOutlinedInput-notchedOutline': { borderColor: brand.border },
-  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: brand.pitch },
-  '.MuiSelect-select': { py: '9px', display: 'flex', alignItems: 'center' },
-};
+function fieldBoxSx(theme: Theme) {
+  return {
+    fontSize: 13,
+    color: theme.palette.text.primary,
+    '.MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider },
+    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: brand.pitch },
+    '.MuiSelect-select': { py: '9px', display: 'flex', alignItems: 'center' },
+  };
+}
 
 function FieldLabel({ children }: { children: ReactNode }) {
+  const theme = useTheme();
   return (
-    <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: brand.muted, textTransform: 'uppercase', letterSpacing: '.04em', mb: 0.5 }}>
+    <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: '.04em', mb: 0.5 }}>
       {children}
     </Typography>
   );
 }
 
 export function SearchEntryPage() {
+  const theme = useTheme();
   const navigate = useNavigate();
   const { active } = useCurrentTeam();
   const filters = useSearchFilterStore();
@@ -80,8 +85,8 @@ export function SearchEntryPage() {
           display: 'flex',
           gap: 1.5,
           flexWrap: 'wrap',
-          bgcolor: brand.paper,
-          border: `1px solid ${brand.border}`,
+          bgcolor: theme.palette.background.paper,
+          border: `1px solid ${theme.palette.divider}`,
           borderRadius: 3,
           p: 2,
           mb: 3,
@@ -98,7 +103,7 @@ export function SearchEntryPage() {
             onChange={(e) => filters.setFilters({ formats: e.target.value as string[] })}
             renderValue={(selected) => ((selected as string[]).length ? (selected as string[]).map((f) => f.replace(/_/g, ' ')).join(', ') : 'Any')}
             IconComponent={ExpandMoreIcon}
-            sx={fieldBoxSx}
+            sx={fieldBoxSx(theme)}
           >
             {FORMATS.map((f) => (
               <MenuItem key={f} value={f}>
@@ -120,7 +125,7 @@ export function SearchEntryPage() {
             onChange={(e) => filters.setFilters({ abilityLevels: e.target.value as string[] })}
             renderValue={(selected) => ((selected as string[]).length ? (selected as string[]).join(', ') : 'Any')}
             IconComponent={ExpandMoreIcon}
-            sx={fieldBoxSx}
+            sx={fieldBoxSx(theme)}
           >
             {ABILITY_LEVELS.map((a) => (
               <MenuItem key={a} value={a}>
@@ -143,7 +148,7 @@ export function SearchEntryPage() {
               else filters.setFilters({ ignoreTravelRadius: false, maxDistanceMiles: Number(v) });
             }}
             IconComponent={ExpandMoreIcon}
-            sx={fieldBoxSx}
+            sx={fieldBoxSx(theme)}
           >
             {DISTANCE_PRESETS.map((m) => (
               <MenuItem key={m} value={String(m)}>
@@ -162,7 +167,7 @@ export function SearchEntryPage() {
             sx={{
               font: 'inherit',
               width: '100%',
-              border: `1px solid ${brand.border}`,
+              border: `1px solid ${theme.palette.divider}`,
               borderRadius: 1.5,
               bgcolor: 'transparent',
               cursor: 'pointer',
@@ -171,13 +176,13 @@ export function SearchEntryPage() {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              color: brand.ink2,
+              color: theme.palette.text.primary,
               textAlign: 'left',
               '&:hover': { borderColor: brand.pitch },
             }}
           >
             {extrasCount > 0 ? `${extrasCount} active` : 'None'}
-            <ExpandMoreIcon sx={{ fontSize: 18, color: brand.muted }} />
+            <ExpandMoreIcon sx={{ fontSize: 18, color: theme.palette.text.secondary }} />
           </Box>
           <Menu anchorEl={moreAnchor} open={!!moreAnchor} onClose={() => setMoreAnchor(null)}>
             <MenuItem onClick={() => filters.setFilters({ verifiedOnly: !filters.verifiedOnly })}>

@@ -40,10 +40,13 @@ import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
 import ReportOutlinedIcon from '@mui/icons-material/ReportOutlined';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutlineOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useCurrentTeam } from '../session/CurrentTeamContext';
 import { useNavPreference } from '../session/NavPreferenceContext';
+import { useThemeMode } from '../session/ThemeModeContext';
 import { notificationRepository } from '../api/notificationRepository';
 import { teamRepository } from '../api/teamRepository';
 import { NotificationsModal } from '../components/NotificationsModal';
@@ -103,6 +106,7 @@ function useAccountItems(): NavItem[] {
 export function AppShellSidebar() {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'), { noSsr: true });
+  const { resolvedMode, toggle: toggleThemeMode } = useThemeMode();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -178,7 +182,7 @@ export function AppShellSidebar() {
   const drawerContent = (
     <Box sx={{ width: DRAWER_WIDTH, display: 'flex', flexDirection: 'column', height: '100%', bgcolor: brand.void, color: '#AEC2B5' }}>
       <Toolbar sx={{ gap: 1 }}>
-        <Box component="img" src="/favicon.svg" alt="" sx={{ width: 26, height: 26 }} />
+        <Box component="img" src="/icon-mark-reversed-transparent.png" alt="" sx={{ width: 26, height: 26, objectFit: 'contain' }} />
         <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#fff' }}>
           Pitch<Box component="span" sx={{ color: brand.lime }}>Mate</Box>
         </Typography>
@@ -335,6 +339,12 @@ export function AppShellSidebar() {
             </Typography>
           </Stack>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <IconButton
+              onClick={toggleThemeMode}
+              aria-label={resolvedMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {resolvedMode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
+            </IconButton>
             <IconButton onClick={handleBellClick} aria-label="Notifications">
               <Badge badgeContent={unreadCount} color="error">
                 <NotificationsIcon />
