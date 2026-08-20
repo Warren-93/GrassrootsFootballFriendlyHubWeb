@@ -332,6 +332,17 @@ export interface FriendlyRequestView {
   availableActions: string[];
   senderContact: TeamContact | null;
   recipientContact: TeamContact | null;
+  /** A pending counter-proposal from suggestChanges - date isn't proposable, only time/venue. */
+  proposedStartTime: string | null;
+  proposedEndTime: string | null;
+  proposedVenueId: string | null;
+}
+
+export interface SuggestChangesBody {
+  reason?: string;
+  proposedStartTime?: string;
+  proposedEndTime?: string;
+  proposedVenueId?: string;
 }
 
 export type FixtureStatus = 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
