@@ -1,19 +1,53 @@
-import { Alert, Card, CardContent, Container, Typography } from '@mui/material';
+import { useEffect, useState } from 'react';
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { AccountTabs } from '../../components/AccountTabs';
+import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { reportRepository } from '../../api/reportRepository';
 import { brand } from '../../theme/theme';
+import type { BlockView } from '../../api/types';
 
 /**
- * SCR-PR-11 hub. The concept's Report & block tab mocks a list of blocked
- * teams (with Unblock) and a standalone report form with a free-standing
- * team picker - neither is backed by the API: blocking has no list/unblock
- * endpoint (see BlockRepository, POST-only), and reporting always targets
- * a specific team (reportedTeamId is required), so a team-less form here
- * would have nothing to submit against. Real reporting/blocking happens
- * from the team's own profile (see ReportBlockPage, reached via "Report"
- * on an opponent's profile or a fixture) - this tab explains that rather
- * than faking a list or a form that can't work standalone.
+ * SCR-PR-11 hub. Reporting always targets a specific team (reportedTeamId is
+ * required), so a team-less report form here would have nothing to submit
+ * against - real reporting/blocking happens from the team's own profile (see
+ * ReportBlockPage, reached via "Report" on an opponent's profile or a
+ * fixture). This tab covers the other half: seeing and undoing a block.
  */
 export function AccountReportPage() {
+  const { active } = useCurrentTeam();
+  const [blocks, setBlocks] = useState<BlockView[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [unblockingId, setUnblockingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!active) return;
+    setLoading(true);
+    reportRepository.listBlocks(active.teamId).then((result) => {
+      setLoading(false);
+      if (result.ok) setBlocks(result.value);
+      else setError(result.message);
+    });
+  }, [active?.teamId]);
+
+  async function unblock(blockId: string) {
+    if (!active) return;
+    setUnblockingId(blockId);
+    const result = await reportRepository.unblock(active.teamId, blockId);
+    setUnblockingId(null);
+    if (result.ok) setBlocks((prev) => prev.filter((b) => b.id !== blockId));
+    else setError(result.message);
+  }
+
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
       <AccountTabs />
@@ -35,13 +69,60 @@ export function AccountReportPage() {
         </CardContent>
       </Card>
 
-      <Alert severity="warning" sx={{ maxWidth: 640 }}>
+      <Alert severity="warning" sx={{ maxWidth: 640, mb: 2.5 }}>
         If there's an immediate risk to a child, contact the police and your safeguarding officer directly - not
         only through the app.
       </Alert>
 
-      <Typography variant="caption" sx={{ display: 'block', mt: 2, color: brand.muted, maxWidth: 640 }}>
-        A list of teams you've blocked, with the option to unblock them here, isn't available yet.
+      <Typography sx={{ fontWeight: 700, fontSize: 14, mb: 1 }}>Blocked teams</Typography>
+
+      {error && (
+        <Alert severity="error" sx={{ maxWidth: 640, mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      {!active ? null : loading ? (
+        <Typography variant="body2" color="text.secondary">
+          Loading…
+        </Typography>
+      ) : blocks.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">
+          You haven't blocked any teams.
+        </Typography>
+      ) : (
+        <Stack spacing={1} sx={{ maxWidth: 640 }}>
+          {blocks.map((b) => (
+            <Card key={b.id} variant="outlined" sx={{ borderRadius: 2.5 }}>
+              <CardContent
+                sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}
+              >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 600 }} noWrap>
+                    {b.blockedTeamName}
+                  </Typography>
+                  {b.reason && (
+                    <Typography variant="body2" color="text.secondary" noWrap>
+                      {b.reason}
+                    </Typography>
+                  )}
+                </Box>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  disabled={unblockingId === b.id}
+                  onClick={() => unblock(b.id)}
+                >
+                  Unblock
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </Stack>
+      )}
+
+      <Typography variant="caption" sx={{ display: 'block', mt: 2.5, color: brand.muted, maxWidth: 640 }}>
+        Unblocking a team lets them appear in search results and contact you again - it doesn't notify them.
       </Typography>
     </Container>
   );

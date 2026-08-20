@@ -359,6 +359,14 @@ export interface BlockRequest {
   reason?: string | null;
 }
 
+export interface BlockView {
+  id: string;
+  blockedTeamId: string;
+  blockedTeamName: string;
+  reason: string | null;
+  createdAt: string;
+}
+
 export type MemberRole = 'USER' | 'TEAM_MANAGER' | 'CLUB_ADMIN';
 export type MemberScope = 'TEAM' | 'CLUB';
 
