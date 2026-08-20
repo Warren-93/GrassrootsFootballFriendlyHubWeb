@@ -123,6 +123,24 @@ export function RequestDetailPage() {
           </Typography>
         )}
 
+        {(request.proposedStartTime || request.proposedEndTime || request.proposedVenueId) && (
+          <Card variant="outlined" sx={{ borderRadius: 3, mt: 2, borderColor: brand.amber }}>
+            <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: brand.amber }}>
+                Proposed changes
+              </Typography>
+              {(request.proposedStartTime || request.proposedEndTime) && (
+                <Row
+                  label="New time"
+                  value={`${(request.proposedStartTime ?? request.startTime).slice(0, 5)} - ${(request.proposedEndTime ?? request.endTime).slice(0, 5)}`}
+                  last={!request.proposedVenueId}
+                />
+              )}
+              {request.proposedVenueId && <Row label="Venue" value="A different venue has been proposed" last />}
+            </CardContent>
+          </Card>
+        )}
+
         {(request.senderContact || request.recipientContact) && (
           <Card variant="outlined" sx={{ borderRadius: 3, mt: 2 }}>
             <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
