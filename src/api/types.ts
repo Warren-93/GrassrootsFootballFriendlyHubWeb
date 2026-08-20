@@ -23,6 +23,22 @@ export interface VerificationResendResponse {
   verificationToken: string | null;
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ChangeEmailRequest {
+  newEmail: string;
+  currentPassword: string;
+}
+
+export interface ChangeEmailResponse {
+  user: UserView;
+  /** Only present while no real email provider is connected - see EmailVerificationPage. */
+  verificationToken: string | null;
+}
+
 export interface RegisterRequest {
   email: string;
   password: string;

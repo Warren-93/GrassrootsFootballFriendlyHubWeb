@@ -1,6 +1,15 @@
 import { apiClient } from './client';
 import { tokenStore } from '../auth/tokenStore';
-import type { LoginRequest, RegisterRequest, TokenResponse, UserView, VerificationResendResponse } from './types';
+import type {
+  ChangeEmailRequest,
+  ChangeEmailResponse,
+  ChangePasswordRequest,
+  LoginRequest,
+  RegisterRequest,
+  TokenResponse,
+  UserView,
+  VerificationResendResponse,
+} from './types';
 
 async function storeAndReturn(result: Awaited<ReturnType<typeof apiClient.post<TokenResponse>>>) {
   if (result.ok) tokenStore.set(result.value.accessToken, result.value.refreshToken);
@@ -26,6 +35,11 @@ export const authRepository = {
 
   confirmVerification: (token: string) =>
     apiClient.post<void>('/api/v1/auth/verify/confirm', { token }, false),
+
+  changePassword: (request: ChangePasswordRequest) => apiClient.post<void>('/api/v1/me/password', request),
+
+  changeEmail: (request: ChangeEmailRequest) =>
+    apiClient.post<ChangeEmailResponse>('/api/v1/me/email', request),
 
   signOut: () => tokenStore.clear(),
 
