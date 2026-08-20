@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Box, CircularProgress, IconButton, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Chip, CircularProgress, IconButton, Stack, TextField, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
+import SportsSoccerIcon from '@mui/icons-material/SportsSoccerOutlined';
 import { useNavigate } from 'react-router-dom';
 import { conversationRepository } from '../../api/conversationRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
@@ -99,6 +100,15 @@ export function ConversationThreadPanel({ conversationId }: ConversationThreadPa
         <Typography variant="body2" color="text.secondary" sx={{ ml: 5 }}>
           {conversation.otherTeam.clubName}
         </Typography>
+        {conversation.relatedFixtureId && (
+          <Chip
+            icon={<SportsSoccerIcon sx={{ fontSize: 15 }} />}
+            label="About a fixture - view it"
+            size="small"
+            onClick={() => navigate(`/fixtures/${conversation.relatedFixtureId}`)}
+            sx={{ ml: 5, mt: 1, bgcolor: brand.mist, color: brand.ink2, fontWeight: 600 }}
+          />
+        )}
       </Box>
 
       <Box sx={{ flexGrow: 1, overflowY: 'auto', px: 3, py: 2 }}>
