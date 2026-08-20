@@ -1,24 +1,27 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Card, CardContent, CircularProgress, Container, Typography } from '@mui/material';
+import { Alert, Button, Card, CardContent, CircularProgress, Container, Switch, Typography } from '@mui/material';
 import { privacyRepository } from '../../api/privacyRepository';
-import type { AccountExport } from '../../api/types';
+import { teamRepository } from '../../api/teamRepository';
+import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import type { AccountExport, PrivacyPreferences } from '../../api/types';
 import { AccountTabs } from '../../components/AccountTabs';
 import { SettingRow } from '../../components/SettingRow';
 import { brand } from '../../theme/theme';
 
 // SCR-PR-10 Privacy and data. Purpose: let a user see and export what the
-// platform holds on them. The concept's mock also shows a togglable
-// "Profile visibility" and "Share contact details" and a partial
-// "Delete your data (keep account)" - none of those exist server-side:
-// there's no visibility setting, contact sharing on a confirmed fixture
-// isn't user-configurable, and the only real erasure the API supports is
-// a full account delete (now on Settings), not a data-only wipe. Shown
-// here are only the two capabilities that are real: what's held, and
-// downloading it.
+// platform holds on them, plus control the active team's search visibility
+// and contact-sharing. The concept's mock also shows a partial "Delete your
+// data (keep account)" toggle - the only real erasure the API supports is a
+// full account delete (now on Settings), not a data-only wipe, so that one
+// stays left out.
 export function PrivacyPage() {
+  const { active } = useCurrentTeam();
   const [data, setData] = useState<AccountExport | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const [prefs, setPrefs] = useState<PrivacyPreferences | null>(null);
+  const [prefsError, setPrefsError] = useState<string | null>(null);
 
   useEffect(() => {
     privacyRepository.export().then((result) => {
@@ -27,6 +30,26 @@ export function PrivacyPage() {
       setLoading(false);
     });
   }, []);
+
+  useEffect(() => {
+    if (!active) return;
+    teamRepository.getPrivacy(active.teamId).then((result) => {
+      if (result.ok) setPrefs(result.value);
+    });
+  }, [active?.teamId]);
+
+  async function togglePref(key: keyof PrivacyPreferences) {
+    if (!active || !prefs) return;
+    const next = { ...prefs, [key]: !prefs[key] };
+    setPrefs(next);
+    setPrefsError(null);
+    const result = await teamRepository.updatePrivacy(active.teamId, next);
+    if (result.ok) setPrefs(result.value);
+    else {
+      setPrefs(prefs);
+      setPrefsError(result.message);
+    }
+  }
 
   function handleDownload() {
     if (!data) return;
@@ -78,6 +101,32 @@ export function PrivacyPage() {
             </Typography>
           </CardContent>
         </Card>
+      )}
+
+      {active && prefs && (
+        <Card variant="outlined" sx={{ borderRadius: 3, maxWidth: 640, mb: 2.5 }}>
+          <CardContent sx={{ px: { xs: 2, sm: 2.75 }, py: 0.5, '&:last-child': { pb: 0.5 } }}>
+            <SettingRow
+              title="Profile visibility"
+              subtitle={`Let other teams find ${active.teamName} in search`}
+              control={<Switch checked={prefs.searchVisible} onChange={() => togglePref('searchVisible')} />}
+            />
+            <SettingRow
+              title="Share contact details"
+              subtitle="Show your manager name and phone on a confirmed fixture"
+              last
+              control={
+                <Switch checked={prefs.shareContactDetails} onChange={() => togglePref('shareContactDetails')} />
+              }
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {prefsError && (
+        <Alert severity="error" sx={{ mb: 2, maxWidth: 640 }}>
+          {prefsError}
+        </Alert>
       )}
 
       <Card variant="outlined" sx={{ borderRadius: 3, maxWidth: 640 }}>
