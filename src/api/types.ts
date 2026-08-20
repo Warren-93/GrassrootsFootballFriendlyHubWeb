@@ -375,6 +375,11 @@ export interface BlockRequest {
   reason?: string | null;
 }
 
+export interface PrivacyPreferences {
+  searchVisible: boolean;
+  shareContactDetails: boolean;
+}
+
 export interface BlockView {
   id: string;
   blockedTeamId: string;
