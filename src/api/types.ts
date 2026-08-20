@@ -505,4 +505,6 @@ export interface ConversationView {
   lastMessageSenderTeamId: string | null;
   lastMessageAt: string | null;
   createdAt: string;
+  /** What this thread is currently about - set when opened from a fixture's "Message" entry point. */
+  relatedFixtureId: string | null;
 }

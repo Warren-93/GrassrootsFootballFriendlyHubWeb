@@ -54,7 +54,7 @@ export function FixtureDetailPage() {
     const otherTeamId = active.teamId === fixture.homeTeam.id ? fixture.awayTeam.id : fixture.homeTeam.id;
     setOpening(true);
     setMessageError(null);
-    const result = await conversationRepository.start(active.teamId, otherTeamId);
+    const result = await conversationRepository.start(active.teamId, otherTeamId, fixture.id);
     setOpening(false);
     if (result.ok) navigate(`/messages/${result.value.id}`);
     else setMessageError(result.message);
