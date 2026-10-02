@@ -5,6 +5,7 @@ import { SignInPage } from './pages/auth/SignInPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { EmailVerificationPage } from './pages/auth/EmailVerificationPage';
 import { VerifyEmailPage } from './pages/auth/VerifyEmailPage';
+import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { RoleSelectionPage } from './pages/onboarding/RoleSelectionPage';
 import { SelectClubPage } from './pages/onboarding/SelectClubPage';
 import { JoinTeamPage } from './pages/onboarding/JoinTeamPage';
@@ -64,6 +65,7 @@ function App() {
       </Route>
       {/* Not gated: a verification link can legitimately be opened while already signed in. */}
       <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       <Route element={<ProtectedRoute />}>
         {/* Onboarding is a linear wizard with no team yet - it renders full-screen, outside the dashboard shell. */}
