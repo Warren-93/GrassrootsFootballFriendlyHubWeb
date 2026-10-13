@@ -20,7 +20,10 @@ export interface TokenResponse {
 }
 
 export interface VerificationResendResponse {
+  /** Only present while no real email provider is connected - see EmailVerificationPage. */
   verificationToken: string | null;
+  /** True when a new link was emailed. Neither set means the account is already verified. */
+  emailSent?: boolean;
 }
 
 export interface ChangePasswordRequest {
