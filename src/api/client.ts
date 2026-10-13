@@ -3,24 +3,30 @@ import { fail, ok } from './result';
 import { tokenStore } from '../auth/tokenStore';
 import type { TokenResponse } from './types';
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8090';
+// Empty by default: the API is reached through this site's own origin (a
+// Vercel rewrite in production, the Vite proxy in development), which keeps
+// the refresh cookie first-party. Set VITE_API_BASE_URL only to point at an
+// API on another origin, which needs that origin to allow credentialed CORS.
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+
+/** Asks the API to send the refresh token as an httpOnly cookie instead of in the body. */
+export const AUTH_MODE_HEADER = { 'X-Auth-Mode': 'cookie' };
 
 let refreshInFlight: Promise<boolean> | null = null;
 
-async function tryRefresh(): Promise<boolean> {
+/** Exchanges the refresh cookie for a new access token. False when there is no valid session. */
+export async function tryRefresh(): Promise<boolean> {
   if (refreshInFlight) return refreshInFlight;
   refreshInFlight = (async () => {
-    const refreshToken = tokenStore.refreshToken();
-    if (!refreshToken) return false;
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
+      const response = await fetch(buildUrl('/api/v1/auth/refresh'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
+        headers: AUTH_MODE_HEADER,
+        credentials: 'include',
       });
       if (!response.ok) return false;
       const body = (await response.json()) as TokenResponse;
-      tokenStore.set(body.accessToken, body.refreshToken);
+      tokenStore.set(body.accessToken);
       return true;
     } catch {
       return false;
@@ -42,7 +48,7 @@ interface RequestOptions {
 }
 
 function buildUrl(path: string, query?: RequestOptions['query']): string {
-  const url = new URL(`${API_BASE_URL}${path}`);
+  const url = new URL(`${API_BASE_URL}${path}`, window.location.origin);
   if (query) {
     for (const [key, value] of Object.entries(query)) {
       if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
@@ -77,13 +83,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<A
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      credentials: 'include',
     });
   };
 
   try {
     let response = await doFetch();
 
-    if (response.status === 401 && auth && tokenStore.refreshToken()) {
+    if (response.status === 401 && auth) {
       const refreshed = await tryRefresh();
       if (refreshed) {
         response = await doFetch();

@@ -18,7 +18,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   async function resolveSession() {
-    if (!authRepository.isSignedIn()) {
+    if (!(await authRepository.restoreSession())) {
       setSession(null);
       setLoading(false);
       return;
@@ -29,8 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function signOut() {
-    authRepository.signOut();
     setSession(null);
+    void authRepository.signOut();
   }
 
   useEffect(() => {

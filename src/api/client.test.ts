@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { apiClient } from './client';
+import { apiClient, tryRefresh } from './client';
 import { tokenStore } from '../auth/tokenStore';
 
 function jsonResponse(status: number, body: unknown): Response {
@@ -13,6 +13,7 @@ function jsonResponse(status: number, body: unknown): Response {
 describe('apiClient', () => {
   beforeEach(() => {
     localStorage.clear();
+    tokenStore.clear();
     vi.stubGlobal('fetch', vi.fn());
   });
 
@@ -60,11 +61,11 @@ describe('apiClient', () => {
     expect(result).toEqual({ ok: false, message: 'Network error - check your connection and try again.' });
   });
 
-  it('refreshes an expired access token once and retries the original request', async () => {
-    tokenStore.set('expired-access-token', 'valid-refresh-token');
+  it('refreshes an expired access token from the cookie once and retries the original request', async () => {
+    tokenStore.set('expired-access-token');
     vi.mocked(fetch)
       .mockResolvedValueOnce(jsonResponse(401, { error: { message: 'expired' } })) // first attempt
-      .mockResolvedValueOnce(jsonResponse(200, { accessToken: 'new-access-token', refreshToken: 'new-refresh-token' })) // refresh call
+      .mockResolvedValueOnce(jsonResponse(200, { accessToken: 'new-access-token' })) // refresh call
       .mockResolvedValueOnce(jsonResponse(200, { id: '1' })); // retried original request
 
     const result = await apiClient.get<{ id: string }>('/api/v1/teams/mine');
@@ -72,10 +73,14 @@ describe('apiClient', () => {
     expect(result).toEqual({ ok: true, value: { id: '1' } });
     expect(tokenStore.accessToken()).toBe('new-access-token');
     expect(fetch).toHaveBeenCalledTimes(3);
+    const [refreshUrl, refreshInit] = vi.mocked(fetch).mock.calls[1];
+    expect(String(refreshUrl)).toContain('/api/v1/auth/refresh');
+    expect(refreshInit).toMatchObject({ method: 'POST', credentials: 'include', headers: { 'X-Auth-Mode': 'cookie' } });
+    expect(refreshInit?.body).toBeUndefined();
   });
 
-  it('clears stored tokens when the refresh attempt itself fails', async () => {
-    tokenStore.set('expired-access-token', 'stale-refresh-token');
+  it('clears the access token when the refresh attempt itself fails', async () => {
+    tokenStore.set('expired-access-token');
     vi.mocked(fetch)
       .mockResolvedValueOnce(jsonResponse(401, { error: { message: 'expired' } }))
       .mockResolvedValueOnce(jsonResponse(401, { error: { message: 'invalid refresh token' } }));
@@ -84,6 +89,15 @@ describe('apiClient', () => {
 
     expect(result.ok).toBe(false);
     expect(tokenStore.accessToken()).toBeNull();
-    expect(tokenStore.refreshToken()).toBeNull();
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('never keeps a token in localStorage', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse(200, { accessToken: 'fresh' }));
+
+    await tryRefresh();
+
+    expect(tokenStore.accessToken()).toBe('fresh');
+    expect(localStorage.length).toBe(0);
   });
 });

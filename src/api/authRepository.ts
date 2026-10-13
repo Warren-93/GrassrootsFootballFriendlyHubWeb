@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiClient, AUTH_MODE_HEADER, tryRefresh } from './client';
 import { tokenStore } from '../auth/tokenStore';
 import type {
   ChangeEmailRequest,
@@ -12,16 +12,16 @@ import type {
 } from './types';
 
 async function storeAndReturn(result: Awaited<ReturnType<typeof apiClient.post<TokenResponse>>>) {
-  if (result.ok) tokenStore.set(result.value.accessToken, result.value.refreshToken);
+  if (result.ok) tokenStore.set(result.value.accessToken);
   return result;
 }
 
 export const authRepository = {
   register: (request: RegisterRequest) =>
-    apiClient.post<TokenResponse>('/api/v1/auth/register', request, false).then(storeAndReturn),
+    apiClient.post<TokenResponse>('/api/v1/auth/register', request, false, AUTH_MODE_HEADER).then(storeAndReturn),
 
   login: (request: LoginRequest) =>
-    apiClient.post<TokenResponse>('/api/v1/auth/login', request, false).then(storeAndReturn),
+    apiClient.post<TokenResponse>('/api/v1/auth/login', request, false, AUTH_MODE_HEADER).then(storeAndReturn),
 
   me: () => apiClient.get<UserView>('/api/v1/me'),
 
@@ -41,7 +41,12 @@ export const authRepository = {
   changeEmail: (request: ChangeEmailRequest) =>
     apiClient.post<ChangeEmailResponse>('/api/v1/me/email', request),
 
-  signOut: () => tokenStore.clear(),
+  /** Revokes the session server-side and clears the refresh cookie; local state is cleared even if that call fails. */
+  signOut: async () => {
+    tokenStore.clear();
+    await apiClient.post<void>('/api/v1/auth/logout', undefined, false, AUTH_MODE_HEADER);
+  },
 
-  isSignedIn: () => tokenStore.accessToken() !== null,
+  /** True once there is an access token, refreshing from the cookie first if needed (e.g. after a reload). */
+  restoreSession: async () => tokenStore.accessToken() !== null || tryRefresh(),
 };

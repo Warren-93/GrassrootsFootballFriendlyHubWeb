@@ -11,7 +11,8 @@ export interface UserView {
 
 export interface TokenResponse {
   accessToken: string;
-  refreshToken: string;
+  /** Absent for this web client: it asks for the refresh token as an httpOnly cookie instead (AUTH_MODE_HEADER). */
+  refreshToken?: string;
   tokenType: string;
   expiresIn: number;
   user: UserView;
