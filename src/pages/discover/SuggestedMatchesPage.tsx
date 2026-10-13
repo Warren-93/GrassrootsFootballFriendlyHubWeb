@@ -12,12 +12,13 @@ import { brand } from '../../theme/theme';
 export function SuggestedMatchesPage() {
   const navigate = useNavigate();
   const { active } = useCurrentTeam();
+  const teamId = active?.teamId;
   const setResponse = useSearchResultsStore((s) => s.setResponse);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!active) return;
-    matchRepository.search({ teamId: active.teamId, limit: 20 }).then((result) => {
+    if (!teamId) return;
+    matchRepository.search({ teamId: teamId, limit: 20 }).then((result) => {
       if (result.ok) {
         setResponse(result.value);
         navigate('/results', { replace: true });
@@ -25,7 +26,7 @@ export function SuggestedMatchesPage() {
         setErrorMessage(result.message);
       }
     });
-  }, [active?.teamId]);
+  }, [teamId, navigate, setResponse]);
 
   if (!active) {
     return (

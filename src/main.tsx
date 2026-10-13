@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ThemeModeProvider } from './session/ThemeModeContext';
+import { ThemeModeProvider } from './session/ThemeModeProvider';
 import { ThemedApp } from './ThemedApp';
 
 createRoot(document.getElementById('root')!).render(

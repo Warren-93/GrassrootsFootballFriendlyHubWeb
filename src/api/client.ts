@@ -5,18 +5,29 @@ import type { TokenResponse } from './types';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8090';
 
+// Auth endpoints ask for the cookie flow: the API sets the refresh token as an
+// httpOnly cookie (scoped to /api/v1/auth) instead of returning it, so the
+// browser has to send and accept credentials on these calls.
+const AUTH_PATH_PREFIX = '/api/v1/auth/';
+const COOKIE_MODE_HEADERS = { 'X-Auth-Mode': 'cookie' };
+
 let refreshInFlight: Promise<boolean> | null = null;
 
-async function tryRefresh(): Promise<boolean> {
+/**
+ * Gets a fresh access token from the refresh cookie (or the in-memory refresh
+ * token where the API returned one). Also how a reloaded page restores its
+ * session, since the access token only ever lives in memory.
+ */
+export async function tryRefresh(): Promise<boolean> {
   if (refreshInFlight) return refreshInFlight;
   refreshInFlight = (async () => {
     const refreshToken = tokenStore.refreshToken();
-    if (!refreshToken) return false;
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
+        headers: { 'Content-Type': 'application/json', ...COOKIE_MODE_HEADERS },
+        credentials: 'include',
+        body: JSON.stringify(refreshToken ? { refreshToken } : {}),
       });
       if (!response.ok) return false;
       const body = (await response.json()) as TokenResponse;
@@ -67,7 +78,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<A
   const { method = 'GET', body, query, auth = true, headers: extraHeaders } = options;
 
   const doFetch = async (): Promise<Response> => {
-    const headers: Record<string, string> = { ...extraHeaders };
+    const isAuthPath = path.startsWith(AUTH_PATH_PREFIX);
+    const headers: Record<string, string> = { ...(isAuthPath ? COOKIE_MODE_HEADERS : {}), ...extraHeaders };
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     if (auth) {
       const accessToken = tokenStore.accessToken();
@@ -76,6 +88,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<A
     return fetch(buildUrl(path, query), {
       method,
       headers,
+      credentials: isAuthPath ? 'include' : 'same-origin',
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   };
@@ -83,7 +96,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<A
   try {
     let response = await doFetch();
 
-    if (response.status === 401 && auth && tokenStore.refreshToken()) {
+    if (response.status === 401 && auth) {
       const refreshed = await tryRefresh();
       if (refreshed) {
         response = await doFetch();

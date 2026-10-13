@@ -11,7 +11,8 @@ export interface UserView {
 
 export interface TokenResponse {
   accessToken: string;
-  refreshToken: string;
+  /** Absent in the cookie flow, where the API keeps it in an httpOnly cookie. */
+  refreshToken?: string | null;
   tokenType: string;
   expiresIn: number;
   user: UserView;

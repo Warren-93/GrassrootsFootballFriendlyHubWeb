@@ -51,6 +51,8 @@ export function ClubProfilePage() {
   const navigate = useNavigate();
   const { session } = useAuth();
   const { active, setActive } = useCurrentTeam();
+  const clubId = active?.clubId;
+  const teamId = active?.teamId;
   const [club, setClub] = useState<ClubView | null>(null);
   const [teams, setTeams] = useState<TeamView[]>([]);
   const [members, setMembers] = useState<MemberView[]>([]);
@@ -73,8 +75,8 @@ export function ClubProfilePage() {
   }
 
   useEffect(() => {
-    if (!active) return;
-    Promise.all([clubRepository.get(active.clubId), teamRepository.listByClub(active.clubId)]).then(
+    if (!clubId || !teamId) return;
+    Promise.all([clubRepository.get(clubId), teamRepository.listByClub(clubId)]).then(
       ([clubResult, teamsResult]) => {
         if (clubResult.ok) setClub(clubResult.value);
         else setErrorMessage(clubResult.message);
@@ -82,11 +84,11 @@ export function ClubProfilePage() {
         setLoading(false);
       },
     );
-    reloadMembers(active.teamId);
-    memberRepository.joinCode(active.teamId).then((result) => {
+    reloadMembers(teamId);
+    memberRepository.joinCode(teamId).then((result) => {
       if (result.ok) setJoinCode(result.value.code);
     });
-  }, [active?.clubId, active?.teamId]);
+  }, [clubId, teamId]);
 
   async function handleRegenerateCode() {
     if (!active) return;

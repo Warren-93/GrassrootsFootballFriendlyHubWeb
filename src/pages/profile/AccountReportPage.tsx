@@ -24,20 +24,21 @@ import type { BlockView } from '../../api/types';
  */
 export function AccountReportPage() {
   const { active } = useCurrentTeam();
+  const teamId = active?.teamId;
   const [blocks, setBlocks] = useState<BlockView[]>([]);
   const [loading, setLoading] = useState(true);
   const [unblockingId, setUnblockingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!active) return;
+    if (!teamId) return;
     setLoading(true);
-    reportRepository.listBlocks(active.teamId).then((result) => {
+    reportRepository.listBlocks(teamId).then((result) => {
       setLoading(false);
       if (result.ok) setBlocks(result.value);
       else setError(result.message);
     });
-  }, [active?.teamId]);
+  }, [teamId]);
 
   async function unblock(blockId: string) {
     if (!active) return;

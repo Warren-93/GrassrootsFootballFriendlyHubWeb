@@ -16,6 +16,7 @@ import { brand } from '../../theme/theme';
 // stays left out.
 export function PrivacyPage() {
   const { active } = useCurrentTeam();
+  const teamId = active?.teamId;
   const [data, setData] = useState<AccountExport | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -32,11 +33,11 @@ export function PrivacyPage() {
   }, []);
 
   useEffect(() => {
-    if (!active) return;
-    teamRepository.getPrivacy(active.teamId).then((result) => {
+    if (!teamId) return;
+    teamRepository.getPrivacy(teamId).then((result) => {
       if (result.ok) setPrefs(result.value);
     });
-  }, [active?.teamId]);
+  }, [teamId]);
 
   async function togglePref(key: keyof PrivacyPreferences) {
     if (!active || !prefs) return;

@@ -17,6 +17,7 @@ import type { FriendlyRequestView, VenueView } from '../../api/types';
 export function SuggestChangesPage() {
   const navigate = useNavigate();
   const { active } = useCurrentTeam();
+  const clubId = active?.clubId;
   const { requestId } = useParams<{ requestId: string }>();
   const [request, setRequest] = useState<FriendlyRequestView | null>(null);
   const [venues, setVenues] = useState<VenueView[]>([]);
@@ -40,11 +41,11 @@ export function SuggestChangesPage() {
   }, [requestId]);
 
   useEffect(() => {
-    if (!active) return;
-    venueRepository.list(active.clubId).then((result) => {
+    if (!clubId) return;
+    venueRepository.list(clubId).then((result) => {
       if (result.ok) setVenues(result.value);
     });
-  }, [active?.clubId]);
+  }, [clubId]);
 
   async function handleSubmit() {
     if (!requestId || !request) return;
