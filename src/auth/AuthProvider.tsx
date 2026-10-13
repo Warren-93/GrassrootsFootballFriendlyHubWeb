@@ -1,24 +1,15 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { authRepository } from '../api/authRepository';
 import type { UserView } from '../api/types';
-
-interface AuthContextValue {
-  session: UserView | null;
-  loading: boolean;
-  resolveSession: () => Promise<void>;
-  signOut: () => void;
-  setSession: (user: UserView | null) => void;
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null);
+import { AuthContext } from './AuthContext';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<UserView | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function resolveSession() {
-    if (!authRepository.isSignedIn()) {
+    if (!(await authRepository.restoreSession())) {
       setSession(null);
       setLoading(false);
       return;
@@ -28,9 +19,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }
 
-  function signOut() {
-    authRepository.signOut();
+  async function signOut() {
     setSession(null);
+    await authRepository.signOut();
   }
 
   useEffect(() => {
@@ -43,10 +34,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth(): AuthContextValue {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-  return ctx;
 }

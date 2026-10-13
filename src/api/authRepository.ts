@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiClient, tryRefresh } from './client';
 import { tokenStore } from '../auth/tokenStore';
 import type {
   ChangeEmailRequest,
@@ -41,7 +41,14 @@ export const authRepository = {
   changeEmail: (request: ChangeEmailRequest) =>
     apiClient.post<ChangeEmailResponse>('/api/v1/me/email', request),
 
-  signOut: () => tokenStore.clear(),
+  /** Revokes the refresh token server-side and clears the cookie, then forgets the access token. */
+  signOut: async () => {
+    const refreshToken = tokenStore.refreshToken();
+    tokenStore.clear();
+    await apiClient.post<void>('/api/v1/auth/logout', refreshToken ? { refreshToken } : {}, false);
+  },
 
-  isSignedIn: () => tokenStore.accessToken() !== null,
+  /** After a reload only the refresh cookie survives, so trade it for an access token. */
+  restoreSession: async (): Promise<boolean> =>
+    tokenStore.accessToken() !== null || (await tryRefresh()),
 };

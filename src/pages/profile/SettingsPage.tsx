@@ -59,7 +59,7 @@ export function SettingsPage() {
   const [passwordChanged, setPasswordChanged] = useState(false);
 
   function handleSignOut() {
-    signOut();
+    void signOut();
     clear();
     navigate('/welcome');
   }
@@ -71,7 +71,7 @@ export function SettingsPage() {
     setDeleting(false);
     setConfirmDelete(false);
     if (result.ok) {
-      signOut();
+      void signOut();
       clear();
       navigate('/welcome');
     } else {

@@ -5,8 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppShell } from './AppShell';
 import { useAuth } from '../auth/AuthContext';
 import { useCurrentTeam } from '../session/CurrentTeamContext';
-import { NavPreferenceProvider } from '../session/NavPreferenceContext';
-import { ThemeModeProvider } from '../session/ThemeModeContext';
+import { NavPreferenceProvider } from '../session/NavPreferenceProvider';
+import { ThemeModeProvider } from '../session/ThemeModeProvider';
 import { notificationRepository } from '../api/notificationRepository';
 import { teamRepository } from '../api/teamRepository';
 

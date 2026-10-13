@@ -36,6 +36,7 @@ const PITCH_SURFACE_LABELS: Record<PitchSurface, string> = {
 export function EditVenuePage() {
   const navigate = useNavigate();
   const { active } = useCurrentTeam();
+  const clubId = active?.clubId;
   const { venueId } = useParams<{ venueId: string }>();
   const isNew = !venueId;
 
@@ -52,8 +53,8 @@ export function EditVenuePage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isNew || !active) return;
-    venueRepository.list(active.clubId).then((result) => {
+    if (isNew || !clubId) return;
+    venueRepository.list(clubId).then((result) => {
       if (result.ok) {
         const venue = result.value.find((v) => v.id === venueId);
         if (venue) {
@@ -71,7 +72,7 @@ export function EditVenuePage() {
       }
       setLoading(false);
     });
-  }, [venueId, active?.clubId]);
+  }, [venueId, clubId, isNew]);
 
   const canSubmit = name.length >= 3 && address && !!coordinates;
 

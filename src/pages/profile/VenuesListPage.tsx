@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Box, Button, Card, CardActionArea, CardContent, CircularProgress, Container, Stack, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
@@ -51,17 +51,19 @@ export function VenuesListPage() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  function load() {
-    if (!active) return;
+  const clubId = active?.clubId;
+
+  const load = useCallback(() => {
+    if (!clubId) return;
     setLoading(true);
-    venueRepository.list(active.clubId).then((result) => {
+    venueRepository.list(clubId).then((result) => {
       if (result.ok) setVenues(result.value);
       else setErrorMessage(result.message);
       setLoading(false);
     });
-  }
+  }, [clubId]);
 
-  useEffect(load, [active?.clubId]);
+  useEffect(load, [load]);
 
   async function setDefault(venueId: string) {
     const result = await venueRepository.setDefault(venueId);

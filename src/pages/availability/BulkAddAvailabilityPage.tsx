@@ -58,6 +58,7 @@ function datesMatchingWeekdays(fromIso: string, toIso: string, weekdays: Set<num
 export function BulkAddAvailabilityPage() {
   const navigate = useNavigate();
   const { active } = useCurrentTeam();
+  const clubId = active?.clubId;
 
   const [fromDate, setFromDate] = useState(todayIso());
   const [toDate, setToDate] = useState(addWeeksIso(56));
@@ -73,14 +74,14 @@ export function BulkAddAvailabilityPage() {
   const [result, setResult] = useState<{ createdCount: number; skipped: string[] } | null>(null);
 
   useEffect(() => {
-    if (!active) return;
-    venueRepository.list(active.clubId).then((res) => {
+    if (!clubId) return;
+    venueRepository.list(clubId).then((res) => {
       if (res.ok) {
         setVenues(res.value);
         setVenueId(res.value.find((v) => v.isDefault)?.id ?? '');
       }
     });
-  }, [active?.clubId]);
+  }, [clubId]);
 
   function toggleWeekday(value: number) {
     setWeekdays((prev) => {
