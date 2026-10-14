@@ -122,6 +122,8 @@ export interface TeamView {
   completenessPercent: number;
   archived: boolean;
   createdAt: string;
+  /** Only set on GET /teams/mine. */
+  canManage?: boolean | null;
 }
 
 export interface CreateTeamRequest {

@@ -5,6 +5,7 @@ import { authRepository } from '../../api/authRepository';
 import { useAuth } from '../../auth/AuthContext';
 import { BrandHeader } from '../../components/BrandHeader';
 import { brand } from '../../theme/theme';
+import { setPostAuthRedirect } from '../../routes/postAuthRedirect';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export function RegisterPage() {
     const result = await authRepository.register({ email, password, displayName });
     setSubmitting(false);
     if (result.ok) {
+      setPostAuthRedirect('/role-selection');
       await resolveSession();
       navigate('/role-selection');
     } else {

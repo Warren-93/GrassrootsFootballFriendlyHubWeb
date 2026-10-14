@@ -42,7 +42,7 @@ function StepCircle({ active, completed, number }: StepCircleProps) {
 /**
  * Small numbered progress stepper shown at the top of every onboarding page, so the user always
  * knows where they are in the 3-step "Role & club" -> "Team & venue" -> "Availability" wizard.
- * Built on MUI's own Stepper/Step/StepLabel, restyled to match the PitchMate brand colours.
+ * Built on MUI's own Stepper/Step/StepLabel, restyled to match the Kickabout brand colours.
  */
 export function OnboardingStepper({ currentStep }: OnboardingStepperProps) {
   return (

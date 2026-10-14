@@ -3,6 +3,9 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { AccountTabs } from '../../components/AccountTabs';
 import { brand } from '../../theme/theme';
 
+// Set VITE_SUPPORT_EMAIL in Vercel once the Kickabout support inbox exists.
+const SUPPORT_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL || 'support@pitchmate.co';
+
 interface FaqEntry {
   question: string;
   answer: string;
@@ -112,12 +115,12 @@ export function HelpPage() {
           <Box>
             <Typography sx={{ fontWeight: 700, fontSize: 14 }}>Still stuck?</Typography>
             <Typography sx={{ fontSize: 12.5, color: 'rgba(255,255,255,.72)' }}>
-              Message the PitchMate support team directly.
+              Message the Kickabout support team directly.
             </Typography>
           </Box>
           <Button
             variant="contained"
-            href="mailto:support@pitchmate.co"
+            href={`mailto:${SUPPORT_EMAIL}`}
             sx={{ bgcolor: brand.lime, color: brand.void, flexShrink: 0, '&:hover': { bgcolor: brand.lime } }}
           >
             Message support

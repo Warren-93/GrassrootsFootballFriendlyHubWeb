@@ -57,7 +57,7 @@ const SuggestChangesPage = lazy(() => import('./pages/arrange/SuggestChangesPage
 const DeclinePage = lazy(() => import('./pages/arrange/DeclinePage').then((m) => ({ default: m.DeclinePage })));
 const FixturesPage = lazy(() => import('./pages/arrange/FixturesPage').then((m) => ({ default: m.FixturesPage })));
 const FixtureDetailPage = lazy(() => import('./pages/arrange/FixtureDetailPage').then((m) => ({ default: m.FixtureDetailPage })));
-const PlaceholderPage = lazy(() => import('./pages/PlaceholderPage').then((m) => ({ default: m.PlaceholderPage })));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 
 function App() {
   return (
@@ -125,7 +125,7 @@ function App() {
             <Route path="/request/:requestId/decline" element={<DeclinePage />} />
             <Route path="/fixtures" element={<FixturesPage />} />
             <Route path="/fixtures/:fixtureId" element={<FixtureDetailPage />} />
-            <Route path="*" element={<PlaceholderPage label="Not built yet" />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Route>
 

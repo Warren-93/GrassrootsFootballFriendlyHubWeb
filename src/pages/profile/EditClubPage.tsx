@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { clubRepository } from '../../api/clubRepository';
 import { PostcodeLocationField } from '../../components/PostcodeLocationField';
 import { PageHeader } from '../../components/PageHeader';
+import { BadgePicker } from '../../components/brand/BadgePicker';
 
 // SCR-PR-03's "Edit club" action - inline edit of the SCR-ON-02 fields.
 export function EditClubPage() {
@@ -71,7 +72,7 @@ export function EditClubPage() {
           <PageHeader title="Edit club" onBack={() => navigate('/club')} />
 
           <TextField label="Club name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
-          <TextField label="Badge URL" value={badgeUrl} onChange={(e) => setBadgeUrl(e.target.value)} fullWidth />
+          <BadgePicker name={name} value={badgeUrl || null} onChange={(v) => setBadgeUrl(v ?? '')} />
           <PostcodeLocationField
             postcode={postcode}
             onPostcodeChange={setPostcode}

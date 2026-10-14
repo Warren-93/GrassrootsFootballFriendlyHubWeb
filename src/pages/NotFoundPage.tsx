@@ -1,17 +1,17 @@
 import { Button, Container, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
-export function PlaceholderPage({ label }: { label: string }) {
+export function NotFoundPage() {
   const navigate = useNavigate();
   return (
     <Container maxWidth="xs" sx={{ py: 6 }}>
       <Stack spacing={2}>
-        <Typography variant="h6">{label}</Typography>
+        <Typography variant="h6">Page not found</Typography>
         <Typography variant="body2" color="text.secondary">
-          This screen isn't built yet.
+          That link doesn't go anywhere. It may be mistyped, or the page may have moved.
         </Typography>
         <Button variant="outlined" onClick={() => navigate('/')}>
-          Back to dashboard
+          Back to home
         </Button>
       </Stack>
     </Container>

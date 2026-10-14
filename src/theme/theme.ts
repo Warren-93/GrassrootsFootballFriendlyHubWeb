@@ -1,7 +1,7 @@
 import { createTheme } from '@mui/material/styles';
 import type { PaletteMode, Theme } from '@mui/material/styles';
 
-// PitchMate brand system - lifted directly from the approved "PitchMate
+// Kickabout brand system (formerly PitchMate) - lifted directly from the approved "PitchMate
 // Design System" concept: navy (the icon's base ellipse + wordmark) as the
 // structural colour for hero bands and dark surfaces, pitch green (the pin)
 // as the single accent, mist as the page ground, amber/coral reserved for

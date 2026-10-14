@@ -4,6 +4,8 @@ import { brand } from '../../theme/theme';
 interface CrestAvatarProps {
   name: string;
   size?: number;
+  /** The team's badge image, when it has one. */
+  src?: string | null;
 }
 
 function initials(name: string): string {
@@ -18,7 +20,25 @@ function initials(name: string): string {
  * the navy circular user Avatar so teams and people never look alike in a
  * list. Matches the concept's .crest.
  */
-export function CrestAvatar({ name, size = 34 }: CrestAvatarProps) {
+export function CrestAvatar({ name, size = 34, src }: CrestAvatarProps) {
+  if (src) {
+    return (
+      <Box
+        component="img"
+        src={src}
+        alt=""
+        sx={{
+          width: size,
+          height: size,
+          borderRadius: size / 3.5,
+          flex: 'none',
+          objectFit: 'cover',
+          border: `1px solid ${brand.border}`,
+          bgcolor: brand.paper,
+        }}
+      />
+    );
+  }
   return (
     <Box
       sx={{

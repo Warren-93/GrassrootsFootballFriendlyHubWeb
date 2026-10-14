@@ -1,11 +1,16 @@
-import { useState } from 'react';
-import { Box, Button, Card, CardContent, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { useInvitationDraftStore, useSearchResultsStore } from '../../session/SearchState';
 import { addMinutesToTime } from '../../utils/time';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
+import { matchRepository } from '../../api/matchRepository';
+import { teamRepository } from '../../api/teamRepository';
 import type { CostShare, HomeAwayPreference, RefereeArrangement } from '../../api/types';
+
+/** The API refuses to send a request until the sender's profile is at least this complete. */
+const MIN_PROFILE_COMPLETENESS = 80;
 
 const COST_SHARES: CostShare[] = ['SPLIT', 'HOST_PAYS', 'VISITOR_PAYS', 'NONE'];
 const REFEREE_ARRANGEMENTS: RefereeArrangement[] = ['CLUB_SUPPLIED', 'APPOINTED', 'NONE'];
@@ -16,22 +21,71 @@ export function InvitationComposerPage() {
   const { active } = useCurrentTeam();
   const match = useSearchResultsStore((s) => (opponentTeamId ? s.findTeam(opponentTeamId) : null));
   const setDraft = useInvitationDraftStore((s) => s.setDraft);
+  const setResponse = useSearchResultsStore((s) => s.setResponse);
+  const [searching, setSearching] = useState(false);
+  const [completeness, setCompleteness] = useState<number | null>(null);
+
+  // Opened from a link or a profile rather than from search results: run the
+  // search here so the opponent's overlapping dates are known.
+  useEffect(() => {
+    if (match || !active || !opponentTeamId) return;
+    let cancelled = false;
+    setSearching(true);
+    matchRepository.search({ teamId: active.teamId, ignoreTravelRadius: true, limit: 100 }).then((result) => {
+      if (cancelled) return;
+      if (result.ok) setResponse(result.value);
+      setSearching(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [match, active, opponentTeamId, setResponse]);
+
+  useEffect(() => {
+    if (!active) return;
+    teamRepository.get(active.teamId).then((result) => {
+      if (result.ok) setCompleteness(result.value.completenessPercent);
+    });
+  }, [active]);
 
   const overlap = match?.earliestOverlap;
-  const [date] = useState(overlap?.date ?? '');
-  const [startTime] = useState(overlap?.startTime.slice(0, 5) ?? '');
+  const date = overlap?.date ?? '';
+  const startTime = overlap?.startTime.slice(0, 5) ?? '';
   const [homeAwayChoice, setHomeAwayChoice] = useState<HomeAwayPreference>('HOME');
   const [costShare, setCostShare] = useState<CostShare>('SPLIT');
   const [refereeArrangement, setRefereeArrangement] = useState<RefereeArrangement>('NONE');
   const [message, setMessage] = useState('');
 
-  if (!match || !overlap || !active) {
+  if (searching) {
     return (
-      <Container maxWidth="lg" sx={{ py: 6 }}>
-        <Typography>No overlapping availability found for this opponent - search again.</Typography>
+      <Container maxWidth="lg" sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
+        <CircularProgress />
       </Container>
     );
   }
+
+  if (!match || !overlap || !active) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        <Stack spacing={2} sx={{ alignItems: 'flex-start' }}>
+          <Typography>
+            You and this team don't have any overlapping dates yet. Add more availability, or search for other
+            opponents.
+          </Typography>
+          <Stack direction="row" spacing={1}>
+            <Button variant="contained" onClick={() => navigate('/availability/new')}>
+              Add availability
+            </Button>
+            <Button variant="outlined" onClick={() => navigate('/search')}>
+              Search
+            </Button>
+          </Stack>
+        </Stack>
+      </Container>
+    );
+  }
+
+  const profileTooThin = completeness !== null && completeness < MIN_PROFILE_COMPLETENESS;
 
   const endTime = addMinutesToTime(startTime, Math.min(overlap.overlapMinutes, 90));
   const homeTeamId = homeAwayChoice === 'HOME' ? active.teamId : match.team.id;
@@ -63,6 +117,21 @@ export function InvitationComposerPage() {
           Set the details, then send your request.
         </Typography>
       </Box>
+
+      {profileTooThin && (
+        <Alert
+          severity="warning"
+          sx={{ mb: 2.5 }}
+          action={
+            <Button color="inherit" size="small" onClick={() => navigate(`/team/${active.teamId}/edit`)}>
+              Complete profile
+            </Button>
+          }
+        >
+          Your team profile is {completeness}% complete. It needs to be at least {MIN_PROFILE_COMPLETENESS}% before you
+          can send requests, so opponents know who they're playing.
+        </Alert>
+      )}
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.6fr 1fr' }, gap: 2.5 }}>
         <Card variant="outlined" sx={{ borderRadius: 3 }}>
@@ -113,7 +182,7 @@ export function InvitationComposerPage() {
               sx={{ mb: 2.5 }}
             />
 
-            <Button variant="contained" size="large" onClick={handleContinue}>
+            <Button variant="contained" size="large" onClick={handleContinue} disabled={profileTooThin}>
               Review invitation
             </Button>
           </CardContent>
@@ -122,7 +191,7 @@ export function InvitationComposerPage() {
         <Card variant="outlined" sx={{ borderRadius: 3, alignSelf: 'start' }}>
           <CardContent>
             <Stack spacing={1} sx={{ alignItems: 'center', textAlign: 'center' }}>
-              <CrestAvatar name={match.team.name} size={56} />
+              <CrestAvatar name={match.team.name} src={match.team.badgeUrl} size={56} />
               <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                 {match.team.name}
               </Typography>

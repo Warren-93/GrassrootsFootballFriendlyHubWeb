@@ -45,6 +45,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutlineOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { MemberGate } from './MemberGate';
 import { PageFallback } from '../routes/PageFallback';
 import { useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
@@ -161,9 +162,11 @@ export function AppShell() {
         if (active) clear();
         return;
       }
-      if (!active || !mine.some((t) => t.id === active.teamId)) {
-        const t = mine[0];
-        setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId });
+      const current = active ? mine.find((t) => t.id === active.teamId) : undefined;
+      const t = current ?? mine[0];
+      const canManage = t.canManage ?? true;
+      if (!current || active?.canManage !== canManage) {
+        setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId, canManage });
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -182,7 +185,7 @@ export function AppShell() {
 
   function handleTeamSwitch(event: SelectChangeEvent) {
     const t = myTeams.find((team) => team.id === event.target.value);
-    if (t) setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId });
+    if (t) setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId, canManage: t.canManage ?? true });
   }
 
   function isActive(path: string) {
@@ -227,7 +230,7 @@ export function AppShell() {
       <Toolbar sx={{ gap: 1 }}>
         <Box component="img" src={logoMark} alt="" sx={{ width: 28, height: 28, objectFit: 'contain' }} />
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          PitchMate
+          Kickabout
         </Typography>
       </Toolbar>
       <Divider />
@@ -312,7 +315,7 @@ export function AppShell() {
           >
             <Box component="img" src={logoMark} alt="" sx={{ width: 26, height: 26, objectFit: 'contain' }} />
             <Typography variant="subtitle1" sx={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
-              Pitch<Box component="span" sx={{ color: 'primary.main' }}>Mate</Box>
+              Kick<Box component="span" sx={{ color: 'primary.main' }}>about</Box>
             </Typography>
           </Stack>
 
@@ -512,7 +515,9 @@ export function AppShell() {
       <Box component="main" sx={{ flexGrow: 1, minWidth: 0 }}>
         <Toolbar />
         <Suspense fallback={<PageFallback />}>
-          <Outlet />
+          <MemberGate>
+            <Outlet />
+          </MemberGate>
         </Suspense>
       </Box>
 

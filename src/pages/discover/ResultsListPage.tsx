@@ -171,10 +171,12 @@ export function ResultsListPage() {
           </Box>
         ) : view === 'list' ? (
           response.results.map((match) => (
-            <Card key={match.team.id} variant="outlined" sx={{ borderRadius: 3 }}>
-              <CardActionArea onClick={() => navigate(`/opponent/${match.team.id}`)}>
+            <Card key={match.team.id} variant="outlined" sx={{ borderRadius: 3, display: 'flex', alignItems: 'center' }}>
+              {/* The Request button sits outside the clickable card area: a button nested in
+                  another button gets its click swallowed by the outer one in some browsers. */}
+              <CardActionArea onClick={() => navigate(`/opponent/${match.team.id}`)} sx={{ flex: 1, minWidth: 0 }}>
                 <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.75, py: 1.75 }}>
-                  <CrestAvatar name={match.team.name} />
+                  <CrestAvatar name={match.team.name} src={match.team.badgeUrl} />
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700 }} noWrap>
                       {match.team.name}
@@ -195,21 +197,17 @@ export function ResultsListPage() {
                       </Stack>
                     )}
                   </Box>
-                  <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center', flexShrink: 0 }}>
-                    <MatchScoreChip score={match.score} />
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/invite/${match.team.id}`);
-                      }}
-                    >
-                      Request
-                    </Button>
-                  </Stack>
+                  <MatchScoreChip score={match.score} />
                 </CardContent>
               </CardActionArea>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => navigate(`/invite/${match.team.id}`)}
+                sx={{ mr: 2, flexShrink: 0 }}
+              >
+                Request
+              </Button>
             </Card>
           ))
         ) : (
@@ -256,7 +254,7 @@ export function ResultsListPage() {
                       <CardActionArea onClick={() => navigate(`/opponent/${match.team.id}`)}>
                         <CardContent sx={{ py: 1, px: 1.5, '&:last-child': { pb: 1 } }}>
                           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                            <CrestAvatar name={match.team.name} size={28} />
+                            <CrestAvatar name={match.team.name} src={match.team.badgeUrl} size={28} />
                             <Box sx={{ minWidth: 0, flex: 1 }}>
                               <Typography
                                 variant="body2"

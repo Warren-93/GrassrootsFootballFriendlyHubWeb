@@ -19,6 +19,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { teamRepository } from '../../api/teamRepository';
 import type { AbilityLevel, HomeAwayPreference, TeamView } from '../../api/types';
 import { PageHeader } from '../../components/PageHeader';
+import { BadgePicker } from '../../components/brand/BadgePicker';
 
 const ABILITY_LEVELS: AbilityLevel[] = ['DEVELOPMENT', 'INTERMEDIATE', 'COMPETITIVE'];
 const HOME_AWAY: HomeAwayPreference[] = ['HOME', 'AWAY', 'EITHER'];
@@ -46,6 +47,7 @@ export function EditTeamPage() {
     setSubmitting(true);
     setErrorMessage(null);
     const result = await teamRepository.update(teamId, {
+      badgeUrl: team.badgeUrl ?? '',
       abilityLevel: team.abilityLevel,
       league: team.league,
       homeAwayPreference: team.homeAwayPreference,
@@ -86,6 +88,8 @@ export function EditTeamPage() {
         <Typography variant="caption" color="text.secondary">
           Age group and format lock after the first confirmed fixture, so they're not editable here.
         </Typography>
+
+        <BadgePicker name={team.name} value={team.badgeUrl} onChange={(badgeUrl) => setTeam({ ...team, badgeUrl })} />
 
         <TextField
           select

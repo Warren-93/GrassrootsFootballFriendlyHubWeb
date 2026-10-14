@@ -20,7 +20,12 @@ export function JoinTeamPage() {
     const result = await memberRepository.join(code.trim());
     setSubmitting(false);
     if (result.ok) {
-      setActive({ teamId: result.value.teamId, teamName: result.value.teamName, clubId: result.value.clubId });
+      setActive({
+        teamId: result.value.teamId,
+        teamName: result.value.teamName,
+        clubId: result.value.clubId,
+        canManage: result.value.membership.role !== 'USER',
+      });
       navigate('/');
     } else {
       setErrorMessage(result.message);

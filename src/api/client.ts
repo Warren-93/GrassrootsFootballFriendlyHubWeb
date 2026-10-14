@@ -3,7 +3,9 @@ import { fail, ok } from './result';
 import { tokenStore } from '../auth/tokenStore';
 import type { TokenResponse } from './types';
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8090';
+// "/" (or empty) means the API is proxied on this site's own origin (api/proxy.js).
+const configuredBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8090';
+export const API_BASE_URL = configuredBase === '/' ? '' : configuredBase.replace(/\/$/, '');
 
 // Auth endpoints ask for the cookie flow: the API sets the refresh token as an
 // httpOnly cookie (scoped to /api/v1/auth) instead of returning it, so the
@@ -53,7 +55,8 @@ interface RequestOptions {
 }
 
 function buildUrl(path: string, query?: RequestOptions['query']): string {
-  const url = new URL(`${API_BASE_URL}${path}`);
+  // An empty VITE_API_BASE_URL means "same origin" (the API proxied under /api).
+  const url = new URL(`${API_BASE_URL}${path}`, window.location.origin);
   if (query) {
     for (const [key, value] of Object.entries(query)) {
       if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
@@ -108,10 +111,10 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<A
     if (!response.ok) {
       return fail(await parseErrorMessage(response), response.status);
     }
-    if (response.status === 204) {
-      return ok(undefined as T);
-    }
-    return ok((await response.json()) as T);
+    // Some endpoints answer 200 with no body (verify email, password reset,
+    // block team, ...), so any empty success is a success, not just 204.
+    const text = await response.text();
+    return ok((text ? JSON.parse(text) : undefined) as T);
   } catch {
     return fail('Network error - check your connection and try again.');
   }

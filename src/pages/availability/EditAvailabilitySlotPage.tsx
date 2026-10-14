@@ -48,7 +48,8 @@ export function EditAvailabilitySlotPage() {
         setStartTime(s.startTime.slice(0, 5));
         setEndTime(s.endTime.slice(0, 5));
         setHomeAwayPreference(s.homeAwayPreference);
-        setVenueId(s.venueId ?? '');
+        // A date saved without a venue keeps the default venue offered, not an empty box.
+        setVenueId((current) => s.venueId ?? current);
         setNotes(s.notes ?? '');
       }
       setLoading(false);
