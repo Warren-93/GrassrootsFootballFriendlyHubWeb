@@ -7,6 +7,7 @@ function jsonResponse(status: number, body: unknown): Response {
     ok: status >= 200 && status < 300,
     status,
     json: async () => body,
+    text: async () => (body === undefined ? '' : JSON.stringify(body)),
   } as Response;
 }
 
@@ -26,6 +27,14 @@ describe('apiClient', () => {
     const result = await apiClient.get<{ id: string; name: string }>('/api/v1/teams/42');
 
     expect(result).toEqual({ ok: true, value: { id: '42', name: 'Team A' } });
+  });
+
+  it('treats an empty 200 body as success, not a network error', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse(200, undefined));
+
+    const result = await apiClient.post('/api/v1/auth/verify-email/confirm', { token: 't' }, false);
+
+    expect(result).toEqual({ ok: true, value: undefined });
   });
 
   it('surfaces the backend error envelope message on failure', async () => {

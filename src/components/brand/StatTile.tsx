@@ -39,7 +39,7 @@ export function StatTile({ label, value, sub, tone = 'default' }: StatTileProps)
 /** Lay four-ish StatTiles out responsively - wraps to 2 columns before it ever scrolls. */
 export function StatTileRow({ children }: { children: ReactNode }) {
   return (
-    <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', mb: 3 }}>
+    <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: 'wrap', mb: 3 }}>
       {children}
     </Stack>
   );

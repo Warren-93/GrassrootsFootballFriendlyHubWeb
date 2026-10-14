@@ -44,7 +44,7 @@ export function OpponentProfilePage() {
       <Stack spacing={2}>
         <Card variant="outlined" sx={{ borderRadius: 3 }}>
           <CardContent sx={{ display: 'flex', gap: 2.5, alignItems: 'center', flexWrap: 'wrap' }}>
-            <CrestAvatar name={team.name} size={64} />
+            <CrestAvatar name={team.name} src={team.badgeUrl} size={64} />
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography variant="h5" sx={{ fontWeight: 800 }}>
                 {team.name}
@@ -87,7 +87,7 @@ export function OpponentProfilePage() {
 
         {messageError && <Alert severity="error">{messageError}</Alert>}
 
-        <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
+        <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: 'wrap' }}>
           <Button variant="outlined" onClick={() => navigate(`/match-explanation/${team.id}`)}>
             Why this match?
           </Button>

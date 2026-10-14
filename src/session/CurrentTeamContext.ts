@@ -9,6 +9,12 @@ export interface ActiveTeam {
   teamId: string;
   teamName: string;
   clubId: string;
+  /**
+   * False for a member who joined with a code (role USER): they can't manage
+   * the team, so the app shows them a read-only view. Missing means true, for
+   * teams cached before this field existed.
+   */
+  canManage?: boolean;
 }
 
 export interface CurrentTeamContextValue {

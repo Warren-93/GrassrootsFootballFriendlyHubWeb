@@ -165,7 +165,7 @@ export function BulkAddAvailabilityPage() {
             <Typography sx={{ fontSize: 11, fontWeight: 700, color: brand.muted, textTransform: 'uppercase', letterSpacing: '.04em' }}>
               Repeat on
             </Typography>
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
               {WEEKDAYS.map((w) => {
                 const selected = weekdays.has(w.value);
                 return (

@@ -43,6 +43,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutlineOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { MemberGate } from './MemberGate';
 import { PageFallback } from '../routes/PageFallback';
 import { useAuth } from '../auth/AuthContext';
 import { useCurrentTeam } from '../session/CurrentTeamContext';
@@ -148,9 +149,11 @@ export function AppShellSidebar() {
         if (active) clear();
         return;
       }
-      if (!active || !mine.some((t) => t.id === active.teamId)) {
-        const t = mine[0];
-        setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId });
+      const current = active ? mine.find((t) => t.id === active.teamId) : undefined;
+      const t = current ?? mine[0];
+      const canManage = t.canManage ?? true;
+      if (!current || active?.canManage !== canManage) {
+        setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId, canManage });
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -164,7 +167,7 @@ export function AppShellSidebar() {
 
   function handleTeamSwitch(event: SelectChangeEvent) {
     const t = myTeams.find((team) => team.id === event.target.value);
-    if (t) setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId });
+    if (t) setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId, canManage: t.canManage ?? true });
   }
 
   function isActive(path: string) {
@@ -414,7 +417,9 @@ export function AppShellSidebar() {
       <Box component="main" sx={{ flexGrow: 1, width: { md: `calc(100% - ${DRAWER_WIDTH}px)` }, minWidth: 0 }}>
         <Toolbar />
         <Suspense fallback={<PageFallback />}>
-          <Outlet />
+          <MemberGate>
+            <Outlet />
+          </MemberGate>
         </Suspense>
       </Box>
 

@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { CircularProgress, Box } from '@mui/material';
 import { useAuth } from '../auth/AuthContext';
+import { takePostAuthRedirect } from './postAuthRedirect';
 
 /** The inverse of ProtectedRoute: an already-signed-in user hitting /welcome, /sign-in etc. goes to the dashboard instead of seeing the auth screens again. */
 export function PublicOnlyRoute() {
@@ -14,6 +15,6 @@ export function PublicOnlyRoute() {
     );
   }
 
-  if (session) return <Navigate to="/" replace />;
+  if (session) return <Navigate to={takePostAuthRedirect()} replace />;
   return <Outlet />;
 }

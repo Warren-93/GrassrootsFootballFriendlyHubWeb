@@ -6,6 +6,8 @@ import type { TeamView } from '../../api/types';
 import { TeamClubTabs } from '../../components/TeamClubTabs';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { brand } from '../../theme/theme';
+import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { canManageActive } from '../../session/canManageActive';
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
@@ -23,6 +25,7 @@ function Field({ label, value }: { label: string; value: string }) {
 export function TeamProfilePage() {
   const navigate = useNavigate();
   const { teamId } = useParams<{ teamId: string }>();
+  const { active } = useCurrentTeam();
   const [team, setTeam] = useState<TeamView | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -56,7 +59,7 @@ export function TeamProfilePage() {
 
       <Card variant="outlined" sx={{ borderRadius: 3, mb: 2.5 }}>
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2.25, p: { xs: 2, sm: 2.75 } }}>
-          <CrestAvatar name={team.name} size={64} />
+          <CrestAvatar name={team.name} src={team.badgeUrl} size={64} />
           <Box>
             <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
               {team.name}
@@ -118,9 +121,11 @@ export function TeamProfilePage() {
         </CardContent>
       </Card>
 
-      <Button variant="contained" onClick={() => navigate(`/team/${team.id}/edit`)}>
-        Edit team
-      </Button>
+      {(active?.teamId !== team.id || canManageActive(active)) && (
+        <Button variant="contained" onClick={() => navigate(`/team/${team.id}/edit`)}>
+          Edit team
+        </Button>
+      )}
     </Container>
   );
 }

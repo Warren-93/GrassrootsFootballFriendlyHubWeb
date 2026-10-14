@@ -1,18 +1,10 @@
-import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { useAuth } from '../auth/AuthContext';
 import { SplashScreen } from './SplashScreen';
 
-const SPLASH_DURATION_MS = 5000;
-
-/** Shows the splash screen for a fixed duration on cold load, then reveals the app. */
+/** Shows the splash screen only while the session is being resolved on load, then reveals the app. */
 export function SplashGate({ children }: { children: ReactNode }) {
-  const [showSplash, setShowSplash] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), SPLASH_DURATION_MS);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (showSplash) return <SplashScreen />;
+  const { loading } = useAuth();
+  if (loading) return <SplashScreen />;
   return <>{children}</>;
 }

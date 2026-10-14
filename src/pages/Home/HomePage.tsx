@@ -220,7 +220,7 @@ export function HomePage() {
                 ) : (
                   suggestions.map((m) => (
                     <Row key={m.team.id} onClick={() => navigate(`/opponent/${m.team.id}`)}>
-                      <CrestAvatar name={m.team.name} size={36} />
+                      <CrestAvatar name={m.team.name} src={m.team.badgeUrl} size={36} />
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography sx={{ fontWeight: 700, fontSize: 13.5 }} noWrap>
                           {m.team.name}

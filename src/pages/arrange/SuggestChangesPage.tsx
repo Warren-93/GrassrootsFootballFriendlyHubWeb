@@ -13,6 +13,12 @@ import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
 import { venueRepository } from '../../api/venueRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import type { FriendlyRequestView, VenueView } from '../../api/types';
+import { addMinutesToTime } from '../../utils/time';
+
+function minutesOf(time: string): number {
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + m;
+}
 
 export function SuggestChangesPage() {
   const navigate = useNavigate();
@@ -78,7 +84,14 @@ export function SuggestChangesPage() {
             label="Start time"
             type="time"
             value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
+            onChange={(e) => {
+              // Keep the match length: moving kick-off moves the end time with it.
+              const next = e.target.value;
+              if (startTime && endTime && next) {
+                setEndTime(addMinutesToTime(next, minutesOf(endTime) - minutesOf(startTime)));
+              }
+              setStartTime(next);
+            }}
             slotProps={{ inputLabel: { shrink: true } }}
             fullWidth
           />
@@ -91,6 +104,10 @@ export function SuggestChangesPage() {
             fullWidth
           />
         </Stack>
+
+        {startTime && endTime && minutesOf(endTime) <= minutesOf(startTime) && (
+          <Alert severity="warning">The end time must be after the start time.</Alert>
+        )}
 
         {venues.length > 0 && (
           <TextField select label="Venue" value={venueId} onChange={(e) => setVenueId(e.target.value)} fullWidth>
@@ -113,7 +130,7 @@ export function SuggestChangesPage() {
         />
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
         <Stack direction="row" spacing={1.5}>
-          <Button variant="contained" size="large" disabled={submitting} onClick={handleSubmit}>
+          <Button variant="contained" size="large" disabled={submitting || (!!startTime && !!endTime && minutesOf(endTime) <= minutesOf(startTime))} onClick={handleSubmit}>
             {submitting ? 'Sending…' : 'Send'}
           </Button>
           <Button variant="text" onClick={() => navigate(-1)}>
