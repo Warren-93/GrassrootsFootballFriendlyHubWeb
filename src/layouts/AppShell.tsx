@@ -226,7 +226,7 @@ export function AppShell() {
       <Toolbar sx={{ gap: 1 }}>
         <Box component="img" src={logoMark} alt="" sx={{ width: 28, height: 28, objectFit: 'contain' }} />
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          PitchMate
+          Kickabout
         </Typography>
       </Toolbar>
       <Divider />
@@ -311,7 +311,7 @@ export function AppShell() {
           >
             <Box component="img" src={logoMark} alt="" sx={{ width: 26, height: 26, objectFit: 'contain' }} />
             <Typography variant="subtitle1" sx={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
-              Pitch<Box component="span" sx={{ color: 'primary.main' }}>Mate</Box>
+              Kick<Box component="span" sx={{ color: 'primary.main' }}>about</Box>
             </Typography>
           </Stack>
 

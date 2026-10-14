@@ -133,7 +133,7 @@ export function PrivacyPage() {
         <CardContent sx={{ px: { xs: 2, sm: 2.75 }, py: 0.5, '&:last-child': { pb: 0.5 } }}>
           <SettingRow
             title="Download your data"
-            subtitle="Export everything PitchMate holds about your team"
+            subtitle="Export everything Kickabout holds about your team"
             last
             control={
               <Button variant="outlined" size="small" onClick={handleDownload} disabled={!data}>

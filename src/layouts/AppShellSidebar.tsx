@@ -184,7 +184,7 @@ export function AppShellSidebar() {
       <Toolbar sx={{ gap: 1 }}>
         <Box component="img" src="/icon-mark-reversed-transparent.png" alt="" sx={{ width: 26, height: 26, objectFit: 'contain' }} />
         <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#fff' }}>
-          Pitch<Box component="span" sx={{ color: brand.lime }}>Mate</Box>
+          Kick<Box component="span" sx={{ color: brand.lime }}>about</Box>
         </Typography>
       </Toolbar>
       <List sx={{ flexGrow: 1, py: 1, overflowY: 'auto' }}>

@@ -112,7 +112,7 @@ export function HelpPage() {
           <Box>
             <Typography sx={{ fontWeight: 700, fontSize: 14 }}>Still stuck?</Typography>
             <Typography sx={{ fontSize: 12.5, color: 'rgba(255,255,255,.72)' }}>
-              Message the PitchMate support team directly.
+              Message the Kickabout support team directly.
             </Typography>
           </Box>
           <Button
