@@ -12,7 +12,7 @@ function jsonResponse(status: number, body: unknown): Response {
 
 describe('apiClient', () => {
   beforeEach(() => {
-    localStorage.clear();
+    tokenStore.clear();
     vi.stubGlobal('fetch', vi.fn());
   });
 
@@ -72,6 +72,41 @@ describe('apiClient', () => {
     expect(result).toEqual({ ok: true, value: { id: '1' } });
     expect(tokenStore.accessToken()).toBe('new-access-token');
     expect(fetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('refreshes from the httpOnly cookie when no refresh token is held in memory', async () => {
+    tokenStore.set('expired-access-token');
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(jsonResponse(401, { error: { message: 'expired' } }))
+      .mockResolvedValueOnce(jsonResponse(200, { accessToken: 'new-access-token' }))
+      .mockResolvedValueOnce(jsonResponse(200, { id: '1' }));
+
+    const result = await apiClient.get<{ id: string }>('/api/v1/teams/mine');
+
+    expect(result).toEqual({ ok: true, value: { id: '1' } });
+    const [url, init] = vi.mocked(fetch).mock.calls[1];
+    expect(url).toContain('/api/v1/auth/refresh');
+    expect(init?.credentials).toBe('include');
+    expect((init!.headers as Record<string, string>)['X-Auth-Mode']).toBe('cookie');
+    expect(init?.body).toBe('{}');
+    expect(tokenStore.accessToken()).toBe('new-access-token');
+    expect(tokenStore.refreshToken()).toBeNull();
+  });
+
+  it('asks for the cookie flow on auth endpoints only', async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(jsonResponse(200, { accessToken: 'a' }))
+      .mockResolvedValueOnce(jsonResponse(200, { id: '1' }));
+
+    await apiClient.post('/api/v1/auth/login', { email: 'a@b.c', password: 'x' }, false);
+    await apiClient.get('/api/v1/teams/mine');
+
+    const [, loginInit] = vi.mocked(fetch).mock.calls[0];
+    expect(loginInit?.credentials).toBe('include');
+    expect((loginInit!.headers as Record<string, string>)['X-Auth-Mode']).toBe('cookie');
+    const [, teamInit] = vi.mocked(fetch).mock.calls[1];
+    expect(teamInit?.credentials).toBe('same-origin');
+    expect((teamInit!.headers as Record<string, string>)['X-Auth-Mode']).toBeUndefined();
   });
 
   it('clears stored tokens when the refresh attempt itself fails', async () => {

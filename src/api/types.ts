@@ -11,7 +11,8 @@ export interface UserView {
 
 export interface TokenResponse {
   accessToken: string;
-  refreshToken: string;
+  /** Absent in the cookie flow, where the API keeps it in an httpOnly cookie. */
+  refreshToken?: string | null;
   tokenType: string;
   expiresIn: number;
   user: UserView;
@@ -20,7 +21,10 @@ export interface TokenResponse {
 }
 
 export interface VerificationResendResponse {
+  /** Only present while no real email provider is connected - see EmailVerificationPage. */
   verificationToken: string | null;
+  /** True when a new link was emailed. Neither set means the account is already verified. */
+  emailSent?: boolean;
 }
 
 export interface ChangePasswordRequest {

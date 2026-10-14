@@ -27,6 +27,8 @@ export function EmailVerificationPage() {
       setMessage(result.message);
     } else if (result.value.verificationToken) {
       setVerifyLink(`/verify-email?token=${encodeURIComponent(result.value.verificationToken)}`);
+    } else if (result.value.emailSent) {
+      setMessage(`We've sent a new link to ${session?.email}.`);
     } else {
       setMessage('This account is already verified.');
     }

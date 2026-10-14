@@ -38,6 +38,7 @@ export function ResultsListPage() {
   const response = useSearchResultsStore((s) => s.response);
   const setResponse = useSearchResultsStore((s) => s.setResponse);
   const { active } = useCurrentTeam();
+  const teamId = active?.teamId;
   const filters = useSearchFilterStore();
   const [view, setView] = useState<'list' | 'map'>('list');
   const [team, setTeam] = useState<TeamView | null>(null);
@@ -66,19 +67,19 @@ export function ResultsListPage() {
   }
 
   useEffect(() => {
-    if (!active) return;
-    teamRepository.get(active.teamId).then((result) => {
+    if (!teamId) return;
+    teamRepository.get(teamId).then((result) => {
       if (result.ok) setTeam(result.value);
     });
-  }, [active?.teamId]);
+  }, [teamId]);
 
   useEffect(() => {
-    if (view !== 'map' || !response || !active) return;
+    if (view !== 'map' || !response || !teamId) return;
     let cancelled = false;
     setMapLoading(true);
 
     (async () => {
-      const teamResult = await teamRepository.get(active.teamId);
+      const teamResult = await teamRepository.get(teamId);
       const home: [number, number] | null = teamResult.ok ? [teamResult.value.latitude, teamResult.value.longitude] : null;
 
       const withCoords = await Promise.all(
@@ -98,7 +99,7 @@ export function ResultsListPage() {
     return () => {
       cancelled = true;
     };
-  }, [view, response, active?.teamId]);
+  }, [view, response, teamId]);
 
   if (!response) {
     return (

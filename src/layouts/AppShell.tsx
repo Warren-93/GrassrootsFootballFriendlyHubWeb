@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   AppBar,
@@ -45,6 +45,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutlineOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { PageFallback } from '../routes/PageFallback';
 import { useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useCurrentTeam } from '../session/CurrentTeamContext';
@@ -169,7 +170,7 @@ export function AppShell() {
   }, [session?.id]);
 
   function handleSignOut() {
-    signOut();
+    void signOut();
     clear();
     navigate('/welcome');
   }
@@ -510,7 +511,9 @@ export function AppShell() {
 
       <Box component="main" sx={{ flexGrow: 1, minWidth: 0 }}>
         <Toolbar />
-        <Outlet />
+        <Suspense fallback={<PageFallback />}>
+          <Outlet />
+        </Suspense>
       </Box>
 
       <NotificationsModal
