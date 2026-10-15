@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useSearchResultsStore } from '../../session/SearchState';
+import { searchRequestFor, useSearchFilterStore, useSearchResultsStore, type SearchFilters } from '../../session/SearchState';
+import { matchRepository } from '../../api/matchRepository';
+import { SearchFiltersBar } from '../../components/SearchFiltersBar';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { teamRepository } from '../../api/teamRepository';
 import { geocodeOutcode } from '../../lib/geocodeOutcode';
@@ -35,6 +37,8 @@ function opponentIcon(): L.DivIcon {
 export function ResultsListPage() {
   const navigate = useNavigate();
   const response = useSearchResultsStore((s) => s.response);
+  const setResponse = useSearchResultsStore((s) => s.setResponse);
+  const filters = useSearchFilterStore();
   const { active } = useCurrentTeam();
   const teamId = active?.teamId;
   const [view, setView] = useState<'list' | 'map'>('list');
@@ -42,6 +46,18 @@ export function ResultsListPage() {
   const [homeCoords, setHomeCoords] = useState<[number, number] | null>(null);
   const [markers, setMarkers] = useState<{ match: MatchSummary; position: [number, number] }[]>([]);
   const [mapLoading, setMapLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const filtersSet =
+    filters.abilityLevels.length > 0 || filters.formats.length > 0 || filters.maxDistanceMiles !== null || filters.verifiedOnly;
+
+  async function applyFilters(next: SearchFilters) {
+    if (!teamId) return;
+    filters.setFilters(next);
+    setSearching(true);
+    const result = await matchRepository.search(searchRequestFor(teamId, next));
+    setSearching(false);
+    if (result.ok) setResponse(result.value);
+  }
 
   useEffect(() => {
     if (!teamId) return;
@@ -107,8 +123,15 @@ export function ResultsListPage() {
         <Typography variant="body2" color="text.secondary" sx={{ mt: -1.5 }}>
           {view === 'map' && team?.postcode
             ? team.postcode
-            : 'Every team in your age group and gender, all ability levels, best fit first.'}
+            : filtersSet
+              ? 'Teams in your age group and gender matching your filters, best fit first.'
+              : 'Every team in your age group and gender, all ability levels, best fit first.'}
         </Typography>
+        <SearchFiltersBar
+          filters={filters}
+          disabled={searching || !teamId}
+          onChange={(next) => void applyFilters(next)}
+        />
 
         {view === 'list' && response.results.length === 0 ? (
           <Box sx={{ py: 2 }}>
@@ -116,7 +139,9 @@ export function ResultsListPage() {
               No teams to show yet
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
-              No other teams in your age group and gender have joined yet. Check back soon.
+              {filtersSet
+                ? 'No teams match these filters. Clear them to see every team in your age group and gender.'
+                : 'No other teams in your age group and gender have joined yet. Check back soon.'}
             </Typography>
           </Box>
         ) : view === 'list' ? (

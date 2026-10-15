@@ -3,22 +3,26 @@ import { Alert, Button, Card, CardContent, CircularProgress, Container, Stack, T
 import { useNavigate } from 'react-router-dom';
 import { matchRepository } from '../../api/matchRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
-import { useSearchResultsStore } from '../../session/SearchState';
+import { EMPTY_FILTERS, searchRequestFor, useSearchFilterStore, useSearchResultsStore } from '../../session/SearchState';
 import { brand } from '../../theme/theme';
 
 // Discover / SCR-HM-03 Suggested matches. There is no filter step: the API
 // returns every team with the same age group and gender, all ability levels
-// and formats included, ranked by fit, and this lands straight on the results.
+// and formats included, ranked by fit, and this lands straight on the results,
+// where optional filters can narrow it.
 export function SuggestedMatchesPage() {
   const navigate = useNavigate();
   const { active } = useCurrentTeam();
   const teamId = active?.teamId;
   const setResponse = useSearchResultsStore((s) => s.setResponse);
+  const resetFilters = useSearchFilterStore((s) => s.reset);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!teamId) return;
-    matchRepository.search({ teamId: teamId, limit: 50 }).then((result) => {
+    // Discover always opens on the full list; filters are set on the results page.
+    resetFilters();
+    matchRepository.search(searchRequestFor(teamId, EMPTY_FILTERS)).then((result) => {
       if (result.ok) {
         setResponse(result.value);
         navigate('/results', { replace: true });
@@ -26,7 +30,7 @@ export function SuggestedMatchesPage() {
         setErrorMessage(result.message);
       }
     });
-  }, [teamId, navigate, setResponse]);
+  }, [teamId, navigate, setResponse, resetFilters]);
 
   if (!active) {
     return (
