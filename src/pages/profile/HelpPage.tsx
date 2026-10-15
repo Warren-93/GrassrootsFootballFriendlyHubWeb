@@ -17,7 +17,8 @@ const FAQS: FaqEntry[] = [
     answer:
       'Discover shows every team with the same age group and gender as yours, at every ability level. They are ' +
       'ranked by how well your published availability, format, ability level and travel distance line up with ' +
-      'theirs. Tap a result to see the exact factors behind its score.',
+      'theirs. Use the filters on the results to narrow by ability level, format, distance or verified teams. ' +
+      'Tap a result to see the exact factors behind its score.',
   },
   {
     question: 'How do I cancel a fixture?',
