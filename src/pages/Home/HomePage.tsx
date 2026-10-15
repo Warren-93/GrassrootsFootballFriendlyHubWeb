@@ -209,6 +209,8 @@ export function HomePage() {
                 tag="Next friendly"
                 homeTeam={nextFixture.homeTeam.name}
                 awayTeam={nextFixture.awayTeam.name}
+                homeBadgeUrl={nextFixture.homeTeam.badgeUrl}
+                awayBadgeUrl={nextFixture.awayTeam.badgeUrl}
                 date={formatShortDate(nextFixture.date)}
                 meta={`${nextFixture.startTime.slice(0, 5)} - ${nextFixture.endTime.slice(0, 5)}`}
               />

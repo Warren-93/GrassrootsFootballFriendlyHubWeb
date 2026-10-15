@@ -26,6 +26,7 @@ import { conversationRepository } from '../../api/conversationRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { FixtureBanner } from '../../components/brand/FixtureBanner';
 import { VenueCard } from '../../components/VenueCard';
+import { unbrokenPhone } from '../../utils/contact';
 import { brand } from '../../theme/theme';
 import type { FixtureView } from '../../api/types';
 
@@ -134,11 +135,11 @@ export function FixtureDetailPage() {
                 <Row label="Referee" value={fixture.refereeArrangement.replace(/_/g, ' ')} />
                 <Row
                   label={fixture.homeTeam.name}
-                  value={`${fixture.homeTeam.managerName ?? '—'} ${fixture.homeTeam.contactPhone ?? ''}`}
+                  value={`${fixture.homeTeam.managerName ?? '—'} ${unbrokenPhone(fixture.homeTeam.contactPhone)}`}
                 />
                 <Row
                   label={fixture.awayTeam.name}
-                  value={`${fixture.awayTeam.managerName ?? '—'} ${fixture.awayTeam.contactPhone ?? ''}`}
+                  value={`${fixture.awayTeam.managerName ?? '—'} ${unbrokenPhone(fixture.awayTeam.contactPhone)}`}
                 />
               </Stack>
             </CardContent>

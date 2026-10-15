@@ -9,6 +9,7 @@ import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { VenueCard } from '../../components/VenueCard';
 import { brand } from '../../theme/theme';
 import { directionsUrl, PITCH_SURFACE_LABEL } from '../../utils/venue';
+import { unbrokenPhone } from '../../utils/contact';
 import type { FriendlyRequestView, VenueSummary } from '../../api/types';
 
 const STATUS_STYLE: Record<string, { bgcolor: string; color: string }> = {
@@ -178,10 +179,10 @@ export function RequestDetailPage() {
                 Contact details
               </Typography>
               {request.senderContact?.managerName && (
-                <Row label={senderLabel} value={`${request.senderContact.managerName} ${request.senderContact.contactPhone ?? ''}`} />
+                <Row label={senderLabel} value={`${request.senderContact.managerName} ${unbrokenPhone(request.senderContact.contactPhone)}`} />
               )}
               {request.recipientContact?.managerName && (
-                <Row label={recipientLabel} value={`${request.recipientContact.managerName} ${request.recipientContact.contactPhone ?? ''}`} last />
+                <Row label={recipientLabel} value={`${request.recipientContact.managerName} ${unbrokenPhone(request.recipientContact.contactPhone)}`} last />
               )}
             </CardContent>
           </Card>
@@ -193,7 +194,7 @@ export function RequestDetailPage() {
           </Alert>
         )}
 
-        <Stack direction="row" spacing={1.5} sx={{ mt: 2.5, flexWrap: 'wrap' }}>
+        <Stack direction="row" spacing={1.5} useFlexGap sx={{ mt: 2.5, flexWrap: 'wrap' }}>
           {request.availableActions.map((action) => (
             <Button
               key={action}
@@ -207,7 +208,7 @@ export function RequestDetailPage() {
           ))}
         </Stack>
 
-        <Stack direction="row" spacing={1.5} sx={{ mt: 1.5, flexWrap: 'wrap' }}>
+        <Stack direction="row" spacing={1.5} useFlexGap sx={{ mt: 1.5, flexWrap: 'wrap' }}>
           {active && (
             <Button
               variant="outlined"
