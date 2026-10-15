@@ -89,7 +89,9 @@ export function ClubProfilePage() {
     Promise.all([clubRepository.get(clubId), teamRepository.listByClub(clubId)]).then(
       ([clubResult, teamsResult]) => {
         if (clubResult.ok) setClub(clubResult.value);
-        else setErrorMessage(clubResult.message);
+        // Only club admins can read the club (a team manager gets a 404):
+        // they still get the team's members, invitations and join code below.
+        else if (clubResult.status !== 404) setErrorMessage(clubResult.message);
         if (teamsResult.ok) setTeams(teamsResult.value);
         setLoading(false);
       },
@@ -186,14 +188,6 @@ export function ClubProfilePage() {
       </Container>
     );
   }
-  if (!club) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 6 }}>
-        <Alert severity="error">{errorMessage ?? 'Club not found.'}</Alert>
-      </Container>
-    );
-  }
-
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
       <TeamClubTabs />
@@ -204,21 +198,23 @@ export function ClubProfilePage() {
         </Alert>
       )}
 
-      <Card variant="outlined" sx={{ borderRadius: 3, mb: 2.5 }}>
-        <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2.25, p: { xs: 2, sm: 2.75 } }}>
-          <Avatar src={club.badgeUrl ?? undefined} sx={{ width: 64, height: 64, fontSize: 18, fontWeight: 700, borderRadius: 3.5, bgcolor: brand.mist, color: brand.ink2 }}>
-            {club.name[0]}
-          </Avatar>
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.25 }}>
-              {club.name}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {club.postcode} &middot; {teams.length} {teams.length === 1 ? 'team' : 'teams'}
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
+      {club && (
+        <Card variant="outlined" sx={{ borderRadius: 3, mb: 2.5 }}>
+          <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2.25, p: { xs: 2, sm: 2.75 } }}>
+            <Avatar src={club.badgeUrl ?? undefined} sx={{ width: 64, height: 64, fontSize: 18, fontWeight: 700, borderRadius: 3.5, bgcolor: brand.mist, color: brand.ink2 }}>
+              {club.name[0]}
+            </Avatar>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.25 }}>
+                {club.name}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {club.postcode} &middot; {teams.length} {teams.length === 1 ? 'team' : 'teams'}
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
 
       {/* minmax(0, 1fr): a plain 1fr column grows to fit its widest unbreakable
           content (long emails, the role select), pushing the page past a
@@ -414,39 +410,43 @@ export function ClubProfilePage() {
             </CardContent>
           </Card>
 
-          <Card variant="outlined" sx={{ borderRadius: 3, mb: 2.5 }}>
-            <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
-              <Typography sx={{ fontWeight: 700, fontSize: 13.5, mb: 1.5 }}>Squads</Typography>
-              <Stack spacing={1}>
-                {teams.map((t) => (
-                  <Card key={t.id} variant="outlined" sx={{ borderLeft: `3px solid ${t.id === active.teamId ? brand.pitch : brand.border}`, borderRadius: 2 }}>
-                    <CardActionArea onClick={() => setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId })} sx={{ p: 1.25 }}>
-                      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Box>
-                          <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>{t.name}</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {t.ageGroup} &middot; {t.format}
-                          </Typography>
-                        </Box>
-                        {t.id === active.teamId && <Chip label="Active" size="small" color="primary" />}
-                      </Stack>
-                    </CardActionArea>
-                  </Card>
-                ))}
-              </Stack>
-              <Button
-                size="small"
-                sx={{ mt: 1.5 }}
-                onClick={() => navigate('/create-team', { state: { clubId: club.id, clubName: club.name } })}
-              >
-                Add team
-              </Button>
-            </CardContent>
-          </Card>
+          {club && (
+            <>
+              <Card variant="outlined" sx={{ borderRadius: 3, mb: 2.5 }}>
+                <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: 13.5, mb: 1.5 }}>Squads</Typography>
+                  <Stack spacing={1}>
+                    {teams.map((t) => (
+                      <Card key={t.id} variant="outlined" sx={{ borderLeft: `3px solid ${t.id === active.teamId ? brand.pitch : brand.border}`, borderRadius: 2 }}>
+                        <CardActionArea onClick={() => setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId })} sx={{ p: 1.25 }}>
+                          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box>
+                              <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>{t.name}</Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {t.ageGroup} &middot; {t.format}
+                              </Typography>
+                            </Box>
+                            {t.id === active.teamId && <Chip label="Active" size="small" color="primary" />}
+                          </Stack>
+                        </CardActionArea>
+                      </Card>
+                    ))}
+                  </Stack>
+                  <Button
+                    size="small"
+                    sx={{ mt: 1.5 }}
+                    onClick={() => navigate('/create-team', { state: { clubId: club.id, clubName: club.name } })}
+                  >
+                    Add team
+                  </Button>
+                </CardContent>
+              </Card>
 
-          <Button variant="contained" fullWidth onClick={() => navigate(`/club/${club.id}/edit`)}>
-            Edit club
-          </Button>
+              <Button variant="contained" fullWidth onClick={() => navigate(`/club/${club.id}/edit`)}>
+                Edit club
+              </Button>
+            </>
+          )}
         </Box>
       </Box>
 
