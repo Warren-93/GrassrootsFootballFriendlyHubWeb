@@ -57,8 +57,10 @@ export function FixturesPage() {
   }
 
   const pending = requests.filter((r) => OPEN_STATUSES.has(r.status));
-  const confirmed = fixtures.filter((f) => f.status === 'CONFIRMED');
-  const completed = fixtures.filter((f) => f.status === 'COMPLETED');
+  // The API returns fixtures in no particular order: next one first, most recent result first.
+  const byKickOff = (a: FixtureView, b: FixtureView) => `${a.date}T${a.startTime}`.localeCompare(`${b.date}T${b.startTime}`);
+  const confirmed = fixtures.filter((f) => f.status === 'CONFIRMED').sort(byKickOff);
+  const completed = fixtures.filter((f) => f.status === 'COMPLETED').sort((a, b) => byKickOff(b, a));
 
   if (loading) {
     return (
