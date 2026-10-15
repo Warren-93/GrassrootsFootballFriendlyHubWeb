@@ -178,6 +178,8 @@ export interface VenueView {
   clubId: string;
   name: string;
   address: string;
+  /** The postcode entered for the venue, else one found in its address. Absent from an older API. */
+  postcode?: string | null;
   longitude: number;
   latitude: number;
   pitchSurface: PitchSurface | null;
@@ -193,6 +195,8 @@ export interface CreateVenueRequest {
   clubId: string;
   name: string;
   address: string;
+  /** Up to 10 characters. On an update, null keeps the current one. */
+  postcode?: string | null;
   longitude: number;
   latitude: number;
   pitchSurface?: PitchSurface | null;

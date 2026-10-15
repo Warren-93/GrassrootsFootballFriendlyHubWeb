@@ -60,6 +60,7 @@ export function EditVenuePage() {
         if (venue) {
           setName(venue.name);
           setAddress(venue.address);
+          setPostcode(venue.postcode ?? '');
           setCoordinates({ longitude: venue.longitude, latitude: venue.latitude });
           if (venue.pitchSurface) setPitchSurface(venue.pitchSurface as PitchSurface);
           setAccessNotes(venue.accessNotes ?? '');
@@ -83,6 +84,8 @@ export function EditVenuePage() {
     const body = {
       name,
       address,
+      // On an edit, null keeps the venue's current postcode.
+      postcode: postcode.trim() || null,
       longitude: coordinates.longitude,
       latitude: coordinates.latitude,
       pitchSurface,
