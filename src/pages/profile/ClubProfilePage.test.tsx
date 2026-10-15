@@ -129,4 +129,17 @@ describe('ClubProfilePage members', () => {
     expect(await screen.findByText('Sam Lee has been added to the team')).toBeInTheDocument();
     expect(screen.queryByText('Pending invitations')).not.toBeInTheDocument();
   });
+
+  it("shows a team manager the members, though only club admins can read the club", async () => {
+    vi.mocked(clubRepository.get).mockResolvedValue({ ok: false, message: 'That club could not be found.', status: 404 });
+    vi.mocked(teamRepository.listByClub).mockResolvedValue({ ok: false, message: 'That club could not be found.', status: 404 });
+    vi.mocked(memberRepository.listInvites).mockResolvedValue({ ok: true, value: [invite('i1', 'new.coach@example.com')] });
+    renderPage();
+
+    expect(await screen.findByText(/Jamie Muir/)).toBeInTheDocument();
+    expect(screen.getByText('new.coach@example.com')).toBeInTheDocument();
+    expect(screen.getByLabelText('Email address')).toBeInTheDocument();
+    expect(screen.queryByText('That club could not be found.')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit club' })).not.toBeInTheDocument();
+  });
 });
