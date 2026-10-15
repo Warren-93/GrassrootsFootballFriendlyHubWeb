@@ -8,15 +8,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<UserView | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function resolveSession() {
+  async function resolveSession(): Promise<UserView | null> {
     if (!(await authRepository.restoreSession())) {
       setSession(null);
       setLoading(false);
-      return;
+      return null;
     }
     const result = await authRepository.me();
-    setSession(result.ok ? result.value : null);
+    const user = result.ok ? result.value : null;
+    setSession(user);
     setLoading(false);
+    return user;
   }
 
   async function signOut() {

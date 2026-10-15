@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Box, Button, Card, CircularProgress, Container, Stack, Typography } from '@mui/material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authRepository } from '../../api/authRepository';
+import { useAuth } from '../../auth/AuthContext';
 import { brand } from '../../theme/theme';
 
 // SCR-AU-06's confirm-via-link step. Public (not behind ProtectedRoute) so
@@ -9,6 +10,7 @@ import { brand } from '../../theme/theme';
 // token itself, not the caller's auth, is what proves ownership.
 export function VerifyEmailPage() {
   const navigate = useNavigate();
+  const { resolveSession } = useAuth();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const [status, setStatus] = useState<'checking' | 'success' | 'failure'>('checking');
@@ -21,12 +23,18 @@ export function VerifyEmailPage() {
       return;
     }
     authRepository.confirmVerification(token).then((result) => {
-      if (result.ok) setStatus('success');
-      else {
+      if (result.ok) {
+        setStatus('success');
+        // A signed-in browser read the user before this landed: re-read it so
+        // the app stops asking them to verify (and sees any team an
+        // invitation just added them to).
+        resolveSession();
+      } else {
         setStatus('failure');
         setErrorMessage(result.message);
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   return (

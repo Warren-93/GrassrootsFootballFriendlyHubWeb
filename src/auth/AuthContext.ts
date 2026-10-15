@@ -4,7 +4,8 @@ import type { UserView } from '../api/types';
 export interface AuthContextValue {
   session: UserView | null;
   loading: boolean;
-  resolveSession: () => Promise<void>;
+  /** Re-reads the signed-in user (or null) and returns it, so callers needn't wait for a re-render. */
+  resolveSession: () => Promise<UserView | null>;
   signOut: () => Promise<void>;
   setSession: (user: UserView | null) => void;
 }

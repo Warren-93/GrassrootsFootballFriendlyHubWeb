@@ -36,9 +36,10 @@ export function EmailVerificationPage() {
 
   async function checkNow() {
     setChecking(true);
-    await resolveSession();
+    // Use the fresh user: `session` here is still the one from before the check.
+    const user = await resolveSession();
     setChecking(false);
-    if (session?.emailVerified) navigate('/');
+    if (user?.emailVerified) navigate('/');
   }
 
   return (
