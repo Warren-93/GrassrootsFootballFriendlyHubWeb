@@ -10,6 +10,7 @@ import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import type { VenueView } from '../../api/types';
 import { TeamClubTabs } from '../../components/TeamClubTabs';
 import { brand } from '../../theme/theme';
+import { venueAddressLine } from '../../utils/venue';
 
 const SURFACE_LABEL: Record<string, string> = {
   GRASS: 'Grass',
@@ -28,7 +29,8 @@ const FACILITY_LABEL: Record<string, string> = {
 };
 
 function venueSubtitle(v: VenueView): string {
-  const parts = [v.address];
+  // The postcode is its own field: show it (once) so an edit to it shows up here.
+  const parts = [venueAddressLine(v)];
   if (v.pitchSurface) parts.push(SURFACE_LABEL[v.pitchSurface]);
   if (v.facilities.length > 0) parts.push(v.facilities.map((f) => FACILITY_LABEL[f]).join(', '));
   return parts.join(' · ');
