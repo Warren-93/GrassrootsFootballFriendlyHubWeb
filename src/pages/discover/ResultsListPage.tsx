@@ -1,10 +1,29 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Card, CardActionArea, CardContent, Container, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  CircularProgress,
+  Container,
+  Stack,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { searchRequestFor, useSearchFilterStore, useSearchResultsStore, type SearchFilters } from '../../session/SearchState';
+import {
+  EMPTY_FILTERS,
+  searchRequestFor,
+  useSearchFilterStore,
+  useSearchResultsStore,
+  type SearchFilters,
+} from '../../session/SearchState';
 import { matchRepository } from '../../api/matchRepository';
 import { SearchFiltersBar } from '../../components/SearchFiltersBar';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
@@ -47,6 +66,10 @@ export function ResultsListPage() {
   const [markers, setMarkers] = useState<{ match: MatchSummary; position: [number, number] }[]>([]);
   const [mapLoading, setMapLoading] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const resetFilters = filters.reset;
+  const hasResponse = response !== null;
   const filtersSet =
     filters.abilityLevels.length > 0 || filters.formats.length > 0 || filters.maxDistanceMiles !== null || filters.verifiedOnly;
 
@@ -65,6 +88,24 @@ export function ResultsListPage() {
       if (result.ok) setTeam(result.value);
     });
   }, [teamId]);
+
+  // Opened directly (a reload or a shared link) there's no search in memory:
+  // run the default one - every team in our age group and gender - rather
+  // than showing an empty page.
+  useEffect(() => {
+    if (hasResponse || !teamId) return;
+    let cancelled = false;
+    resetFilters();
+    setSearchError(null);
+    matchRepository.search(searchRequestFor(teamId, EMPTY_FILTERS)).then((result) => {
+      if (cancelled) return;
+      if (result.ok) setResponse(result.value);
+      else setSearchError(result.message);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [hasResponse, teamId, resetFilters, setResponse, retryCount]);
 
   useEffect(() => {
     if (view !== 'map' || !response || !teamId) return;
@@ -99,14 +140,28 @@ export function ResultsListPage() {
       <Container maxWidth="lg" sx={{ py: 6 }}>
         <Stack spacing={2}>
           <PageHeader title="Search results" />
-          <Typography>No search yet.</Typography>
+          {!teamId ? (
+            <Typography>Choose a team first to see who you could play.</Typography>
+          ) : searchError ? (
+            <Stack spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+              <Alert severity="error">{searchError}</Alert>
+              <Button variant="outlined" onClick={() => setRetryCount((n) => n + 1)}>
+                Try again
+              </Button>
+            </Stack>
+          ) : (
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+              <CircularProgress size={22} sx={{ color: brand.pitch }} />
+              <Typography color="text.secondary">Finding teams to play…</Typography>
+            </Stack>
+          )}
         </Stack>
       </Container>
     );
   }
 
   const center = homeCoords ?? (markers[0]?.position as [number, number] | undefined) ?? [51.5074, -0.1276];
-  const mapTitle = view === 'map' ? `${markers.length} team${markers.length === 1 ? '' : 's'}` : `${response.totalResults} matches found`;
+  const mapTitle = view === 'map' ? `${markers.length} team${markers.length === 1 ? '' : 's'}` : `${response.totalResults} ${response.totalResults === 1 ? 'match' : 'matches'} found`;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
