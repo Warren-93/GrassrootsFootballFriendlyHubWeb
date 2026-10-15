@@ -25,6 +25,7 @@ import { FixtureBanner } from '../../components/brand/FixtureBanner';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { MatchScoreChip } from '../../components/brand/MatchScoreChip';
 import { brand } from '../../theme/theme';
+import { ProfileChecklistCard } from '../../components/ProfileChecklistCard';
 
 const OPEN_REQUEST_STATUSES = new Set(['SENT', 'CHANGES_REQUESTED', 'UPDATED']);
 
@@ -195,10 +196,12 @@ export function HomePage() {
               label="Team profile"
               value={`${team?.completenessPercent ?? 0}%`}
               sub="complete"
-              tone={(team?.completenessPercent ?? 0) < 80 ? 'amber' : 'default'}
+              tone={team && team.readyForRequests === false ? 'amber' : 'default'}
             />
             <StatTile label="Availability" value={publishedDates} sub="dates published" />
           </StatTileRow>
+
+          {team && <ProfileChecklistCard team={team} showOptional={false} />}
 
           {nextFixture && (
             <Box sx={{ cursor: 'pointer' }} onClick={() => navigate(`/fixtures/${nextFixture.id}`)}>

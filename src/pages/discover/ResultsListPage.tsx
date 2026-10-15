@@ -154,9 +154,11 @@ export function ResultsListPage() {
                 variant="contained"
                 size="small"
                 onClick={() => navigate(`/invite/${match.team.id}`)}
+                disabled={match.canReceiveRequests === false}
+                title={match.canReceiveRequests === false ? "This team can't receive requests until it's verified and has a venue" : undefined}
                 sx={{ mr: 2, flexShrink: 0 }}
               >
-                Request
+                {match.canReceiveRequests === false ? 'Not yet' : 'Request'}
               </Button>
             </Card>
           ))

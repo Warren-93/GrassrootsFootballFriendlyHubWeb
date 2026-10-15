@@ -61,11 +61,23 @@ export function OpponentProfilePage() {
                 )}
               </Stack>
             </Box>
-            <Button variant="contained" size="large" onClick={() => navigate(`/invite/${team.id}`)}>
+            <Button
+              variant="contained"
+              size="large"
+              disabled={match.canReceiveRequests === false}
+              onClick={() => navigate(`/invite/${team.id}`)}
+            >
               Send a request
             </Button>
           </CardContent>
         </Card>
+
+        {match.canReceiveRequests === false && (
+          <Alert severity="info">
+            {team.name} can't receive friendly requests yet. They need to be verified and add a venue first. You can
+            still message them.
+          </Alert>
+        )}
 
         <StatTileRow>
           <StatTile label="Distance" value={`${match.milesApart.toFixed(1)} mi`} />
