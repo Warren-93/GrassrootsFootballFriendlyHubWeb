@@ -1,10 +1,12 @@
 // Finishes "Continue with Google/Apple": trades the provider's ID token for a
 // Kickabout session through the same path as the password form (cookie mode,
 // the in-memory access token, then AuthContext), and sends a brand-new account
-// to onboarding like sign-up does, everyone else to the dashboard.
+// to onboarding like sign-up does - unless an invitation already put it on a
+// team - and everyone else to the dashboard.
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authRepository } from '../api/authRepository';
+import { teamRepository } from '../api/teamRepository';
 import type { OAuthProvider, OAuthSignInRequest } from '../api/types';
 import { setPostAuthRedirect } from '../routes/postAuthRedirect';
 import { useAuth } from './AuthContext';
@@ -24,7 +26,9 @@ export function useOAuthSignIn(onError: (message: string | null) => void) {
       onError(result.message);
       return;
     }
-    const destination = result.value.newUser ? '/role-selection' : '/';
+    // A new account can already be on a team: the API accepts any invitation
+    // to that email as it creates the account. Only onboard it if it isn't.
+    const destination = result.value.newUser && !(await isOnATeam()) ? '/role-selection' : '/';
     // PublicOnlyRoute redirects the moment the session resolves, before navigate() below runs.
     setPostAuthRedirect(destination);
     await resolveSession();
@@ -32,4 +36,9 @@ export function useOAuthSignIn(onError: (message: string | null) => void) {
   }
 
   return { signIn, pending };
+}
+
+async function isOnATeam(): Promise<boolean> {
+  const result = await teamRepository.listMine();
+  return result.ok && result.value.length > 0;
 }

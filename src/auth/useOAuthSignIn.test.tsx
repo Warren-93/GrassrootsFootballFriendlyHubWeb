@@ -16,6 +16,7 @@ vi.mock('../api/client', () => ({
 vi.mock('./AuthContext', () => ({ useAuth: vi.fn() }));
 
 const mockedPost = vi.mocked(apiClient.post);
+const mockedGet = vi.mocked(apiClient.get);
 const resolveSession = vi.fn();
 const onError = vi.fn();
 
@@ -54,6 +55,8 @@ function renderHarness(provider: OAuthProvider, request: OAuthSignInRequest) {
 describe('useOAuthSignIn', () => {
   beforeEach(() => {
     mockedPost.mockReset();
+    mockedGet.mockReset();
+    mockedGet.mockResolvedValue({ ok: true, value: [] });
     resolveSession.mockReset();
     onError.mockReset();
     tokenStore.clear();
@@ -89,6 +92,18 @@ describe('useOAuthSignIn', () => {
     );
     // PublicOnlyRoute takes over as soon as the session resolves, so it must point at onboarding too.
     expect(takePostAuthRedirect()).toBe('/role-selection');
+  });
+
+  it('sends a new account that an invitation already put on a team to the dashboard', async () => {
+    mockedPost.mockResolvedValue({ ok: true, value: tokenResponse(true) });
+    mockedGet.mockResolvedValue({ ok: true, value: [{ id: 'team-1', name: 'Riverside U12 Girls' }] });
+    renderHarness('google', { idToken: 'google-id-token' });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Continue' }));
+
+    expect(await screen.findByText('Dashboard')).toBeInTheDocument();
+    expect(mockedGet).toHaveBeenCalledWith('/api/v1/teams/mine');
+    expect(takePostAuthRedirect()).toBe('/');
   });
 
   it("passes the API's error to the page and stays signed out", async () => {
