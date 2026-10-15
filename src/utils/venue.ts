@@ -28,6 +28,18 @@ export function directionsUrl(venue: DirectionsTarget): string | null {
 }
 
 /**
+ * "Address, postcode" for display, leaving the postcode off when the address
+ * already contains it (the API fills a missing postcode from the address).
+ */
+export function venueAddressLine(venue: { address?: string | null; postcode?: string | null }): string {
+  const address = venue.address?.trim() ?? '';
+  const postcode = venue.postcode?.trim() ?? '';
+  const squash = (s: string) => s.replace(/\s+/g, '').toUpperCase();
+  if (postcode && squash(address).includes(squash(postcode))) return address;
+  return [address, postcode].filter(Boolean).join(', ');
+}
+
+/**
  * The venue to preselect when we host: the team's own default venue if it's
  * one of the club's, else the club's default, else the first one listed.
  */

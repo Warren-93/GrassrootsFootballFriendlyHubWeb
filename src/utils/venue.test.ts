@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultVenueId, directionsUrl } from './venue';
+import { defaultVenueId, directionsUrl, venueAddressLine } from './venue';
 import type { VenueView } from '../api/types';
 
 function venue(id: string, isDefault = false): VenueView {
@@ -56,5 +56,21 @@ describe('defaultVenueId', () => {
   it('falls back to the first venue, or null when there are none', () => {
     expect(defaultVenueId([venue('a'), venue('b')], null)).toBe('a');
     expect(defaultVenueId([], 'b')).toBeNull();
+  });
+});
+
+describe('venueAddressLine', () => {
+  it('adds the postcode after the address', () => {
+    expect(venueAddressLine({ address: '1 Park Road, Leeds', postcode: 'LS1 4AB' })).toBe('1 Park Road, Leeds, LS1 4AB');
+  });
+
+  it("doesn't repeat a postcode the address already has", () => {
+    expect(venueAddressLine({ address: '1 Park Road, Leeds ls14ab', postcode: 'LS1 4AB' })).toBe('1 Park Road, Leeds ls14ab');
+  });
+
+  it('copes with either part missing', () => {
+    expect(venueAddressLine({ address: null, postcode: 'LS1 4AB' })).toBe('LS1 4AB');
+    expect(venueAddressLine({ address: '1 Park Road', postcode: null })).toBe('1 Park Road');
+    expect(venueAddressLine({})).toBe('');
   });
 });

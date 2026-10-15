@@ -2,7 +2,7 @@ import { Box, Button, Card, CardContent, Stack, Typography } from '@mui/material
 import type { SxProps, Theme } from '@mui/material';
 import DirectionsIcon from '@mui/icons-material/DirectionsOutlined';
 import type { VenueSummary } from '../api/types';
-import { directionsUrl, PITCH_SURFACE_LABEL } from '../utils/venue';
+import { directionsUrl, PITCH_SURFACE_LABEL, venueAddressLine } from '../utils/venue';
 import { brand } from '../theme/theme';
 
 interface VenueCardProps {
@@ -14,7 +14,7 @@ interface VenueCardProps {
 /** Where a friendly is being played - name, address, surface, access and parking notes, plus a Directions link. */
 export function VenueCard({ venue, title = 'Venue', sx }: VenueCardProps) {
   const url = directionsUrl(venue);
-  const addressLine = [venue.address, venue.postcode].filter(Boolean).join(', ');
+  const addressLine = venueAddressLine(venue);
 
   return (
     <Card variant="outlined" sx={[{ borderRadius: 3 }, ...(Array.isArray(sx) ? sx : [sx])]}>

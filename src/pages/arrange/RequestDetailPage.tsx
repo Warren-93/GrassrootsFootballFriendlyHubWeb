@@ -8,7 +8,7 @@ import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { VenueCard } from '../../components/VenueCard';
 import { brand } from '../../theme/theme';
-import { directionsUrl, PITCH_SURFACE_LABEL } from '../../utils/venue';
+import { directionsUrl, PITCH_SURFACE_LABEL, venueAddressLine } from '../../utils/venue';
 import { unbrokenPhone } from '../../utils/contact';
 import type { FriendlyRequestView, VenueSummary } from '../../api/types';
 
@@ -257,7 +257,7 @@ function Row({ label, value, last }: { label: string; value: string; last?: bool
 
 function ProposedVenueRow({ venue }: { venue: VenueSummary }) {
   const url = directionsUrl(venue);
-  const details = [venue.address, venue.postcode, venue.pitchSurface && `${PITCH_SURFACE_LABEL[venue.pitchSurface]} pitch`]
+  const details = [venueAddressLine(venue), venue.pitchSurface && `${PITCH_SURFACE_LABEL[venue.pitchSurface]} pitch`]
     .filter(Boolean)
     .join(', ');
   return (
