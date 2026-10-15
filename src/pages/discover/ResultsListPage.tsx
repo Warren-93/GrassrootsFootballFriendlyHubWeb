@@ -4,10 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useSearchFilterStore, useSearchResultsStore } from '../../session/SearchState';
+import { useSearchResultsStore } from '../../session/SearchState';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { teamRepository } from '../../api/teamRepository';
-import { matchRepository } from '../../api/matchRepository';
 import { geocodeOutcode } from '../../lib/geocodeOutcode';
 import { PageHeader } from '../../components/PageHeader';
 import { MatchScoreChip } from '../../components/brand/MatchScoreChip';
@@ -36,35 +35,13 @@ function opponentIcon(): L.DivIcon {
 export function ResultsListPage() {
   const navigate = useNavigate();
   const response = useSearchResultsStore((s) => s.response);
-  const setResponse = useSearchResultsStore((s) => s.setResponse);
   const { active } = useCurrentTeam();
   const teamId = active?.teamId;
-  const filters = useSearchFilterStore();
   const [view, setView] = useState<'list' | 'map'>('list');
   const [team, setTeam] = useState<TeamView | null>(null);
   const [homeCoords, setHomeCoords] = useState<[number, number] | null>(null);
   const [markers, setMarkers] = useState<{ match: MatchSummary; position: [number, number] }[]>([]);
   const [mapLoading, setMapLoading] = useState(false);
-  const [relaxing, setRelaxing] = useState(false);
-
-  async function relaxAndResearch(patch: Parameters<typeof filters.setFilters>[0]) {
-    if (!active) return;
-    filters.setFilters(patch);
-    setRelaxing(true);
-    const merged = { ...filters, ...patch };
-    const result = await matchRepository.search({
-      teamId: active.teamId,
-      formats: merged.formats.length ? merged.formats : null,
-      abilityLevels: merged.abilityLevels.length ? merged.abilityLevels : null,
-      maxDistanceMiles: merged.ignoreTravelRadius ? null : merged.maxDistanceMiles,
-      verifiedOnly: merged.verifiedOnly || null,
-      venueRequired: merged.venueRequired || null,
-      ignoreTravelRadius: merged.ignoreTravelRadius || null,
-      limit: 20,
-    });
-    setRelaxing(false);
-    if (result.ok) setResponse(result.value);
-  }
 
   useEffect(() => {
     if (!teamId) return;
@@ -113,8 +90,7 @@ export function ResultsListPage() {
   }
 
   const center = homeCoords ?? (markers[0]?.position as [number, number] | undefined) ?? [51.5074, -0.1276];
-  const radiusLabel = filters.ignoreTravelRadius ? '' : ` within ${filters.maxDistanceMiles ?? 25} miles`;
-  const mapTitle = view === 'map' ? `${markers.length} team${markers.length === 1 ? '' : 's'}${radiusLabel}` : `${response.totalResults} matches found`;
+  const mapTitle = view === 'map' ? `${markers.length} team${markers.length === 1 ? '' : 's'}` : `${response.totalResults} matches found`;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -128,46 +104,20 @@ export function ResultsListPage() {
             </ToggleButtonGroup>
           }
         />
-        {view === 'map' && team?.postcode && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: -1.5 }}>
-            {team.postcode}
-          </Typography>
-        )}
+        <Typography variant="body2" color="text.secondary" sx={{ mt: -1.5 }}>
+          {view === 'map' && team?.postcode
+            ? team.postcode
+            : 'Every team in your age group and gender, all ability levels, best fit first.'}
+        </Typography>
 
         {view === 'list' && response.results.length === 0 ? (
           <Box sx={{ py: 2 }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              No teams match right now
+              No teams to show yet
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
-              Try widening your search.
+              No other teams in your age group and gender have joined yet. Check back soon.
             </Typography>
-            <Stack spacing={1} sx={{ maxWidth: 420 }}>
-              <Card variant="outlined" sx={{ borderRadius: 2.5 }}>
-                <CardActionArea
-                  disabled={relaxing}
-                  onClick={() => relaxAndResearch({ maxDistanceMiles: (filters.maxDistanceMiles ?? 15) + 25 })}
-                >
-                  <CardContent sx={{ py: 1.5 }}>
-                    <Typography sx={{ fontWeight: 600 }}>Search further away</Typography>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-              <Card variant="outlined" sx={{ borderRadius: 2.5 }}>
-                <CardActionArea disabled={relaxing} onClick={() => relaxAndResearch({ abilityLevels: [] })}>
-                  <CardContent sx={{ py: 1.5 }}>
-                    <Typography sx={{ fontWeight: 600 }}>Include other ability levels</Typography>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-              <Card variant="outlined" sx={{ borderRadius: 2.5 }}>
-                <CardActionArea onClick={() => navigate('/search')}>
-                  <CardContent sx={{ py: 1.5 }}>
-                    <Typography sx={{ fontWeight: 600 }}>Adjust filters</Typography>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            </Stack>
           </Box>
         ) : view === 'list' ? (
           response.results.map((match) => (

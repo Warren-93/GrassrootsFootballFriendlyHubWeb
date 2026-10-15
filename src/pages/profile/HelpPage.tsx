@@ -15,8 +15,9 @@ const FAQS: FaqEntry[] = [
   {
     question: 'How does matching work?',
     answer:
-      'Search ranks nearby teams by how well your published availability, format, ability level, age group and ' +
-      'travel distance line up with theirs. Tap a result to see the exact factors behind its score.',
+      'Discover shows every team with the same age group and gender as yours, at every ability level. They are ' +
+      'ranked by how well your published availability, format, ability level and travel distance line up with ' +
+      'theirs. Tap a result to see the exact factors behind its score.',
   },
   {
     question: 'How do I cancel a fixture?',

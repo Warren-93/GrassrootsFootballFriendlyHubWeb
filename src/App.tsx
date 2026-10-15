@@ -44,7 +44,6 @@ const CalendarPage = lazy(() => import('./pages/availability/CalendarPage').then
 const DayDetailPage = lazy(() => import('./pages/availability/DayDetailPage').then((m) => ({ default: m.DayDetailPage })));
 const EditAvailabilitySlotPage = lazy(() => import('./pages/availability/EditAvailabilitySlotPage').then((m) => ({ default: m.EditAvailabilitySlotPage })));
 const BulkAddAvailabilityPage = lazy(() => import('./pages/availability/BulkAddAvailabilityPage').then((m) => ({ default: m.BulkAddAvailabilityPage })));
-const SearchEntryPage = lazy(() => import('./pages/discover/SearchEntryPage').then((m) => ({ default: m.SearchEntryPage })));
 const SuggestedMatchesPage = lazy(() => import('./pages/discover/SuggestedMatchesPage').then((m) => ({ default: m.SuggestedMatchesPage })));
 const ResultsListPage = lazy(() => import('./pages/discover/ResultsListPage').then((m) => ({ default: m.ResultsListPage })));
 const OpponentProfilePage = lazy(() => import('./pages/discover/OpponentProfilePage').then((m) => ({ default: m.OpponentProfilePage })));
@@ -112,7 +111,7 @@ function App() {
             <Route path="/availability/new" element={<EditAvailabilitySlotPage />} />
             <Route path="/availability/bulk" element={<BulkAddAvailabilityPage />} />
             <Route path="/availability/:slotId/edit" element={<EditAvailabilitySlotPage />} />
-            <Route path="/search" element={<SearchEntryPage />} />
+            <Route path="/search" element={<SuggestedMatchesPage />} />
             <Route path="/suggested-matches" element={<SuggestedMatchesPage />} />
             <Route path="/results" element={<ResultsListPage />} />
             <Route path="/opponent/:teamId" element={<OpponentProfilePage />} />

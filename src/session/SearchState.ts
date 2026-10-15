@@ -1,39 +1,9 @@
-// Mirrors mobile's SearchFilterState + SearchResultsCache + InvitationDraftState:
+// Mirrors mobile's SearchResultsCache + InvitationDraftState:
 // cross-screen state that isn't auth. Plain module-level state (not React
 // context) is enough here since these are single-flight, not shared across
 // concurrent screens the way team/session state is.
 import { create } from 'zustand';
 import type { CostShare, MatchSummary, RefereeArrangement, SearchResponse } from '../api/types';
-
-interface SearchFilterState {
-  formats: string[];
-  abilityLevels: string[];
-  maxDistanceMiles: number | null;
-  verifiedOnly: boolean;
-  venueRequired: boolean;
-  ignoreTravelRadius: boolean;
-  setFilters: (patch: Partial<Omit<SearchFilterState, 'setFilters' | 'reset'>>) => void;
-  reset: () => void;
-}
-
-export const useSearchFilterStore = create<SearchFilterState>((set) => ({
-  formats: [],
-  abilityLevels: [],
-  maxDistanceMiles: null,
-  verifiedOnly: false,
-  venueRequired: false,
-  ignoreTravelRadius: false,
-  setFilters: (patch) => set(patch),
-  reset: () =>
-    set({
-      formats: [],
-      abilityLevels: [],
-      maxDistanceMiles: null,
-      verifiedOnly: false,
-      venueRequired: false,
-      ignoreTravelRadius: false,
-    }),
-}));
 
 interface SearchResultsState {
   response: SearchResponse | null;

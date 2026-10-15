@@ -192,7 +192,7 @@ export function DashboardPage() {
           onOpen={() => navigate('/search')}
         >
           {suggestions.length === 0 ? (
-            <EmptyRow loaded={loaded} text="No suggestions yet - publish availability to get matched." />
+            <EmptyRow loaded={loaded} text="No other teams in your age group and gender yet." />
           ) : (
             suggestions.map((m) => (
               <Row key={m.team.id} onClick={() => navigate(`/opponent/${m.team.id}`)}>
