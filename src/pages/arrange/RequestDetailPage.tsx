@@ -227,7 +227,8 @@ export function RequestDetailPage() {
               onClick={() => {
                 const otherTeamId =
                   active.teamId === request.senderTeamId ? request.recipientTeamId : request.senderTeamId;
-                navigate(`/report?teamId=${otherTeamId}`);
+                const teamName = otherTeam ? `&teamName=${encodeURIComponent(otherTeam.name)}` : '';
+                navigate(`/report?teamId=${otherTeamId}${teamName}`);
               }}
             >
               Report or block
