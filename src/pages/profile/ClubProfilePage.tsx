@@ -22,13 +22,14 @@ import {
   Typography,
 } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/Delete';
+import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import { useNavigate } from 'react-router-dom';
 import { clubRepository } from '../../api/clubRepository';
 import { teamRepository } from '../../api/teamRepository';
-import { memberRepository } from '../../api/memberRepository';
+import { isInvitation, memberRepository } from '../../api/memberRepository';
 import { useAuth } from '../../auth/AuthContext';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
-import type { ClubView, MemberRole, MemberView, TeamView } from '../../api/types';
+import type { ClubView, InviteView, MemberRole, MemberView, TeamView } from '../../api/types';
 import { TeamClubTabs } from '../../components/TeamClubTabs';
 import { brand } from '../../theme/theme';
 
@@ -56,12 +57,15 @@ export function ClubProfilePage() {
   const [club, setClub] = useState<ClubView | null>(null);
   const [teams, setTeams] = useState<TeamView[]>([]);
   const [members, setMembers] = useState<MemberView[]>([]);
+  const [invites, setInvites] = useState<InviteView[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [addNotice, setAddNotice] = useState<string | null>(null);
 
   const [email, setEmail] = useState('');
   const [addRole, setAddRole] = useState<MemberRole>('TEAM_MANAGER');
   const [adding, setAdding] = useState(false);
+  // A membership or invitation id while its change is in flight.
   const [busyId, setBusyId] = useState<string | null>(null);
   const [removeTarget, setRemoveTarget] = useState<MemberView | null>(null);
   const [joinCode, setJoinCode] = useState<string | null>(null);
@@ -71,6 +75,12 @@ export function ClubProfilePage() {
   function reloadMembers(teamId: string) {
     memberRepository.list(teamId).then((result) => {
       if (result.ok) setMembers(result.value);
+    });
+  }
+
+  function reloadInvites(teamId: string) {
+    memberRepository.listInvites(teamId).then((result) => {
+      setInvites(result.ok ? result.value : []);
     });
   }
 
@@ -85,6 +95,7 @@ export function ClubProfilePage() {
       },
     );
     reloadMembers(teamId);
+    reloadInvites(teamId);
     memberRepository.joinCode(teamId).then((result) => {
       if (result.ok) setJoinCode(result.value.code);
     });
@@ -111,15 +122,33 @@ export function ClubProfilePage() {
     if (!active) return;
     setAdding(true);
     setErrorMessage(null);
-    const result = await memberRepository.add(active.teamId, { email, role: addRole });
+    setAddNotice(null);
+    const result = await memberRepository.add(active.teamId, { email: email.trim(), role: addRole });
     setAdding(false);
     if (result.ok) {
       setEmail('');
       setAddRole('TEAM_MANAGER');
-      reloadMembers(active.teamId);
+      // No account with that email yet: the API emailed them an invitation instead.
+      if (result.value && isInvitation(result.value)) {
+        setAddNotice(`Invitation sent to ${result.value.invite.email}`);
+        reloadInvites(active.teamId);
+      } else {
+        if (result.value) setAddNotice(`${result.value.displayName} has been added to the team`);
+        reloadMembers(active.teamId);
+      }
     } else {
       setErrorMessage(result.message);
     }
+  }
+
+  async function handleCancelInvite(invite: InviteView) {
+    if (!active) return;
+    setBusyId(invite.id);
+    setErrorMessage(null);
+    const result = await memberRepository.cancelInvite(active.teamId, invite.id);
+    setBusyId(null);
+    if (result.ok) setInvites((prev) => prev.filter((i) => i.id !== invite.id));
+    else setErrorMessage(result.message);
   }
 
   async function handleRoleChange(member: MemberView, role: MemberRole) {
@@ -191,7 +220,10 @@ export function ClubProfilePage() {
         </CardContent>
       </Card>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.5fr 1fr' }, gap: 2.5 }}>
+      {/* minmax(0, 1fr): a plain 1fr column grows to fit its widest unbreakable
+          content (long emails, the role select), pushing the page past a
+          phone's width instead of letting rows truncate. */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: '1.5fr 1fr' }, gap: 2.5 }}>
         <Box>
           <Card variant="outlined" sx={{ borderRadius: 3, mb: 2.5 }}>
             <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
@@ -206,11 +238,20 @@ export function ClubProfilePage() {
                 </Typography>
               </Stack>
               {members.map((m, i) => (
-                <Stack
+                // On a phone the role select and actions wrap onto their own
+                // line under the name; from sm up it's one row as before.
+                <Box
                   key={m.membershipId}
-                  direction="row"
-                  spacing={1.5}
-                  sx={{ alignItems: 'center', py: 1.5, borderBottom: i === members.length - 1 ? 'none' : 1, borderColor: 'divider' }}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: { xs: 'wrap', sm: 'nowrap' },
+                    columnGap: 1.5,
+                    rowGap: 1,
+                    py: 1.5,
+                    borderBottom: i === members.length - 1 ? 'none' : 1,
+                    borderColor: 'divider',
+                  }}
                 >
                   <Avatar sx={{ width: 34, height: 34, fontSize: 12.5 }}>{m.displayName[0]}</Avatar>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -222,34 +263,50 @@ export function ClubProfilePage() {
                       {m.email}
                     </Typography>
                   </Box>
-                  <TextField
-                    select
-                    size="small"
-                    value={m.role}
-                    onChange={(e) => handleRoleChange(m, e.target.value as MemberRole)}
-                    disabled={busyId === m.membershipId}
-                    sx={{ minWidth: 130 }}
-                    slotProps={{
-                      select: {
-                        renderValue: (v) => (
-                          <Box sx={{ fontSize: 11.5, fontWeight: 700, px: 1, py: 0.3, borderRadius: 5, bgcolor: '#E4F4E4', color: brand.pitchDeep, display: 'inline-block' }}>
-                            {ROLE_CHIP[v as MemberRole]}
-                          </Box>
-                        ),
-                      },
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5,
+                      width: { xs: '100%', sm: 'auto' },
+                      pl: { xs: '46px', sm: 0 },
                     }}
                   >
-                    {ROLES.map((r) => (
-                      <MenuItem key={r} value={r}>
-                        {ROLE_LABELS[r]}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                  {m.scope === 'CLUB' && <Chip label="Club-wide" size="small" variant="outlined" />}
-                  <IconButton size="small" aria-label="Remove" onClick={() => setRemoveTarget(m)} disabled={busyId === m.membershipId}>
-                    <DeleteOutlineIcon fontSize="small" />
-                  </IconButton>
-                </Stack>
+                    <TextField
+                      select
+                      size="small"
+                      value={m.role}
+                      onChange={(e) => handleRoleChange(m, e.target.value as MemberRole)}
+                      disabled={busyId === m.membershipId}
+                      sx={{ minWidth: 130 }}
+                      slotProps={{
+                        select: {
+                          renderValue: (v) => (
+                            <Box sx={{ fontSize: 11.5, fontWeight: 700, px: 1, py: 0.3, borderRadius: 5, bgcolor: '#E4F4E4', color: brand.pitchDeep, display: 'inline-block' }}>
+                              {ROLE_CHIP[v as MemberRole]}
+                            </Box>
+                          ),
+                        },
+                      }}
+                    >
+                      {ROLES.map((r) => (
+                        <MenuItem key={r} value={r}>
+                          {ROLE_LABELS[r]}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                    {m.scope === 'CLUB' && <Chip label="Club-wide" size="small" variant="outlined" />}
+                    <IconButton
+                      size="small"
+                      aria-label="Remove"
+                      onClick={() => setRemoveTarget(m)}
+                      disabled={busyId === m.membershipId}
+                      sx={{ ml: { xs: 'auto', sm: 0 } }}
+                    >
+                      <DeleteOutlineIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </Box>
               ))}
               {members.length === 0 && (
                 <Typography color="text.secondary" sx={{ py: 1 }}>
@@ -258,6 +315,53 @@ export function ClubProfilePage() {
               )}
             </CardContent>
           </Card>
+
+          {invites.length > 0 && (
+            <Card variant="outlined" sx={{ borderRadius: 3, mb: 2.5 }}>
+              <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
+                <Typography sx={{ fontWeight: 700, fontSize: 13.5, mb: 0.5 }}>Pending invitations</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  They'll join the team once they've signed up and verified their email.
+                </Typography>
+                {invites.map((invite, i) => (
+                  <Box
+                    key={invite.id}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5,
+                      py: 1.25,
+                      borderBottom: i === invites.length - 1 ? 'none' : 1,
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <Avatar sx={{ width: 34, height: 34, bgcolor: brand.mist, color: brand.muted }}>
+                      <MailOutlinedIcon sx={{ fontSize: 18 }} />
+                    </Avatar>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography sx={{ fontWeight: 700, fontSize: 14 }} noWrap>
+                        {invite.email}
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: brand.muted }} noWrap>
+                        {ROLE_CHIP[invite.role]} &middot; expires{' '}
+                        {new Date(invite.expiresAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+                      </Typography>
+                    </Box>
+                    <Button
+                      size="small"
+                      color="error"
+                      onClick={() => handleCancelInvite(invite)}
+                      disabled={busyId === invite.id}
+                      aria-label={`Cancel invitation to ${invite.email}`}
+                      sx={{ flexShrink: 0 }}
+                    >
+                      Cancel
+                    </Button>
+                  </Box>
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
           <Card variant="outlined" sx={{ borderRadius: 3, mb: 2.5 }} id="add-official-form">
             <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
@@ -272,12 +376,17 @@ export function ClubProfilePage() {
                   ))}
                 </TextField>
               </Box>
-              <Button variant="contained" disabled={adding || email.length < 3} onClick={handleAdd}>
+              <Button variant="contained" disabled={adding || email.trim().length < 3} onClick={handleAdd}>
                 {adding ? 'Adding…' : 'Add member'}
               </Button>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                They'll need to already have an account with this email - there's no invitation email yet.
+                If they don't have a Kickabout account yet, we'll email them an invitation to sign up.
               </Typography>
+              {addNotice && (
+                <Alert severity="success" sx={{ mt: 1.5 }} onClose={() => setAddNotice(null)}>
+                  {addNotice}
+                </Alert>
+              )}
             </CardContent>
           </Card>
         </Box>
@@ -291,7 +400,7 @@ export function ClubProfilePage() {
               <Typography variant="body2" sx={{ color: 'rgba(255,255,255,.72)', mb: 1.5, mt: 0.5 }}>
                 Share this code so anyone can join the team directly, without you adding them by email.
               </Typography>
-              <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
                 <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: '0.2em' }}>
                   {joinCode ?? '······'}
                 </Typography>
@@ -301,7 +410,7 @@ export function ClubProfilePage() {
                 <Button size="small" sx={{ color: 'rgba(255,255,255,.85)' }} onClick={handleRegenerateCode} disabled={regenerating}>
                   {regenerating ? 'Regenerating…' : 'Regenerate'}
                 </Button>
-              </Stack>
+              </Box>
             </CardContent>
           </Card>
 

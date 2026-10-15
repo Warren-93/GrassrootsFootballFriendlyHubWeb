@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Alert, Box, Button, Card, Container, Link, Stack, TextField, Typography } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authRepository } from '../../api/authRepository';
 import { useAuth } from '../../auth/AuthContext';
 import { BrandHeader } from '../../components/BrandHeader';
@@ -10,7 +10,9 @@ import { setPostAuthRedirect } from '../../routes/postAuthRedirect';
 export function RegisterPage() {
   const navigate = useNavigate();
   const { resolveSession } = useAuth();
-  const [email, setEmail] = useState('');
+  // Member invitation emails link to /register?email=... so the invited address is already filled in.
+  const [searchParams] = useSearchParams();
+  const [email, setEmail] = useState(() => searchParams.get('email') ?? '');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [submitting, setSubmitting] = useState(false);

@@ -37,6 +37,15 @@ describe('apiClient', () => {
     expect(result).toEqual({ ok: true, value: undefined });
   });
 
+  it('returns the body of a 202 Accepted response', async () => {
+    const invited = { status: 'INVITED', invite: { id: 'i1', email: 'new@example.com' } };
+    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse(202, invited));
+
+    const result = await apiClient.post('/api/v1/teams/t1/members', { email: 'new@example.com', role: 'TEAM_MANAGER' });
+
+    expect(result).toEqual({ ok: true, value: invited });
+  });
+
   it('surfaces the backend error envelope message on failure', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(
       jsonResponse(404, { error: { code: 'TEAM_NOT_FOUND', message: 'That team could not be found.' } }),

@@ -141,7 +141,7 @@ export function DashboardPage() {
         </Typography>
       </Box>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: '1fr 1fr' }, gap: 2 }}>
         <SectionCard
           title="Publish availability"
           meta={`${publishedDates} dates published`}

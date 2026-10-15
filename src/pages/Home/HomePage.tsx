@@ -215,7 +215,7 @@ export function HomePage() {
             </Box>
           )}
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' }, gap: 2 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: '2fr 1fr' }, gap: 2 }}>
             <Stack spacing={2}>
               <DashboardCard title="Suggested for you" onSeeAll={() => navigate('/suggested-matches')}>
                 {suggestions.length === 0 ? (
