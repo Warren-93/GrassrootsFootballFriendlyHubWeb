@@ -51,7 +51,7 @@ const FAQS: FaqEntry[] = [
   {
     question: "What happens after I send a friendly request?",
     answer:
-      'The other team can confirm it as-is, suggest changes to the date, time or venue, or decline it. You\'ll see ' +
+      'The other team can confirm it as-is, suggest a different kick-off time or venue, or decline it. You\'ll see ' +
       'the current status and any message from them on the request itself.',
   },
   {
