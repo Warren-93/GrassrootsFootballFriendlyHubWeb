@@ -6,9 +6,9 @@ import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { useSearchResultsStore } from '../../session/SearchState';
 import { brand } from '../../theme/theme';
 
-// SCR-HM-03 Suggested matches. Purpose: show every opponent worth considering
-// right now, without the manual filter step SCR-FF-01/02 require - lands
-// straight on the existing results screen with no filters applied.
+// Discover / SCR-HM-03 Suggested matches. There is no filter step: the API
+// returns every team with the same age group and gender, all ability levels
+// and formats included, ranked by fit, and this lands straight on the results.
 export function SuggestedMatchesPage() {
   const navigate = useNavigate();
   const { active } = useCurrentTeam();
@@ -18,7 +18,7 @@ export function SuggestedMatchesPage() {
 
   useEffect(() => {
     if (!teamId) return;
-    matchRepository.search({ teamId: teamId, limit: 20 }).then((result) => {
+    matchRepository.search({ teamId: teamId, limit: 50 }).then((result) => {
       if (result.ok) {
         setResponse(result.value);
         navigate('/results', { replace: true });
@@ -62,9 +62,9 @@ export function SuggestedMatchesPage() {
             ) : (
               <>
                 <CircularProgress sx={{ color: brand.pitch }} />
-                <Typography sx={{ fontWeight: 700 }}>Finding suggested matches…</Typography>
+                <Typography sx={{ fontWeight: 700 }}>Finding teams to play…</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Matching your published availability against nearby teams.
+                  Every team in your age group and gender, best fit first.
                 </Typography>
               </>
             )}
