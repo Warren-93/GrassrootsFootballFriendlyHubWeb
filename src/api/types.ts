@@ -329,9 +329,30 @@ export interface SendRequestBody {
 
 export interface TeamContact {
   teamId: string;
+  teamName?: string | null;
   managerName: string | null;
   contactPhone: string | null;
   venueId: string | null;
+}
+
+/** The venue details shown on a request or fixture - any field but id and name may be null. */
+export interface VenueSummary {
+  id: string;
+  name: string;
+  address: string | null;
+  postcode: string | null;
+  pitchSurface: PitchSurface | null;
+  accessNotes: string | null;
+  parkingNotes: string | null;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+export interface TeamRef {
+  id: string;
+  name: string;
+  clubName: string | null;
+  badgeUrl: string | null;
 }
 
 export interface FriendlyRequestView {
@@ -356,6 +377,12 @@ export interface FriendlyRequestView {
   proposedStartTime: string | null;
   proposedEndTime: string | null;
   proposedVenueId: string | null;
+  /** The agreed venue: the request's venueId, else the home team's default venue. */
+  venue?: VenueSummary | null;
+  /** Set while a suggested change proposes a different venue. */
+  proposedVenue?: VenueSummary | null;
+  senderTeam?: TeamRef | null;
+  recipientTeam?: TeamRef | null;
 }
 
 export interface SuggestChangesBody {
@@ -374,6 +401,7 @@ export interface FixtureTeamView {
   managerName: string | null;
   contactPhone: string | null;
   venueId: string | null;
+  badgeUrl?: string | null;
 }
 
 export interface FixtureView {
@@ -388,6 +416,8 @@ export interface FixtureView {
   status: FixtureStatus;
   costShare: CostShare;
   refereeArrangement: RefereeArrangement;
+  /** The fixture's venue, else the home team's default venue. */
+  venue?: VenueSummary | null;
 }
 
 export type ReportType = 'SAFEGUARDING' | 'ABUSIVE_BEHAVIOUR' | 'FAKE_OR_MISLEADING_TEAM' | 'SPAM' | 'OTHER';
@@ -436,6 +466,26 @@ export interface AddMemberRequest {
   email: string;
   role: MemberRole;
 }
+
+/** A pending invitation for an email with no account yet - it becomes a membership once they verify that email. */
+export interface InviteView {
+  id: string;
+  email: string;
+  role: MemberRole;
+  teamId: string;
+  teamName: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+/** The 202 body when the email added has no account yet: an invitation was emailed instead. */
+export interface MemberInvitedResponse {
+  status: 'INVITED';
+  invite: InviteView;
+}
+
+/** POST .../members answers 201 with the new member, or 202 with an invitation. */
+export type AddMemberResult = MemberView | MemberInvitedResponse;
 
 export interface UpdateMemberRoleRequest {
   role: MemberRole;
@@ -523,6 +573,9 @@ export interface NotificationPreferenceView {
   fixtures: boolean;
   verification: boolean;
   messages: boolean;
+  /** How notifications reach the user beyond the app itself. Both default to true server-side. */
+  emailEnabled: boolean;
+  pushEnabled: boolean;
 }
 
 export interface MessageView {
@@ -543,4 +596,11 @@ export interface ConversationView {
   createdAt: string;
   /** What this thread is currently about - set when opened from a fixture's "Message" entry point. */
   relatedFixtureId: string | null;
+}
+
+/** GET /api/v1/config - public settings the web app needs before anyone signs in. */
+export interface ClientConfig {
+  supportEmail: string | null;
+  google: { enabled: boolean; clientId: string | null };
+  apple: { enabled: boolean; servicesId: string | null };
 }

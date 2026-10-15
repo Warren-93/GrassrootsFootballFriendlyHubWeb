@@ -70,6 +70,10 @@ export function InvitationReviewPage() {
               <Row label="Date" value={draft.date} />
               <Row label="Time" value={`${draft.startTime.slice(0, 5)} - ${draft.endTime.slice(0, 5)}`} />
               <Row label="Home team" value={draft.homeTeamId === active.teamId ? 'Us' : 'Them'} />
+              <Row
+                label="Venue"
+                value={draft.homeTeamId === active.teamId ? (draft.venueName ?? 'Our home ground') : 'Their home ground'}
+              />
               <Row label="Cost share" value={draft.costShare.replace(/_/g, ' ')} />
               <Row label="Referee" value={draft.refereeArrangement.replace(/_/g, ' ')} last />
             </Stack>

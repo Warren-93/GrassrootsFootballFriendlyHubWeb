@@ -25,6 +25,7 @@ import { fixtureRepository } from '../../api/fixtureRepository';
 import { conversationRepository } from '../../api/conversationRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { FixtureBanner } from '../../components/brand/FixtureBanner';
+import { VenueCard } from '../../components/VenueCard';
 import { brand } from '../../theme/theme';
 import type { FixtureView } from '../../api/types';
 
@@ -114,9 +115,13 @@ export function FixtureDetailPage() {
           tag={fixture.status === 'CONFIRMED' ? 'Confirmed friendly' : fixture.status}
           homeTeam={fixture.homeTeam.name}
           awayTeam={fixture.awayTeam.name}
+          homeBadgeUrl={fixture.homeTeam.badgeUrl}
+          awayBadgeUrl={fixture.awayTeam.badgeUrl}
           date={fixture.date}
           meta={`${fixture.startTime.slice(0, 5)} - ${fixture.endTime.slice(0, 5)}`}
         />
+
+        {fixture.venue && <VenueCard venue={fixture.venue} />}
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
           <Card variant="outlined">
@@ -128,11 +133,11 @@ export function FixtureDetailPage() {
                 <Row label="Cost share" value={fixture.costShare.replace(/_/g, ' ')} />
                 <Row label="Referee" value={fixture.refereeArrangement.replace(/_/g, ' ')} />
                 <Row
-                  label="Home contact"
+                  label={fixture.homeTeam.name}
                   value={`${fixture.homeTeam.managerName ?? '—'} ${fixture.homeTeam.contactPhone ?? ''}`}
                 />
                 <Row
-                  label="Away contact"
+                  label={fixture.awayTeam.name}
                   value={`${fixture.awayTeam.managerName ?? '—'} ${fixture.awayTeam.contactPhone ?? ''}`}
                 />
               </Stack>
@@ -207,7 +212,7 @@ export function FixtureDetailPage() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline', gap: 2 }}>
       <Typography variant="body2" color="text.secondary">
         {label}
       </Typography>
