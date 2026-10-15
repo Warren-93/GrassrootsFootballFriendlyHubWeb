@@ -110,7 +110,15 @@ export function SuggestChangesPage() {
         )}
 
         {venues.length > 0 && (
-          <TextField select label="Venue" value={venueId} onChange={(e) => setVenueId(e.target.value)} fullWidth>
+          // The current venue is often the other club's, which isn't in this list: show "No change" then.
+          <TextField
+            select
+            label="Venue"
+            value={venues.some((v) => v.id === venueId) ? venueId : ''}
+            onChange={(e) => setVenueId(e.target.value)}
+            slotProps={{ select: { displayEmpty: true }, inputLabel: { shrink: true } }}
+            fullWidth
+          >
             <MenuItem value="">No change</MenuItem>
             {venues.map((v) => (
               <MenuItem key={v.id} value={v.id}>
