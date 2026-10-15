@@ -27,9 +27,12 @@ export function RegisterPage() {
     const result = await authRepository.register({ email, password, displayName });
     setSubmitting(false);
     if (result.ok) {
-      setPostAuthRedirect('/role-selection');
+      // An invited person joins the team once their email is verified, so
+      // send them to verify it rather than into setting up a team of their own.
+      const next = searchParams.has('email') ? '/email-verification' : '/role-selection';
+      setPostAuthRedirect(next);
       await resolveSession();
-      navigate('/role-selection');
+      navigate(next);
     } else {
       setErrorMessage(result.message);
     }
