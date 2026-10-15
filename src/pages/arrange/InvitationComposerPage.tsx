@@ -25,6 +25,9 @@ export function InvitationComposerPage() {
   const [searching, setSearching] = useState(false);
   const [ourTeam, setOurTeam] = useState<TeamView | null>(null);
   const [venues, setVenues] = useState<VenueView[]>([]);
+  // Only club admins can list the club's venues. For a team manager the list
+  // fails and the API uses the team's home venue, so there's nothing to pick.
+  const [venuesListed, setVenuesListed] = useState(false);
   // Null until the user picks one - until then the team's default venue is used.
   const [chosenVenueId, setChosenVenueId] = useState<string | null>(null);
 
@@ -50,7 +53,8 @@ export function InvitationComposerPage() {
       if (result.ok) setOurTeam(result.value);
     });
     venueRepository.list(active.clubId).then((result) => {
-      if (result.ok) setVenues(result.value);
+      setVenues(result.ok ? result.value : []);
+      setVenuesListed(result.ok);
     });
   }, [active]);
 
@@ -169,12 +173,16 @@ export function InvitationComposerPage() {
                       </MenuItem>
                     ))}
                   </TextField>
-                ) : (
+                ) : venuesListed ? (
                   <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
                     Your club has no venues yet.{' '}
                     <Link component="button" onClick={() => navigate('/venues/new')} sx={{ verticalAlign: 'baseline' }}>
                       Add a venue
                     </Link>
+                  </Typography>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
+                    You host - the match will be at your home ground.
                   </Typography>
                 )
               ) : (

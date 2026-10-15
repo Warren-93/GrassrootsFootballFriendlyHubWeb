@@ -122,4 +122,23 @@ describe('InvitationComposerPage venue', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Review invitation' }));
     expect(useInvitationDraftStore.getState().draft).toMatchObject({ venueId: null, homeTeamId: 'team-2' });
   });
+
+  it("leaves the venue to the API when a team manager can't list the club's venues", async () => {
+    vi.mocked(venueRepository.list).mockResolvedValue({ ok: false, message: 'That club could not be found.', status: 404 });
+    renderPage();
+
+    expect(await screen.findByText('You host - the match will be at your home ground.')).toBeInTheDocument();
+    expect(screen.queryByText(/Your club has no venues yet/)).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Review invitation' }));
+    expect(useInvitationDraftStore.getState().draft).toMatchObject({ venueId: null, venueName: null, homeTeamId: 'team-1' });
+  });
+
+  it('offers to add a venue when the club has none', async () => {
+    vi.mocked(venueRepository.list).mockResolvedValue({ ok: true, value: [] });
+    renderPage();
+
+    expect(await screen.findByText(/Your club has no venues yet/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add a venue' })).toBeInTheDocument();
+  });
 });
