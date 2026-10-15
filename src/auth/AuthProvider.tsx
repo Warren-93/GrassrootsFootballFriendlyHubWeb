@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { authRepository } from '../api/authRepository';
 import type { UserView } from '../api/types';
 import { AuthContext } from './AuthContext';
+import { setPostAuthRedirect } from '../routes/postAuthRedirect';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<UserView | null>(null);
@@ -24,6 +25,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signOut() {
     setSession(null);
     await authRepository.signOut();
+    // The page signed out from isn't one to return to on the next sign-in
+    // (ProtectedRoute noted it as the session went).
+    setPostAuthRedirect(null);
   }
 
   useEffect(() => {

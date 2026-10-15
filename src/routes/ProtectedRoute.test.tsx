@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { ProtectedRoute } from './ProtectedRoute';
 import { useAuth } from '../auth/AuthContext';
+import { takePostAuthRedirect } from './postAuthRedirect';
 
 vi.mock('../auth/AuthContext', () => ({
   useAuth: vi.fn(),
@@ -17,6 +18,7 @@ function renderProtectedRoute(initialPath = '/dashboard') {
         <Route path="/welcome" element={<div>Welcome page</div>} />
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<div>Dashboard content</div>} />
+          <Route path="/request/:id" element={<div>Request content</div>} />
         </Route>
       </Routes>
     </MemoryRouter>,
@@ -51,5 +53,14 @@ describe('ProtectedRoute', () => {
     renderProtectedRoute();
 
     expect(screen.getByText('Dashboard content')).toBeInTheDocument();
+  });
+
+  it('remembers the page a signed-out user opened, to return to after signing in', () => {
+    mockedUseAuth.mockReturnValue({ session: null, loading: false } as ReturnType<typeof useAuth>);
+
+    renderProtectedRoute('/request/req-1?from=email');
+
+    expect(screen.getByText('Welcome page')).toBeInTheDocument();
+    expect(takePostAuthRedirect()).toBe('/request/req-1?from=email');
   });
 });

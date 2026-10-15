@@ -8,6 +8,7 @@ import type { ClientConfig, TokenResponse } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 import { listenForGoogleIdToken, loadApple, prepareGoogle } from '../../auth/oauthSdk';
 import { useClientConfigStore } from '../../session/ClientConfigState';
+import { setPostAuthRedirect } from '../../routes/postAuthRedirect';
 
 vi.mock('../../api/authRepository', () => ({ authRepository: { login: vi.fn(), oauthSignIn: vi.fn() } }));
 vi.mock('../../auth/AuthContext', () => ({ useAuth: vi.fn() }));
@@ -36,6 +37,7 @@ function renderSignIn(config: ClientConfig) {
       <Routes>
         <Route path="/sign-in" element={<SignInPage />} />
         <Route path="/" element={<div>Dashboard</div>} />
+        <Route path="/request/:id" element={<div>The request</div>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -109,5 +111,17 @@ describe('SignInPage', () => {
 
     expect(await screen.findByText('Dashboard')).toBeInTheDocument();
     expect(resolveSession).toHaveBeenCalledTimes(1);
+  });
+
+  it('goes back to the page that sent a signed-out person to sign in', async () => {
+    vi.mocked(authRepository.login).mockResolvedValue({ ok: true, value: { accessToken: 'a' } as TokenResponse });
+    setPostAuthRedirect('/request/req-1');
+    renderSignIn(bothOn);
+
+    await userEvent.type(screen.getByLabelText('Email'), 'b@example.com');
+    await userEvent.type(screen.getByLabelText('Password'), 'Password123!');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    expect(await screen.findByText('The request')).toBeInTheDocument();
   });
 });

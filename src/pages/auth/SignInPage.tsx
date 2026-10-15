@@ -6,6 +6,7 @@ import { useAuth } from '../../auth/AuthContext';
 import { BrandHeader } from '../../components/BrandHeader';
 import { OAuthButtons } from '../../components/OAuthButtons';
 import { brand } from '../../theme/theme';
+import { setPostAuthRedirect, takePostAuthRedirect } from '../../routes/postAuthRedirect';
 
 export function SignInPage() {
   const navigate = useNavigate();
@@ -21,8 +22,12 @@ export function SignInPage() {
     const result = await authRepository.login({ email, password });
     setSubmitting(false);
     if (result.ok) {
+      // The page they were sent here from, if any. PublicOnlyRoute redirects
+      // the moment the session resolves, so it's set for that too.
+      const destination = takePostAuthRedirect();
+      setPostAuthRedirect(destination);
       await resolveSession();
-      navigate('/');
+      navigate(destination);
     } else {
       setErrorMessage(result.message);
     }

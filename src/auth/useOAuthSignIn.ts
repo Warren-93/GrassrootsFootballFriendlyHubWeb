@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { authRepository } from '../api/authRepository';
 import { teamRepository } from '../api/teamRepository';
 import type { OAuthProvider, OAuthSignInRequest } from '../api/types';
-import { setPostAuthRedirect } from '../routes/postAuthRedirect';
+import { setPostAuthRedirect, takePostAuthRedirect } from '../routes/postAuthRedirect';
 import { useAuth } from './AuthContext';
 
 /** `onError` is the page's error alert: given the API's message on failure, and null when a new attempt starts. */
@@ -28,7 +28,8 @@ export function useOAuthSignIn(onError: (message: string | null) => void) {
     }
     // A new account can already be on a team: the API accepts any invitation
     // to that email as it creates the account. Only onboard it if it isn't.
-    const destination = result.value.newUser && !(await isOnATeam()) ? '/role-selection' : '/';
+    // Everyone else goes back to the page they were sent to sign in from, if any.
+    const destination = result.value.newUser && !(await isOnATeam()) ? '/role-selection' : takePostAuthRedirect();
     // PublicOnlyRoute redirects the moment the session resolves, before navigate() below runs.
     setPostAuthRedirect(destination);
     await resolveSession();
