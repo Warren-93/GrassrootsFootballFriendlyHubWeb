@@ -18,6 +18,18 @@ export interface TokenResponse {
   user: UserView;
   /** Only present while no real email provider is connected - see EmailVerificationPage. */
   verificationToken: string | null;
+  /** Google/Apple sign-in only: true when this sign-in created the account (it then goes to onboarding). */
+  newUser?: boolean;
+}
+
+export type OAuthProvider = 'google' | 'apple';
+
+/** POST /api/v1/auth/oauth/{provider} */
+export interface OAuthSignInRequest {
+  /** The provider's ID token: Google's credential, or Apple's authorization.id_token. */
+  idToken: string;
+  /** Apple only - its token carries no name, and it hands the name to the browser on the first sign-in only. */
+  displayName?: string | null;
 }
 
 export interface VerificationResendResponse {

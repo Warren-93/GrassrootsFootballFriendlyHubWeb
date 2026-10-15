@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authRepository } from '../../api/authRepository';
 import { useAuth } from '../../auth/AuthContext';
 import { BrandHeader } from '../../components/BrandHeader';
+import { OAuthButtons } from '../../components/OAuthButtons';
 import { brand } from '../../theme/theme';
 import { setPostAuthRedirect } from '../../routes/postAuthRedirect';
 
@@ -93,6 +94,8 @@ export function RegisterPage() {
             >
               {submitting ? 'Creating account…' : 'Create account'}
             </Button>
+
+            <OAuthButtons onError={setErrorMessage} />
 
             <Typography variant="body2" sx={{ textAlign: 'center' }}>
               Already have an account?{' '}

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { authRepository } from '../../api/authRepository';
 import { useAuth } from '../../auth/AuthContext';
 import { BrandHeader } from '../../components/BrandHeader';
+import { OAuthButtons } from '../../components/OAuthButtons';
 import { brand } from '../../theme/theme';
 
 export function SignInPage() {
@@ -72,6 +73,8 @@ export function SignInPage() {
             <Button variant="contained" size="large" disabled={submitting || !email || !password} onClick={handleSubmit}>
               {submitting ? 'Signing in…' : 'Sign in'}
             </Button>
+
+            <OAuthButtons onError={setErrorMessage} />
 
             <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
               <Link component="button" variant="body2" onClick={() => navigate('/forgot-password', { state: { email } })}>
