@@ -124,6 +124,18 @@ export interface TeamView {
   createdAt: string;
   /** Only set on GET /teams/mine. */
   canManage?: boolean | null;
+  /** Verified and has a venue: the only gate on sending and receiving friendly requests. */
+  readyForRequests?: boolean;
+  /** What's still to do. Empty for teams the caller doesn't manage. */
+  profileChecklist?: ProfileChecklistItem[];
+}
+
+export interface ProfileChecklistItem {
+  key: string;
+  label: string;
+  done: boolean;
+  /** True for the items that gate friendly requests (verification, venue). */
+  requiredForRequests: boolean;
 }
 
 export interface CreateTeamRequest {
@@ -276,6 +288,8 @@ export interface MatchSummary {
   reasons: string[];
   factors: FactorView[];
   earliestOverlap: OverlapView | null;
+  /** False until the opponent is verified and has a venue. */
+  canReceiveRequests?: boolean;
 }
 
 export interface WeightsView {

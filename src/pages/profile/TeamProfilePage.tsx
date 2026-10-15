@@ -8,6 +8,7 @@ import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { brand } from '../../theme/theme';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { canManageActive } from '../../session/canManageActive';
+import { ProfileChecklistCard } from '../../components/ProfileChecklistCard';
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
@@ -83,6 +84,8 @@ export function TeamProfilePage() {
           </Box>
         </CardContent>
       </Card>
+
+      <ProfileChecklistCard team={team} />
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 2, mb: 2.5 }}>
         <Field label="Age group" value={team.ageGroup} />

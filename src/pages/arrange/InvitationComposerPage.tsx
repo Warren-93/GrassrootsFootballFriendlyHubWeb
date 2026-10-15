@@ -7,10 +7,8 @@ import { addMinutesToTime } from '../../utils/time';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { matchRepository } from '../../api/matchRepository';
 import { teamRepository } from '../../api/teamRepository';
-import type { CostShare, HomeAwayPreference, RefereeArrangement } from '../../api/types';
-
-/** The API refuses to send a request until the sender's profile is at least this complete. */
-const MIN_PROFILE_COMPLETENESS = 80;
+import type { CostShare, HomeAwayPreference, RefereeArrangement, TeamView } from '../../api/types';
+import { ProfileChecklistCard } from '../../components/ProfileChecklistCard';
 
 const COST_SHARES: CostShare[] = ['SPLIT', 'HOST_PAYS', 'VISITOR_PAYS', 'NONE'];
 const REFEREE_ARRANGEMENTS: RefereeArrangement[] = ['CLUB_SUPPLIED', 'APPOINTED', 'NONE'];
@@ -23,7 +21,7 @@ export function InvitationComposerPage() {
   const setDraft = useInvitationDraftStore((s) => s.setDraft);
   const setResponse = useSearchResultsStore((s) => s.setResponse);
   const [searching, setSearching] = useState(false);
-  const [completeness, setCompleteness] = useState<number | null>(null);
+  const [ourTeam, setOurTeam] = useState<TeamView | null>(null);
 
   // Opened from a link or a profile rather than from search results: run the
   // search here so the opponent's overlapping dates are known.
@@ -44,7 +42,7 @@ export function InvitationComposerPage() {
   useEffect(() => {
     if (!active) return;
     teamRepository.get(active.teamId).then((result) => {
-      if (result.ok) setCompleteness(result.value.completenessPercent);
+      if (result.ok) setOurTeam(result.value);
     });
   }, [active]);
 
@@ -85,7 +83,9 @@ export function InvitationComposerPage() {
     );
   }
 
-  const profileTooThin = completeness !== null && completeness < MIN_PROFILE_COMPLETENESS;
+  // The API only lets verified teams with a venue send or receive requests.
+  const weAreNotReady = ourTeam?.readyForRequests === false;
+  const theyAreNotReady = match.canReceiveRequests === false;
 
   const endTime = addMinutesToTime(startTime, Math.min(overlap.overlapMinutes, 90));
   const homeTeamId = homeAwayChoice === 'HOME' ? active.teamId : match.team.id;
@@ -118,18 +118,11 @@ export function InvitationComposerPage() {
         </Typography>
       </Box>
 
-      {profileTooThin && (
-        <Alert
-          severity="warning"
-          sx={{ mb: 2.5 }}
-          action={
-            <Button color="inherit" size="small" onClick={() => navigate(`/team/${active.teamId}/edit`)}>
-              Complete profile
-            </Button>
-          }
-        >
-          Your team profile is {completeness}% complete. It needs to be at least {MIN_PROFILE_COMPLETENESS}% before you
-          can send requests, so opponents know who they're playing.
+      {weAreNotReady && ourTeam && <ProfileChecklistCard team={ourTeam} showOptional={false} />}
+
+      {theyAreNotReady && (
+        <Alert severity="info" sx={{ mb: 2.5 }}>
+          {match.team.name} can't receive friendly requests yet. They need to be verified and add a venue first.
         </Alert>
       )}
 
@@ -182,7 +175,7 @@ export function InvitationComposerPage() {
               sx={{ mb: 2.5 }}
             />
 
-            <Button variant="contained" size="large" onClick={handleContinue} disabled={profileTooThin}>
+            <Button variant="contained" size="large" onClick={handleContinue} disabled={weAreNotReady || theyAreNotReady}>
               Review invitation
             </Button>
           </CardContent>
