@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { apiClient } from './client';
+import { apiClient, tryRefresh } from './client';
 import { tokenStore } from '../auth/tokenStore';
 
 function jsonResponse(status: number, body: unknown): Response {
@@ -125,6 +125,29 @@ describe('apiClient', () => {
     const [, teamInit] = vi.mocked(fetch).mock.calls[1];
     expect(teamInit?.credentials).toBe('same-origin');
     expect((teamInit!.headers as Record<string, string>)['X-Auth-Mode']).toBeUndefined();
+  });
+
+  it('retries the refresh while the API is waking up instead of signing out', async () => {
+    vi.useFakeTimers();
+    vi.mocked(fetch)
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(jsonResponse(504, undefined))
+      .mockResolvedValueOnce(jsonResponse(200, { accessToken: 'fresh-access-token' }));
+
+    const refreshed = tryRefresh();
+    await vi.runAllTimersAsync();
+
+    expect(await refreshed).toBe(true);
+    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(tokenStore.accessToken()).toBe('fresh-access-token');
+    vi.useRealTimers();
+  });
+
+  it('gives up straight away when the refresh cookie has expired', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse(401, { error: { message: 'expired' } }));
+
+    expect(await tryRefresh()).toBe(false);
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 
   it('clears stored tokens when the refresh attempt itself fails', async () => {
