@@ -10,7 +10,8 @@ function memberCanOpen(pathname: string, teamId: string): boolean {
   return (
     pathname === `/team/${teamId}` ||
     // A fixture's details, read-only. The member home lists their team's fixtures.
-    pathname.startsWith('/fixtures/') ||
+    // Not "/fixtures/", which the router treats as the manager's /fixtures.
+    /^\/fixtures\/[^/]+\/?$/.test(pathname) ||
     pathname === '/notifications' ||
     pathname === '/settings' ||
     pathname.startsWith('/settings/')

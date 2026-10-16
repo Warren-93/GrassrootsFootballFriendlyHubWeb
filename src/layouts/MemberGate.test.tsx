@@ -90,9 +90,9 @@ describe('MemberGate', () => {
     expect(await screen.findByText('Fixture details')).toBeInTheDocument();
   });
 
-  it('keeps the manage-only fixtures list behind the gate', async () => {
+  it.each(['/fixtures', '/fixtures/'])('keeps the manage-only fixtures list at %s behind the gate', async (path) => {
     actAs(false);
-    renderGate('/fixtures');
+    renderGate(path);
 
     expect(screen.getByText("You're a member of Riverside U12 Girls")).toBeInTheDocument();
     expect(screen.queryByText('Manager fixtures')).not.toBeInTheDocument();
