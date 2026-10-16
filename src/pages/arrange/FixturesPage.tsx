@@ -6,6 +6,7 @@ import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
 import { fixtureRepository } from '../../api/fixtureRepository';
 import { teamRepository } from '../../api/teamRepository';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
+import { opponentNames } from '../../utils/request';
 import type { FixtureView, FriendlyRequestView } from '../../api/types';
 import { brand } from '../../theme/theme';
 
@@ -36,14 +37,7 @@ export function FixturesPage() {
       if (requestsResult.ok) {
         setRequests(requestsResult.value);
         const pending = requestsResult.value.filter((r) => OPEN_STATUSES.has(r.status));
-        const entries = await Promise.all(
-          pending.map(async (r) => {
-            const otherTeamId = active.teamId === r.senderTeamId ? r.recipientTeamId : r.senderTeamId;
-            const otherTeamResult = await teamRepository.get(otherTeamId);
-            return [r.id, otherTeamResult.ok ? otherTeamResult.value.name : 'Opponent'] as const;
-          }),
-        );
-        setOpponents(Object.fromEntries(entries));
+        setOpponents(await opponentNames(pending, active.teamId, teamRepository.get));
       }
       setLoading(false);
     })();

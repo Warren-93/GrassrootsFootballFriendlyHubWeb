@@ -13,6 +13,7 @@ import type { ConversationView, FixtureView, FriendlyRequestView, MatchSummary, 
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { MatchScoreChip } from '../../components/brand/MatchScoreChip';
 import { brand } from '../../theme/theme';
+import { opponentNames } from '../../utils/request';
 
 const OPEN_REQUEST_STATUSES = new Set(['SENT', 'CHANGES_REQUESTED', 'UPDATED']);
 const WEEKDAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -94,15 +95,7 @@ export function DashboardPage() {
         const pending = requestsResult.value.filter((r) => OPEN_REQUEST_STATUSES.has(r.status));
         setPendingRequests(pending);
 
-        const topPending = pending.slice(0, 2);
-        const opponentEntries = await Promise.all(
-          topPending.map(async (r) => {
-            const otherTeamId = active.teamId === r.senderTeamId ? r.recipientTeamId : r.senderTeamId;
-            const otherTeamResult = await teamRepository.get(otherTeamId);
-            return [r.id, otherTeamResult.ok ? otherTeamResult.value.name : 'Opponent'] as const;
-          }),
-        );
-        setRequestOpponents(Object.fromEntries(opponentEntries));
+        setRequestOpponents(await opponentNames(pending.slice(0, 2), active.teamId, teamRepository.get));
       }
 
       setLoaded(true);
