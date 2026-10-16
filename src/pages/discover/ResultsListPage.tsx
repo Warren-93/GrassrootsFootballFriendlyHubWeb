@@ -1,16 +1,29 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Card, CardActionArea, CardContent, Container, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  Container,
+  Stack,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { searchRequestFor, useSearchFilterStore, useSearchResultsStore, type SearchFilters } from '../../session/SearchState';
+import { useDefaultSearch } from '../../session/useDefaultSearch';
 import { matchRepository } from '../../api/matchRepository';
 import { SearchFiltersBar } from '../../components/SearchFiltersBar';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { teamRepository } from '../../api/teamRepository';
 import { geocodeOutcode } from '../../lib/geocodeOutcode';
 import { PageHeader } from '../../components/PageHeader';
+import { DefaultSearchStatus } from '../../components/DefaultSearchStatus';
 import { MatchScoreChip } from '../../components/brand/MatchScoreChip';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { brand } from '../../theme/theme';
@@ -47,6 +60,7 @@ export function ResultsListPage() {
   const [markers, setMarkers] = useState<{ match: MatchSummary; position: [number, number] }[]>([]);
   const [mapLoading, setMapLoading] = useState(false);
   const [searching, setSearching] = useState(false);
+  const { searchError, retry } = useDefaultSearch(teamId);
   const filtersSet =
     filters.abilityLevels.length > 0 || filters.formats.length > 0 || filters.maxDistanceMiles !== null || filters.verifiedOnly;
 
@@ -99,14 +113,18 @@ export function ResultsListPage() {
       <Container maxWidth="lg" sx={{ py: 6 }}>
         <Stack spacing={2}>
           <PageHeader title="Search results" />
-          <Typography>No search yet.</Typography>
+          {!teamId ? (
+            <Typography>Choose a team first to see who you could play.</Typography>
+          ) : (
+            <DefaultSearchStatus error={searchError} onRetry={retry} loadingText="Finding teams to play…" />
+          )}
         </Stack>
       </Container>
     );
   }
 
   const center = homeCoords ?? (markers[0]?.position as [number, number] | undefined) ?? [51.5074, -0.1276];
-  const mapTitle = view === 'map' ? `${markers.length} team${markers.length === 1 ? '' : 's'}` : `${response.totalResults} matches found`;
+  const mapTitle = view === 'map' ? `${markers.length} team${markers.length === 1 ? '' : 's'}` : `${response.totalResults} ${response.totalResults === 1 ? 'match' : 'matches'} found`;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>

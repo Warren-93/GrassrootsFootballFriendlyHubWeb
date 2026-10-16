@@ -20,7 +20,13 @@ export function AccountTabs() {
   const activeIndex = TABS.findIndex((t) => t.path === location.pathname);
 
   return (
-    <Tabs value={activeIndex === -1 ? false : activeIndex} sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}>
+    // Scrollable so the later tabs stay reachable on a phone instead of being clipped.
+    <Tabs
+      value={activeIndex === -1 ? false : activeIndex}
+      variant="scrollable"
+      scrollButtons={false}
+      sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
+    >
       {TABS.map((t) => (
         <Tab key={t.path} label={t.label} onClick={() => navigate(t.path)} />
       ))}

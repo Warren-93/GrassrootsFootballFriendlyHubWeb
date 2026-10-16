@@ -14,6 +14,8 @@ const POLL_MS = 4000;
 
 interface ConversationThreadPanelProps {
   conversationId: string;
+  /** Called with each message sent, so the inbox beside the thread can show it straight away. */
+  onSent?: (message: MessageView) => void;
 }
 
 /**
@@ -21,7 +23,7 @@ interface ConversationThreadPanelProps {
  * right pane of the two-pane desktop layout and as the whole of
  * `/messages/:conversationId` on mobile.
  */
-export function ConversationThreadPanel({ conversationId }: ConversationThreadPanelProps) {
+export function ConversationThreadPanel({ conversationId, onSent }: ConversationThreadPanelProps) {
   const navigate = useNavigate();
   const { active } = useCurrentTeam();
   const [conversation, setConversation] = useState<ConversationView | null>(null);
@@ -64,6 +66,7 @@ export function ConversationThreadPanel({ conversationId }: ConversationThreadPa
     setSending(false);
     if (result.ok) {
       setDraft('');
+      onSent?.(result.value);
       loadMessages(conversationId);
     } else {
       setErrorMessage(result.message);

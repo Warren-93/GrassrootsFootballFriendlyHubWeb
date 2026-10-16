@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Alert, Box, Button, Card, CardContent, CircularProgress, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Container, Link, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { canManageActiveClub } from '../../session/canManageActive';
 import { useInvitationDraftStore, useSearchResultsStore } from '../../session/SearchState';
 import { addMinutesToTime } from '../../utils/time';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { matchRepository } from '../../api/matchRepository';
 import { teamRepository } from '../../api/teamRepository';
-import type { CostShare, HomeAwayPreference, RefereeArrangement, TeamView } from '../../api/types';
+import { venueRepository } from '../../api/venueRepository';
+import type { CostShare, HomeAwayPreference, RefereeArrangement, TeamView, VenueView } from '../../api/types';
 import { ProfileChecklistCard } from '../../components/ProfileChecklistCard';
+import { defaultVenueId } from '../../utils/venue';
 
 const COST_SHARES: CostShare[] = ['SPLIT', 'HOST_PAYS', 'VISITOR_PAYS', 'NONE'];
 const REFEREE_ARRANGEMENTS: RefereeArrangement[] = ['CLUB_SUPPLIED', 'APPOINTED', 'NONE'];
@@ -22,6 +25,13 @@ export function InvitationComposerPage() {
   const setResponse = useSearchResultsStore((s) => s.setResponse);
   const [searching, setSearching] = useState(false);
   const [ourTeam, setOurTeam] = useState<TeamView | null>(null);
+  const [venues, setVenues] = useState<VenueView[]>([]);
+  // Any manager of the club can list its venues. If the list fails (an older
+  // API only let club admins list them) the API uses the team's home venue,
+  // so there's nothing to pick - but say so only once it has really failed.
+  const [venueList, setVenueList] = useState<'loading' | 'listed' | 'failed'>('loading');
+  // Null until the user picks one - until then the team's default venue is used.
+  const [chosenVenueId, setChosenVenueId] = useState<string | null>(null);
 
   // Opened from a link or a profile rather than from search results: run the
   // search here so the opponent's overlapping dates are known.
@@ -43,6 +53,11 @@ export function InvitationComposerPage() {
     if (!active) return;
     teamRepository.get(active.teamId).then((result) => {
       if (result.ok) setOurTeam(result.value);
+    });
+    setVenueList('loading');
+    venueRepository.list(active.clubId).then((result) => {
+      setVenues(result.ok ? result.value : []);
+      setVenueList(result.ok ? 'listed' : 'failed');
     });
   }, [active]);
 
@@ -88,7 +103,13 @@ export function InvitationComposerPage() {
   const theyAreNotReady = match.canReceiveRequests === false;
 
   const endTime = addMinutesToTime(startTime, Math.min(overlap.overlapMinutes, 90));
-  const homeTeamId = homeAwayChoice === 'HOME' ? active.teamId : match.team.id;
+  const weHost = homeAwayChoice === 'HOME';
+  const homeTeamId = weHost ? active.teamId : match.team.id;
+  const venueId = chosenVenueId ?? defaultVenueId(venues, ourTeam?.defaultVenueId);
+  // When they host the API fills in their default venue, so nothing is sent.
+  const venue = weHost ? (venues.find((v) => v.id === venueId) ?? null) : null;
+  // When we host, wait for the venues so the one shown is the one sent.
+  const venuesPending = weHost && venueList === 'loading';
 
   function handleContinue() {
     setDraft({
@@ -98,7 +119,8 @@ export function InvitationComposerPage() {
       date,
       startTime: `${startTime}:00`,
       endTime: `${endTime}:00`,
-      venueId: null,
+      venueId: venue?.id ?? null,
+      venueName: venue?.name ?? null,
       homeTeamId,
       costShare,
       refereeArrangement,
@@ -141,6 +163,51 @@ export function InvitationComposerPage() {
                 <MenuItem value="AWAY">They host</MenuItem>
               </TextField>
 
+              {weHost ? (
+                venues.length > 0 ? (
+                  <TextField
+                    select
+                    label="Venue"
+                    value={venueId ?? ''}
+                    onChange={(e) => setChosenVenueId(e.target.value)}
+                    fullWidth
+                  >
+                    {venues.map((v) => (
+                      <MenuItem key={v.id} value={v.id}>
+                        {v.name}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                ) : venueList === 'listed' ? (
+                  // Only the club's admin can add one.
+                  <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
+                    Your club has no venues yet.{' '}
+                    {canManageActiveClub(active) ? (
+                      <Link component="button" onClick={() => navigate('/venues/new')} sx={{ verticalAlign: 'baseline' }}>
+                        Add a venue
+                      </Link>
+                    ) : (
+                      'Ask your club admin to add one.'
+                    )}
+                  </Typography>
+                ) : venueList === 'failed' ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
+                    You host - the match will be at your home ground.
+                  </Typography>
+                ) : (
+                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center', alignSelf: 'center' }}>
+                    <CircularProgress size={16} />
+                    <Typography variant="body2" color="text.secondary">
+                      Loading your club's venues…
+                    </Typography>
+                  </Stack>
+                )
+              ) : (
+                <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
+                  {match.team.name} host - the match will be at their home ground.
+                </Typography>
+              )}
+
               <TextField select label="Cost share" value={costShare} onChange={(e) => setCostShare(e.target.value as CostShare)} fullWidth>
                 {COST_SHARES.map((c) => (
                   <MenuItem key={c} value={c}>
@@ -155,7 +222,6 @@ export function InvitationComposerPage() {
                 value={refereeArrangement}
                 onChange={(e) => setRefereeArrangement(e.target.value as RefereeArrangement)}
                 fullWidth
-                sx={{ gridColumn: { xs: 'auto', sm: '1 / -1' } }}
               >
                 {REFEREE_ARRANGEMENTS.map((r) => (
                   <MenuItem key={r} value={r}>
@@ -175,7 +241,7 @@ export function InvitationComposerPage() {
               sx={{ mb: 2.5 }}
             />
 
-            <Button variant="contained" size="large" onClick={handleContinue} disabled={weAreNotReady || theyAreNotReady}>
+            <Button variant="contained" size="large" onClick={handleContinue} disabled={weAreNotReady || theyAreNotReady || venuesPending}>
               Review invitation
             </Button>
           </CardContent>

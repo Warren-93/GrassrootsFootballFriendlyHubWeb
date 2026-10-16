@@ -1,10 +1,8 @@
 import { Accordion, AccordionDetails, AccordionSummary, Alert, Box, Button, Container, Typography } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { AccountTabs } from '../../components/AccountTabs';
+import { resolveSupportEmail, useClientConfig } from '../../session/ClientConfigState';
 import { brand } from '../../theme/theme';
-
-// Set VITE_SUPPORT_EMAIL in Vercel once the Kickabout support inbox exists.
-const SUPPORT_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL || 'support@pitchmate.co';
 
 interface FaqEntry {
   question: string;
@@ -46,13 +44,15 @@ const FAQS: FaqEntry[] = [
   {
     question: 'How do I add another manager or club admin?',
     answer:
-      'From Team & club, choose Club & members. They need an existing account with the email you enter. Club ' +
-      'admins can manage every squad the club runs; team managers can only manage the one team.',
+      'From Team & club, choose Club & members and enter their email. If they don\'t have an account yet, we email ' +
+      'them an invitation and they join the team once they\'ve signed up and verified that address. Club admins can ' +
+      'manage every squad the club runs, and only they can add, change or remove club admins; team managers can ' +
+      'only manage the one team.',
   },
   {
     question: "What happens after I send a friendly request?",
     answer:
-      'The other team can confirm it as-is, suggest changes to the date, time or venue, or decline it. You\'ll see ' +
+      'The other team can confirm it as-is, suggest a different kick-off time or venue, or decline it. You\'ll see ' +
       'the current status and any message from them on the request itself.',
   },
   {
@@ -70,6 +70,10 @@ const FAQS: FaqEntry[] = [
 // SCR-PR-12 Help and support. Purpose: self-serve answers, plus a clear path
 // to the real escalation route (Report) for anything that needs a human.
 export function HelpPage() {
+  // The API's address wins; VITE_SUPPORT_EMAIL is the build-time fallback.
+  const { config, loading } = useClientConfig();
+  const supportEmail = resolveSupportEmail(config, import.meta.env.VITE_SUPPORT_EMAIL);
+
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
       <AccountTabs />
@@ -102,32 +106,38 @@ export function HelpPage() {
           only through the app. For anything else, open the team's profile and choose Report.
         </Alert>
 
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 2,
-            borderRadius: 3,
-            p: 2.5,
-            color: '#fff',
-            background: `linear-gradient(120deg, ${brand.void}, ${brand.pitchDeep} 70%)`,
-          }}
-        >
-          <Box>
-            <Typography sx={{ fontWeight: 700, fontSize: 14 }}>Still stuck?</Typography>
-            <Typography sx={{ fontSize: 12.5, color: 'rgba(255,255,255,.72)' }}>
-              Message the Kickabout support team directly.
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            href={`mailto:${SUPPORT_EMAIL}`}
-            sx={{ bgcolor: brand.lime, color: brand.void, flexShrink: 0, '&:hover': { bgcolor: brand.lime } }}
+        {!loading && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 2,
+              borderRadius: 3,
+              p: 2.5,
+              color: '#fff',
+              background: `linear-gradient(120deg, ${brand.void}, ${brand.pitchDeep} 70%)`,
+            }}
           >
-            Message support
-          </Button>
-        </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 700, fontSize: 14 }}>Still stuck?</Typography>
+              <Typography sx={{ fontSize: 12.5, color: 'rgba(255,255,255,.72)' }}>
+                {supportEmail
+                  ? 'Message the Kickabout support team directly.'
+                  : "Use the report form - open the team's profile and choose Report. It goes straight to the Kickabout team."}
+              </Typography>
+            </Box>
+            {supportEmail && (
+              <Button
+                variant="contained"
+                href={`mailto:${supportEmail}`}
+                sx={{ bgcolor: brand.lime, color: brand.void, flexShrink: 0, '&:hover': { bgcolor: brand.lime } }}
+              >
+                Message support
+              </Button>
+            )}
+          </Box>
+        )}
       </Box>
     </Container>
   );

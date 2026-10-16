@@ -64,6 +64,8 @@ export interface InvitationDraft {
   startTime: string;
   endTime: string;
   venueId: string | null;
+  /** For the review step - only set when we host. */
+  venueName?: string | null;
   homeTeamId: string;
   costShare: CostShare;
   refereeArrangement: RefereeArrangement;

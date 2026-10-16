@@ -25,6 +25,7 @@ import { FixtureBanner } from '../../components/brand/FixtureBanner';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { MatchScoreChip } from '../../components/brand/MatchScoreChip';
 import { brand } from '../../theme/theme';
+import { opponentNames } from '../../utils/request';
 import { ProfileChecklistCard } from '../../components/ProfileChecklistCard';
 
 const OPEN_REQUEST_STATUSES = new Set(['SENT', 'CHANGES_REQUESTED', 'UPDATED']);
@@ -124,15 +125,7 @@ export function HomePage() {
         const pending = requestsResult.value.filter((r) => OPEN_REQUEST_STATUSES.has(r.status));
         setPendingRequests(pending);
 
-        const topPending = pending.slice(0, 2);
-        const opponentEntries = await Promise.all(
-          topPending.map(async (r) => {
-            const otherTeamId = active.teamId === r.senderTeamId ? r.recipientTeamId : r.senderTeamId;
-            const otherTeamResult = await teamRepository.get(otherTeamId);
-            return [r.id, otherTeamResult.ok ? otherTeamResult.value.name : 'Opponent'] as const;
-          }),
-        );
-        setRequestOpponents(Object.fromEntries(opponentEntries));
+        setRequestOpponents(await opponentNames(pending.slice(0, 2), active.teamId, teamRepository.get));
       }
 
       setLoaded(true);
@@ -209,13 +202,15 @@ export function HomePage() {
                 tag="Next friendly"
                 homeTeam={nextFixture.homeTeam.name}
                 awayTeam={nextFixture.awayTeam.name}
+                homeBadgeUrl={nextFixture.homeTeam.badgeUrl}
+                awayBadgeUrl={nextFixture.awayTeam.badgeUrl}
                 date={formatShortDate(nextFixture.date)}
                 meta={`${nextFixture.startTime.slice(0, 5)} - ${nextFixture.endTime.slice(0, 5)}`}
               />
             </Box>
           )}
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' }, gap: 2 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: '2fr 1fr' }, gap: 2 }}>
             <Stack spacing={2}>
               <DashboardCard title="Suggested for you" onSeeAll={() => navigate('/suggested-matches')}>
                 {suggestions.length === 0 ? (

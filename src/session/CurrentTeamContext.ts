@@ -15,6 +15,13 @@ export interface ActiveTeam {
    * teams cached before this field existed.
    */
   canManage?: boolean;
+  /**
+   * False for anyone who isn't the club's admin, a team manager included:
+   * only a club admin can add or change the club's venues, so the app shows
+   * them read-only. Missing means true, for teams cached before this field
+   * existed; AppShell fills it in from GET /teams/mine.
+   */
+  canManageClub?: boolean;
 }
 
 export interface CurrentTeamContextValue {

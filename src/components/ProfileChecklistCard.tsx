@@ -3,6 +3,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { useNavigate } from 'react-router-dom';
 import type { ProfileChecklistItem, TeamView } from '../api/types';
+import { useCurrentTeam } from '../session/CurrentTeamContext';
+import { canManageActiveClub } from '../session/canManageActive';
 import { brand } from '../theme/theme';
 
 /** Where each checklist item is fixed. */
@@ -26,10 +28,18 @@ function linkFor(item: ProfileChecklistItem, teamId: string): string {
  */
 export function ProfileChecklistCard({ team, showOptional = true }: { team: TeamView; showOptional?: boolean }) {
   const navigate = useNavigate();
+  const { active } = useCurrentTeam();
+  // Only the club's admin can add its venues. GET /teams/mine says whether
+  // that's the viewer, and so does the active team for the club they're
+  // acting in; anywhere else, offer the venue form as before.
+  const canAddVenue = team.canManageClub ?? (team.clubId === active?.clubId ? canManageActiveClub(active) : true);
   const checklist = team.profileChecklist ?? [];
   const required = checklist.filter((i) => i.requiredForRequests && !i.done);
   const optional = checklist.filter((i) => !i.requiredForRequests && !i.done);
   if (required.length === 0 && (!showOptional || optional.length === 0)) return null;
+
+  // The venue is only missing when the club has none, and only its admin can add one.
+  const askClubAdmin = (item: ProfileChecklistItem) => item.key === 'VENUE' && !item.done && !canAddVenue;
 
   const row = (item: ProfileChecklistItem) => (
     <Stack key={item.key} direction="row" spacing={1.25} sx={{ alignItems: 'center', py: 0.75 }}>
@@ -38,8 +48,15 @@ export function ProfileChecklistCard({ team, showOptional = true }: { team: Team
       ) : (
         <RadioButtonUncheckedIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
       )}
-      <Typography sx={{ flex: 1, fontSize: 13.5 }}>{item.label}</Typography>
-      {!item.done && (
+      <Box sx={{ flex: 1 }}>
+        <Typography sx={{ fontSize: 13.5 }}>{item.label}</Typography>
+        {askClubAdmin(item) && (
+          <Typography color="text.secondary" sx={{ fontSize: 12.5 }}>
+            Your club has no venues yet. Ask your club admin to add one.
+          </Typography>
+        )}
+      </Box>
+      {!item.done && !askClubAdmin(item) && (
         <Button size="small" onClick={() => navigate(linkFor(item, team.id))}>
           {item.key === 'VERIFICATION' && team.verification === 'PENDING' ? 'View' : 'Do it'}
         </Button>

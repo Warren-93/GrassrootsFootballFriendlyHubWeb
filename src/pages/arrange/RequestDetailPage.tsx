@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Alert, Box, Button, Card, CardContent, CircularProgress, Container, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Container, Link, Stack, Typography } from '@mui/material';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import { useNavigate, useParams } from 'react-router-dom';
 import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
 import { conversationRepository } from '../../api/conversationRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { CrestAvatar } from '../../components/brand/CrestAvatar';
+import { VenueCard } from '../../components/VenueCard';
 import { brand } from '../../theme/theme';
-import type { FriendlyRequestView } from '../../api/types';
+import { directionsUrl, PITCH_SURFACE_LABEL, venueAddressLine } from '../../utils/venue';
+import { unbrokenPhone } from '../../utils/contact';
+import type { FriendlyRequestView, VenueSummary } from '../../api/types';
 
 const STATUS_STYLE: Record<string, { bgcolor: string; color: string }> = {
   ACCEPTED: { bgcolor: '#E4F4E4', color: brand.pitchDeep },
@@ -90,16 +94,36 @@ export function RequestDetailPage() {
   }
 
   const style = STATUS_STYLE[request.status] ?? { bgcolor: brand.mist, color: brand.muted };
+  const sentByUs = active?.teamId === request.senderTeamId;
+  const otherTeam = sentByUs ? request.recipientTeam : request.senderTeam;
+  const homeTeam = request.homeTeamId === request.senderTeamId ? request.senderTeam : request.recipientTeam;
+  const senderLabel = request.senderContact?.teamName ?? request.senderTeam?.name ?? 'Sender';
+  const recipientLabel = request.recipientContact?.teamName ?? request.recipientTeam?.name ?? 'Recipient';
+  const hasProposal = !!(request.proposedStartTime || request.proposedEndTime || request.proposedVenueId || request.proposedVenue);
+  const proposesVenue = !!(request.proposedVenue || request.proposedVenueId);
 
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
       <Box sx={{ maxWidth: 560 }}>
-        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-end', mb: 3 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Friendly request
-          </Typography>
-          <Box sx={{ fontSize: 12, fontWeight: 700, px: 1.25, py: 0.5, borderRadius: 5, ...style }}>
-            {request.status.replace(/_/g, ' ')}
+        <Stack direction="row" sx={{ alignItems: 'center', gap: 1.75, mb: 3 }}>
+          {otherTeam && <CrestAvatar name={otherTeam.name} src={otherTeam.badgeUrl} size={52} />}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            {otherTeam && (
+              <Typography variant="body2" color="text.secondary">
+                {sentByUs ? 'Friendly request to' : 'Friendly request from'}
+              </Typography>
+            )}
+            <Typography variant="h5" sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
+              {otherTeam?.name ?? 'Friendly request'}
+            </Typography>
+            {otherTeam?.clubName && (
+              <Typography variant="body2" color="text.secondary">
+                {otherTeam.clubName}
+              </Typography>
+            )}
+            <Box sx={{ display: 'inline-block', mt: 1, fontSize: 12, fontWeight: 700, px: 1.25, py: 0.5, borderRadius: 5, ...style }}>
+              {request.status.replace(/_/g, ' ')}
+            </Box>
           </Box>
         </Stack>
 
@@ -107,10 +131,13 @@ export function RequestDetailPage() {
           <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
             <Row label="Date" value={request.date} />
             <Row label="Time" value={`${request.startTime.slice(0, 5)} - ${request.endTime.slice(0, 5)}`} />
+            {homeTeam && <Row label="Home team" value={homeTeam.name} />}
             <Row label="Cost share" value={request.costShare.replace(/_/g, ' ')} />
             <Row label="Referee" value={request.refereeArrangement.replace(/_/g, ' ')} last />
           </CardContent>
         </Card>
+
+        {request.venue && <VenueCard venue={request.venue} sx={{ mt: 2 }} />}
 
         {request.message && (
           <Typography variant="body2" sx={{ mt: 2 }}>
@@ -123,7 +150,7 @@ export function RequestDetailPage() {
           </Typography>
         )}
 
-        {(request.proposedStartTime || request.proposedEndTime || request.proposedVenueId) && (
+        {hasProposal && (
           <Card variant="outlined" sx={{ borderRadius: 3, mt: 2, borderColor: brand.amber }}>
             <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: brand.amber }}>
@@ -133,10 +160,14 @@ export function RequestDetailPage() {
                 <Row
                   label="New time"
                   value={`${(request.proposedStartTime ?? request.startTime).slice(0, 5)} - ${(request.proposedEndTime ?? request.endTime).slice(0, 5)}`}
-                  last={!request.proposedVenueId}
+                  last={!proposesVenue}
                 />
               )}
-              {request.proposedVenueId && <Row label="Venue" value="A different venue has been proposed" last />}
+              {request.proposedVenue ? (
+                <ProposedVenueRow venue={request.proposedVenue} />
+              ) : (
+                request.proposedVenueId && <Row label="Venue" value="A different venue has been proposed" last />
+              )}
             </CardContent>
           </Card>
         )}
@@ -148,10 +179,10 @@ export function RequestDetailPage() {
                 Contact details
               </Typography>
               {request.senderContact?.managerName && (
-                <Row label="Sender" value={`${request.senderContact.managerName} ${request.senderContact.contactPhone ?? ''}`} />
+                <Row label={senderLabel} value={`${request.senderContact.managerName} ${unbrokenPhone(request.senderContact.contactPhone)}`} />
               )}
               {request.recipientContact?.managerName && (
-                <Row label="Recipient" value={`${request.recipientContact.managerName} ${request.recipientContact.contactPhone ?? ''}`} last />
+                <Row label={recipientLabel} value={`${request.recipientContact.managerName} ${unbrokenPhone(request.recipientContact.contactPhone)}`} last />
               )}
             </CardContent>
           </Card>
@@ -163,7 +194,7 @@ export function RequestDetailPage() {
           </Alert>
         )}
 
-        <Stack direction="row" spacing={1.5} sx={{ mt: 2.5, flexWrap: 'wrap' }}>
+        <Stack direction="row" spacing={1.5} useFlexGap sx={{ mt: 2.5, flexWrap: 'wrap' }}>
           {request.availableActions.map((action) => (
             <Button
               key={action}
@@ -177,7 +208,7 @@ export function RequestDetailPage() {
           ))}
         </Stack>
 
-        <Stack direction="row" spacing={1.5} sx={{ mt: 1.5, flexWrap: 'wrap' }}>
+        <Stack direction="row" spacing={1.5} useFlexGap sx={{ mt: 1.5, flexWrap: 'wrap' }}>
           {active && (
             <Button
               variant="outlined"
@@ -196,7 +227,8 @@ export function RequestDetailPage() {
               onClick={() => {
                 const otherTeamId =
                   active.teamId === request.senderTeamId ? request.recipientTeamId : request.senderTeamId;
-                navigate(`/report?teamId=${otherTeamId}`);
+                const teamName = otherTeam ? `&teamName=${encodeURIComponent(otherTeam.name)}` : '';
+                navigate(`/report?teamId=${otherTeamId}${teamName}`);
               }}
             >
               Report or block
@@ -212,7 +244,7 @@ function Row({ label, value, last }: { label: string; value: string; last?: bool
   return (
     <Stack
       direction="row"
-      sx={{ justifyContent: 'space-between', alignItems: 'baseline', py: 1.25, borderBottom: last ? 'none' : 1, borderColor: 'divider' }}
+      sx={{ justifyContent: 'space-between', alignItems: 'baseline', gap: 2, py: 1.25, borderBottom: last ? 'none' : 1, borderColor: 'divider' }}
     >
       <Typography variant="body2" color="text.secondary">
         {label}
@@ -220,6 +252,35 @@ function Row({ label, value, last }: { label: string; value: string; last?: bool
       <Typography variant="body2" sx={{ fontWeight: 600, textAlign: 'right' }}>
         {value}
       </Typography>
+    </Stack>
+  );
+}
+
+function ProposedVenueRow({ venue }: { venue: VenueSummary }) {
+  const url = directionsUrl(venue);
+  const details = [venueAddressLine(venue), venue.pitchSurface && `${PITCH_SURFACE_LABEL[venue.pitchSurface]} pitch`]
+    .filter(Boolean)
+    .join(', ');
+  return (
+    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline', gap: 2, py: 1.25 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+        New venue
+      </Typography>
+      <Box sx={{ textAlign: 'right', minWidth: 0 }}>
+        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+          {venue.name}
+        </Typography>
+        {details && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            {details}
+          </Typography>
+        )}
+        {url && (
+          <Link href={url} target="_blank" rel="noopener noreferrer" variant="caption" sx={{ fontWeight: 700 }}>
+            Directions
+          </Link>
+        )}
+      </Box>
     </Stack>
   );
 }

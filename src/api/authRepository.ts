@@ -5,6 +5,8 @@ import type {
   ChangeEmailResponse,
   ChangePasswordRequest,
   LoginRequest,
+  OAuthProvider,
+  OAuthSignInRequest,
   RegisterRequest,
   TokenResponse,
   UserView,
@@ -22,6 +24,10 @@ export const authRepository = {
 
   login: (request: LoginRequest) =>
     apiClient.post<TokenResponse>('/api/v1/auth/login', request, false).then(storeAndReturn),
+
+  /** "Continue with Google/Apple": same token response and refresh cookie as login, plus newUser for a new account. */
+  oauthSignIn: (provider: OAuthProvider, request: OAuthSignInRequest) =>
+    apiClient.post<TokenResponse>(`/api/v1/auth/oauth/${provider}`, request, false).then(storeAndReturn),
 
   me: () => apiClient.get<UserView>('/api/v1/me'),
 

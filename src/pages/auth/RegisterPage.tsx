@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import { Alert, Box, Button, Card, Container, Link, Stack, TextField, Typography } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authRepository } from '../../api/authRepository';
 import { useAuth } from '../../auth/AuthContext';
 import { BrandHeader } from '../../components/BrandHeader';
+import { OAuthButtons } from '../../components/OAuthButtons';
 import { brand } from '../../theme/theme';
 import { setPostAuthRedirect } from '../../routes/postAuthRedirect';
 
 export function RegisterPage() {
   const navigate = useNavigate();
   const { resolveSession } = useAuth();
-  const [email, setEmail] = useState('');
+  // Member invitation emails link to /register?email=... so the invited address is already filled in.
+  const [searchParams] = useSearchParams();
+  const [email, setEmail] = useState(() => searchParams.get('email') ?? '');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -24,9 +27,12 @@ export function RegisterPage() {
     const result = await authRepository.register({ email, password, displayName });
     setSubmitting(false);
     if (result.ok) {
-      setPostAuthRedirect('/role-selection');
+      // An invited person joins the team once their email is verified, so
+      // send them to verify it rather than into setting up a team of their own.
+      const next = searchParams.has('email') ? '/email-verification' : '/role-selection';
+      setPostAuthRedirect(next);
       await resolveSession();
-      navigate('/role-selection');
+      navigate(next);
     } else {
       setErrorMessage(result.message);
     }
@@ -91,6 +97,8 @@ export function RegisterPage() {
             >
               {submitting ? 'Creating account…' : 'Create account'}
             </Button>
+
+            <OAuthButtons onError={setErrorMessage} />
 
             <Typography variant="body2" sx={{ textAlign: 'center' }}>
               Already have an account?{' '}

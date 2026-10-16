@@ -5,19 +5,27 @@ import type { NotificationPreferenceView } from '../../api/types';
 import { AccountTabs } from '../../components/AccountTabs';
 import { SettingRow } from '../../components/SettingRow';
 
-const LABELS: { key: keyof NotificationPreferenceView; label: string; help: string }[] = [
+type PreferenceKey = keyof NotificationPreferenceView;
+
+const LABELS: { key: PreferenceKey; label: string; help: string }[] = [
   { key: 'friendlyRequests', label: 'New match requests', help: 'New requests, declines, suggested changes and withdrawals' },
   { key: 'fixtures', label: 'Fixtures', help: 'Confirmations and cancellations' },
   { key: 'verification', label: 'Verification', help: 'Approval or rejection of a submission' },
   { key: 'messages', label: 'Messages', help: 'New messages from the other team on a confirmed fixture' },
 ];
 
+const DELIVERY_LABELS: { key: PreferenceKey; label: string; help: string }[] = [
+  { key: 'emailEnabled', label: 'Email me', help: 'Get these notifications by email as well - new chat messages stay in the app' },
+  { key: 'pushEnabled', label: 'Phone notifications', help: 'Alerts on your phone from the Kickabout app' },
+];
+
 // SCR-PR-09 Notification preferences. Purpose: let a manager choose which
-// events actually create a notification for them. The concept's mock also
+// events actually create a notification for them, and whether those also
+// arrive by email and as phone notifications. The concept's mock also
 // shows Fixture reminders, Weekly digest and Marketing emails - none of
 // those exist server-side (no reminder scheduling, no digest job, no
-// marketing consent field), so only the four real, working toggles are
-// shown rather than fabricating switches that don't persist.
+// marketing consent field), so only the real, working toggles are shown
+// rather than fabricating switches that don't persist.
 export function NotificationPreferencesPage() {
   const [prefs, setPrefs] = useState<NotificationPreferenceView | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,7 +40,7 @@ export function NotificationPreferencesPage() {
     });
   }, []);
 
-  async function toggle(key: keyof NotificationPreferenceView) {
+  async function toggle(key: PreferenceKey) {
     if (!prefs) return;
     const updated = { ...prefs, [key]: !prefs[key] };
     setPrefs(updated);
@@ -77,7 +85,36 @@ export function NotificationPreferencesPage() {
               title={label}
               subtitle={help}
               last={i === LABELS.length - 1}
-              control={<Switch checked={prefs[key]} onChange={() => toggle(key)} disabled={saving} />}
+              control={
+                <Switch
+                  checked={prefs[key]}
+                  onChange={() => toggle(key)}
+                  disabled={saving}
+                  slotProps={{ input: { 'aria-label': label } }}
+                />
+              }
+            />
+          ))}
+        </CardContent>
+      </Card>
+
+      <Typography sx={{ fontWeight: 700, fontSize: 13.5, mt: 3, mb: 1.25 }}>How we reach you</Typography>
+      <Card variant="outlined" sx={{ borderRadius: 3, maxWidth: 640 }}>
+        <CardContent sx={{ px: { xs: 2, sm: 2.75 }, py: 0.5, '&:last-child': { pb: 0.5 } }}>
+          {DELIVERY_LABELS.map(({ key, label, help }, i) => (
+            <SettingRow
+              key={key}
+              title={label}
+              subtitle={help}
+              last={i === DELIVERY_LABELS.length - 1}
+              control={
+                <Switch
+                  checked={prefs[key]}
+                  onChange={() => toggle(key)}
+                  disabled={saving}
+                  slotProps={{ input: { 'aria-label': label } }}
+                />
+              }
             />
           ))}
         </CardContent>

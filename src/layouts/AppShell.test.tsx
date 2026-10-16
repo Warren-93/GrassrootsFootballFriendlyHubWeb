@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -9,6 +9,7 @@ import { NavPreferenceProvider } from '../session/NavPreferenceProvider';
 import { ThemeModeProvider } from '../session/ThemeModeProvider';
 import { notificationRepository } from '../api/notificationRepository';
 import { teamRepository } from '../api/teamRepository';
+import type { TeamView } from '../api/types';
 
 vi.mock('../auth/AuthContext', () => ({ useAuth: vi.fn() }));
 vi.mock('../session/CurrentTeamContext', () => ({ useCurrentTeam: vi.fn() }));
@@ -25,6 +26,11 @@ const mockedUnreadCount = vi.mocked(notificationRepository.unreadCount);
 const mockedListMine = vi.mocked(teamRepository.listMine);
 
 const session = { id: '1', email: 'jamie@riversidefc.co.uk', displayName: 'Jamie Muir', emailVerified: true };
+
+/** One of GET /teams/mine's teams, with only what the shell reads. */
+function mine(flags: Pick<TeamView, 'canManage' | 'canManageClub'>): TeamView {
+  return { id: 'team-1', name: 'Riverside FC', clubId: 'club-1', ...flags } as TeamView;
+}
 
 function setDesktop(matches: boolean) {
   window.matchMedia = ((query: string) => ({
@@ -145,5 +151,45 @@ describe('AppShell', () => {
     await userEvent.click(within(menu).getByText('Settings'));
 
     expect(await screen.findByText('Settings content')).toBeInTheDocument();
+  });
+
+  it("fills in whether the user runs the club from GET /teams/mine, for a team set without it", async () => {
+    const setActive = vi.fn();
+    mockedUseCurrentTeam.mockReturnValue({
+      active: { teamId: 'team-1', teamName: 'Riverside FC', clubId: 'club-1', canManage: true },
+      setActive,
+      clear: vi.fn(),
+    });
+    mockedListMine.mockResolvedValue({ ok: true, value: [mine({ canManage: true, canManageClub: false })] });
+
+    renderShell();
+
+    await waitFor(() =>
+      expect(setActive).toHaveBeenCalledWith({
+        teamId: 'team-1',
+        teamName: 'Riverside FC',
+        clubId: 'club-1',
+        canManage: true,
+        canManageClub: false,
+      }),
+    );
+  });
+
+  it('leaves the active team alone when GET /teams/mine agrees, and treats an older API as running the club', async () => {
+    const setActive = vi.fn();
+    mockedUseCurrentTeam.mockReturnValue({
+      active: { teamId: 'team-1', teamName: 'Riverside FC', clubId: 'club-1', canManage: true, canManageClub: true },
+      setActive,
+      clear: vi.fn(),
+    });
+    mockedListMine.mockResolvedValue({ ok: true, value: [mine({ canManage: true })] });
+
+    renderShell();
+
+    await waitFor(() => expect(mockedListMine).toHaveBeenCalled());
+    await act(async () => {
+      await mockedListMine.mock.results[0].value;
+    });
+    expect(setActive).not.toHaveBeenCalled();
   });
 });

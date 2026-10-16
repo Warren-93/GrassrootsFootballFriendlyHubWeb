@@ -1,10 +1,13 @@
-import { Box, Button, Card, Container, Stack } from '@mui/material';
+import { useState } from 'react';
+import { Alert, Box, Button, Card, Container, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { BrandHeader } from '../../components/BrandHeader';
+import { OAuthButtons } from '../../components/OAuthButtons';
 import { brand } from '../../theme/theme';
 
 export function WelcomePage() {
   const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   return (
     <Box
       sx={{
@@ -37,6 +40,8 @@ export function WelcomePage() {
               <Button variant="outlined" size="large" onClick={() => navigate('/sign-in')}>
                 Sign in
               </Button>
+              <OAuthButtons onError={setErrorMessage} />
+              {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
             </Stack>
           </Stack>
         </Card>

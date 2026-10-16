@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Box, Typography, useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useParams } from 'react-router-dom';
 import { ConversationListPanel } from './ConversationListPanel';
 import { ConversationThreadPanel } from './ConversationThreadPanel';
+import type { MessageView } from '../../api/types';
 
 /**
  * One open conversation. On desktop this is the right pane of a persistent
@@ -14,6 +16,13 @@ export function ConversationThreadPage() {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'), { noSsr: true });
   const { conversationId } = useParams<{ conversationId: string }>();
+  // The last message sent in each conversation, so the inbox beside the
+  // thread shows it without fetching the whole list again.
+  const [sentMessages, setSentMessages] = useState<Record<string, MessageView>>({});
+
+  function handleSent(message: MessageView) {
+    setSentMessages((prev) => ({ ...prev, [message.conversationId]: message }));
+  }
 
   if (!conversationId) {
     return (
@@ -32,10 +41,10 @@ export function ConversationThreadPage() {
               Messages
             </Typography>
           </Box>
-          <ConversationListPanel selectedConversationId={conversationId} />
+          <ConversationListPanel selectedConversationId={conversationId} sentMessages={sentMessages} />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <ConversationThreadPanel conversationId={conversationId} />
+          <ConversationThreadPanel conversationId={conversationId} onSent={handleSent} />
         </Box>
       </Box>
     );

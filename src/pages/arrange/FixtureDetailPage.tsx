@@ -24,7 +24,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { fixtureRepository } from '../../api/fixtureRepository';
 import { conversationRepository } from '../../api/conversationRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { canManageActive } from '../../session/canManageActive';
 import { FixtureBanner } from '../../components/brand/FixtureBanner';
+import { VenueCard } from '../../components/VenueCard';
+import { contactLine } from '../../utils/contact';
 import { brand } from '../../theme/theme';
 import type { FixtureView } from '../../api/types';
 
@@ -77,6 +80,13 @@ export function FixtureDetailPage() {
   }
 
   const weManage = active && (fixture.homeTeam.id === active.teamId || fixture.awayTeam.id === active.teamId);
+  // A member who joined with a code sees the fixture read-only: the API leaves
+  // the managers' contact details out for them, and every action is a manager's.
+  const readOnly = !canManageActive(active);
+  // Every action is taken as one of the two teams. Acting as neither (a club
+  // admin opening a fixture of another of the club's teams, say) there's no
+  // "other team" to message, cancel with or report.
+  const showActions = !readOnly && !!weManage;
 
   async function handleCancel() {
     if (!fixtureId) return;
@@ -114,11 +124,15 @@ export function FixtureDetailPage() {
           tag={fixture.status === 'CONFIRMED' ? 'Confirmed friendly' : fixture.status}
           homeTeam={fixture.homeTeam.name}
           awayTeam={fixture.awayTeam.name}
+          homeBadgeUrl={fixture.homeTeam.badgeUrl}
+          awayBadgeUrl={fixture.awayTeam.badgeUrl}
           date={fixture.date}
           meta={`${fixture.startTime.slice(0, 5)} - ${fixture.endTime.slice(0, 5)}`}
         />
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+        {fixture.venue && <VenueCard venue={fixture.venue} />}
+
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: showActions ? '1fr 1fr' : '1fr' }, gap: 2 }}>
           <Card variant="outlined">
             <CardContent>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
@@ -127,54 +141,62 @@ export function FixtureDetailPage() {
               <Stack spacing={1}>
                 <Row label="Cost share" value={fixture.costShare.replace(/_/g, ' ')} />
                 <Row label="Referee" value={fixture.refereeArrangement.replace(/_/g, ' ')} />
-                <Row
-                  label="Home contact"
-                  value={`${fixture.homeTeam.managerName ?? '—'} ${fixture.homeTeam.contactPhone ?? ''}`}
-                />
-                <Row
-                  label="Away contact"
-                  value={`${fixture.awayTeam.managerName ?? '—'} ${fixture.awayTeam.contactPhone ?? ''}`}
-                />
+                {readOnly ? (
+                  <Typography variant="body2" color="text.secondary">
+                    The managers' contact details are only shown to team managers.
+                  </Typography>
+                ) : (
+                  <>
+                    <Row
+                      label={fixture.homeTeam.name}
+                      value={contactLine(fixture.homeTeam.managerName, fixture.homeTeam.contactPhone)}
+                    />
+                    <Row
+                      label={fixture.awayTeam.name}
+                      value={contactLine(fixture.awayTeam.managerName, fixture.awayTeam.contactPhone)}
+                    />
+                  </>
+                )}
               </Stack>
             </CardContent>
           </Card>
 
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-                Actions
-              </Typography>
-              <Stack spacing={1.5}>
-                {messageError && <Alert severity="error">{messageError}</Alert>}
-                {weManage && (
+          {showActions && (
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+                  Actions
+                </Typography>
+                <Stack spacing={1.5}>
+                  {messageError && <Alert severity="error">{messageError}</Alert>}
                   <Button variant="outlined" startIcon={<ChatBubbleOutlineIcon />} disabled={opening} onClick={openChat}>
                     {opening ? 'Opening…' : 'Message the other team'}
                   </Button>
-                )}
 
-                {cancelError && <Alert severity="error">{cancelError}</Alert>}
+                  {cancelError && <Alert severity="error">{cancelError}</Alert>}
 
-                {weManage && fixture.status === 'CONFIRMED' && (
-                  <Button variant="outlined" color="error" onClick={() => setConfirmCancel(true)}>
-                    Cancel fixture
-                  </Button>
-                )}
+                  {fixture.status === 'CONFIRMED' && (
+                    <Button variant="outlined" color="error" onClick={() => setConfirmCancel(true)}>
+                      Cancel fixture
+                    </Button>
+                  )}
 
-                {active && (
-                  <Button
-                    variant="text"
-                    color="error"
-                    onClick={() => {
-                      const otherTeam = active.teamId === fixture.homeTeam.id ? fixture.awayTeam : fixture.homeTeam;
-                      navigate(`/report?teamId=${otherTeam.id}&teamName=${encodeURIComponent(otherTeam.name)}&fixtureId=${fixture.id}`);
-                    }}
-                  >
-                    Report or block
-                  </Button>
-                )}
-              </Stack>
-            </CardContent>
-          </Card>
+                  {active && (
+                    <Button
+                      variant="text"
+                      color="error"
+                      onClick={() => {
+                        const otherTeam = active.teamId === fixture.homeTeam.id ? fixture.awayTeam : fixture.homeTeam;
+                        navigate(`/report?teamId=${otherTeam.id}&teamName=${encodeURIComponent(otherTeam.name)}&fixtureId=${fixture.id}`);
+                      }}
+                    >
+                      Report or block
+                    </Button>
+                  )}
+                </Stack>
+              </CardContent>
+            </Card>
+          )}
         </Box>
       </Stack>
 
@@ -207,7 +229,7 @@ export function FixtureDetailPage() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline', gap: 2 }}>
       <Typography variant="body2" color="text.secondary">
         {label}
       </Typography>

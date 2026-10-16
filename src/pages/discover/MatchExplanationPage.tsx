@@ -1,16 +1,26 @@
 import { Box, Card, CardContent, Container, Stack, Typography } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { useSearchResultsStore } from '../../session/SearchState';
+import { useDefaultSearch } from '../../session/useDefaultSearch';
+import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { DefaultSearchStatus } from '../../components/DefaultSearchStatus';
 import { brand } from '../../theme/theme';
 
 export function MatchExplanationPage() {
   const { teamId } = useParams<{ teamId: string }>();
+  const { active } = useCurrentTeam();
   const match = useSearchResultsStore((s) => (teamId ? s.findTeam(teamId) : null));
+  const searched = useSearchResultsStore((s) => s.response !== null);
+  const { searchError, retry } = useDefaultSearch(active?.teamId);
 
   if (!match) {
     return (
       <Container maxWidth="lg" sx={{ py: 6 }}>
-        <Typography>This opponent isn't in your last search results.</Typography>
+        {active && !searched ? (
+          <DefaultSearchStatus error={searchError} onRetry={retry} loadingText="Finding this team…" />
+        ) : (
+          <Typography>This opponent isn't in your last search results.</Typography>
+        )}
       </Container>
     );
   }

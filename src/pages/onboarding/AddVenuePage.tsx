@@ -39,6 +39,7 @@ export function AddVenuePage() {
       clubId,
       name,
       address,
+      postcode: postcode.trim(),
       longitude: coordinates.longitude,
       latitude: coordinates.latitude,
       pitchSurface,

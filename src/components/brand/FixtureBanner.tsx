@@ -6,12 +6,14 @@ interface FixtureBannerProps {
   tag: string;
   homeTeam: string;
   awayTeam: string;
+  homeBadgeUrl?: string | null;
+  awayBadgeUrl?: string | null;
   date: string;
   meta: string;
 }
 
 /** The "vs" banner for a next/confirmed fixture - navy card, two crests, centred date. Matches the concept's .a-fixture. */
-export function FixtureBanner({ tag, homeTeam, awayTeam, date, meta }: FixtureBannerProps) {
+export function FixtureBanner({ tag, homeTeam, awayTeam, homeBadgeUrl, awayBadgeUrl, date, meta }: FixtureBannerProps) {
   return (
     <Box
       sx={{
@@ -40,7 +42,7 @@ export function FixtureBanner({ tag, homeTeam, awayTeam, date, meta }: FixtureBa
       }}
     >
       <Stack spacing={1} sx={{ width: 110, position: 'relative', alignItems: 'center' }}>
-        <CrestAvatar name={homeTeam} />
+        <CrestAvatar name={homeTeam} src={homeBadgeUrl} />
         <Typography sx={{ fontSize: 13, fontWeight: 700, textAlign: 'center' }}>{homeTeam}</Typography>
       </Stack>
       <Box sx={{ textAlign: 'center', position: 'relative' }}>
@@ -51,7 +53,7 @@ export function FixtureBanner({ tag, homeTeam, awayTeam, date, meta }: FixtureBa
         <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,.72)' }}>{meta}</Typography>
       </Box>
       <Stack spacing={1} sx={{ width: 110, position: 'relative', alignItems: 'center' }}>
-        <CrestAvatar name={awayTeam} />
+        <CrestAvatar name={awayTeam} src={awayBadgeUrl} />
         <Typography sx={{ fontSize: 13, fontWeight: 700, textAlign: 'center' }}>{awayTeam}</Typography>
       </Stack>
     </Box>
