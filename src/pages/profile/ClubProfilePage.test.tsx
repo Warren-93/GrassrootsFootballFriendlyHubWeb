@@ -20,6 +20,7 @@ vi.mock('../../api/memberRepository', async (importOriginal) => ({
     list: vi.fn(),
     listInvites: vi.fn(),
     add: vi.fn(),
+    updateRole: vi.fn(),
     cancelInvite: vi.fn(),
     joinCode: vi.fn(),
   },
@@ -45,6 +46,16 @@ const member: MemberView = {
   role: 'CLUB_ADMIN',
   scope: 'CLUB',
   joinedAt: '2026-01-01T00:00:00Z',
+};
+
+const manager: MemberView = {
+  ...member,
+  membershipId: 'm2',
+  userId: 'u2',
+  email: 'sam@example.com',
+  displayName: 'Sam Lee',
+  role: 'TEAM_MANAGER',
+  scope: 'TEAM',
 };
 
 function invite(id: string, email: string): InviteView {
@@ -81,7 +92,15 @@ describe('ClubProfilePage members', () => {
     vi.mocked(memberRepository.joinCode).mockResolvedValue({ ok: true, value: { code: 'K7Q2ZP' } });
     vi.mocked(memberRepository.listInvites).mockReset();
     vi.mocked(memberRepository.add).mockReset();
+    vi.mocked(memberRepository.updateRole).mockReset();
   });
+
+  async function roleOptions(combobox: string) {
+    await userEvent.click(screen.getByRole('combobox', { name: combobox }));
+    const options = screen.getAllByRole('option').map((o) => o.textContent);
+    await userEvent.keyboard('{Escape}');
+    return options;
+  }
 
   it('says an invitation was sent when the email has no account yet, and lists it as pending', async () => {
     const sent = invite('i1', 'new.coach@example.com');
@@ -161,5 +180,63 @@ describe('ClubProfilePage members', () => {
     await userEvent.click(await screen.findByText('Riverside U14 Boys'));
 
     expect(setActive).toHaveBeenCalledWith({ teamId: 'team-2', teamName: 'Riverside U14 Boys', clubId: 'club-1', canManageClub: true });
+  });
+
+  it("doesn't let a team manager add, change or remove a club admin", async () => {
+    vi.mocked(useAuth).mockReturnValue({ session: { id: 'u2' } } as ReturnType<typeof useAuth>);
+    vi.mocked(useCurrentTeam).mockReturnValue({
+      active: { teamId: 'team-1', teamName: 'Riverside U12 Girls', clubId: 'club-1', canManage: true, canManageClub: false },
+      setActive: vi.fn(),
+      clear: vi.fn(),
+    });
+    vi.mocked(clubRepository.get).mockResolvedValue({ ok: false, message: 'That club could not be found.', status: 404 });
+    vi.mocked(memberRepository.list).mockResolvedValue({ ok: true, value: [member, manager] });
+    vi.mocked(memberRepository.listInvites).mockResolvedValue({ ok: true, value: [] });
+    renderPage();
+
+    expect(await screen.findByText('Jamie Muir')).toBeInTheDocument();
+    expect(screen.getByText('Owner')).toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: 'Role for Jamie Muir' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Remove Jamie Muir' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove Sam Lee' })).toBeInTheDocument();
+    expect(await roleOptions('Role for Sam Lee')).toEqual(['No management role', 'Team manager']);
+    expect(await roleOptions('Role')).toEqual(['No management role', 'Team manager']);
+    expect(screen.getByText(/Only a club admin can add club admins\./)).toBeInTheDocument();
+  });
+
+  it.each([
+    ['a club admin', true],
+    ['an older API', undefined],
+  ])('lets %s add, change and remove club admins as before', async (_, canManageClub) => {
+    vi.mocked(useCurrentTeam).mockReturnValue({
+      active: { teamId: 'team-1', teamName: 'Riverside U12 Girls', clubId: 'club-1', canManage: true, canManageClub },
+      setActive: vi.fn(),
+      clear: vi.fn(),
+    });
+    vi.mocked(memberRepository.list).mockResolvedValue({ ok: true, value: [member, manager] });
+    vi.mocked(memberRepository.listInvites).mockResolvedValue({ ok: true, value: [] });
+    renderPage();
+
+    expect(await screen.findByRole('combobox', { name: 'Role for Jamie Muir' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove Jamie Muir' })).toBeInTheDocument();
+    expect(await roleOptions('Role for Sam Lee')).toEqual(['No management role', 'Team manager', 'Club admin']);
+    expect(await roleOptions('Role')).toEqual(['No management role', 'Team manager', 'Club admin']);
+    expect(screen.queryByText(/Only a club admin can add club admins/)).not.toBeInTheDocument();
+  });
+
+  it("shows the API's message when it refuses a role change", async () => {
+    vi.mocked(memberRepository.listInvites).mockResolvedValue({ ok: true, value: [] });
+    vi.mocked(memberRepository.updateRole).mockResolvedValue({
+      ok: false,
+      message: 'Only a club admin can add, change or remove club admins.',
+      status: 403,
+    });
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('combobox', { name: 'Role for Jamie Muir' }));
+    await userEvent.click(await screen.findByRole('option', { name: 'Team manager' }));
+
+    expect(memberRepository.updateRole).toHaveBeenCalledWith('team-1', 'm1', { role: 'TEAM_MANAGER' });
+    expect(await screen.findByText('Only a club admin can add, change or remove club admins.')).toBeInTheDocument();
   });
 });

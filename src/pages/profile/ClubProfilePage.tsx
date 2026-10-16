@@ -29,6 +29,7 @@ import { teamRepository } from '../../api/teamRepository';
 import { isInvitation, memberRepository } from '../../api/memberRepository';
 import { useAuth } from '../../auth/AuthContext';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { canManageActiveClub } from '../../session/canManageActive';
 import type { ClubView, InviteView, MemberRole, MemberView, TeamView } from '../../api/types';
 import { TeamClubTabs } from '../../components/TeamClubTabs';
 import { brand } from '../../theme/theme';
@@ -44,6 +45,14 @@ const ROLE_CHIP: Record<MemberRole, string> = {
   TEAM_MANAGER: 'Manager',
   CLUB_ADMIN: 'Owner',
 };
+
+function RoleChip({ role }: { role: MemberRole }) {
+  return (
+    <Box sx={{ fontSize: 11.5, fontWeight: 700, px: 1, py: 0.3, borderRadius: 5, bgcolor: '#E4F4E4', color: brand.pitchDeep, display: 'inline-block' }}>
+      {ROLE_CHIP[role]}
+    </Box>
+  );
+}
 
 // SCR-PR-03/04 Club & members - the concept treats club identity and its
 // squad's officials as one panel (they're both part of the same trust
@@ -71,6 +80,13 @@ export function ClubProfilePage() {
   const [joinCode, setJoinCode] = useState<string | null>(null);
   const [regenerating, setRegenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Only a club admin can add, change or remove club admins (the API refuses a
+  // team manager), so a team manager isn't offered Club admin and can't touch
+  // an existing club admin's row. An older API leaves canManageClub out: as before.
+  const canManageClub = canManageActiveClub(active);
+  const roles = canManageClub ? ROLES : ROLES.filter((r) => r !== 'CLUB_ADMIN');
+  // Club admin picked before AppShell learnt they're a team manager: fall back.
+  const pickedRole = roles.includes(addRole) ? addRole : 'TEAM_MANAGER';
 
   function reloadMembers(teamId: string) {
     memberRepository.list(teamId).then((result) => {
@@ -125,7 +141,7 @@ export function ClubProfilePage() {
     setAdding(true);
     setErrorMessage(null);
     setAddNotice(null);
-    const result = await memberRepository.add(active.teamId, { email: email.trim(), role: addRole });
+    const result = await memberRepository.add(active.teamId, { email: email.trim(), role: pickedRole });
     setAdding(false);
     if (result.ok) {
       setEmail('');
@@ -268,39 +284,43 @@ export function ClubProfilePage() {
                       pl: { xs: '46px', sm: 0 },
                     }}
                   >
-                    <TextField
-                      select
-                      size="small"
-                      value={m.role}
-                      onChange={(e) => handleRoleChange(m, e.target.value as MemberRole)}
-                      disabled={busyId === m.membershipId}
-                      sx={{ minWidth: 130 }}
-                      slotProps={{
-                        select: {
-                          renderValue: (v) => (
-                            <Box sx={{ fontSize: 11.5, fontWeight: 700, px: 1, py: 0.3, borderRadius: 5, bgcolor: '#E4F4E4', color: brand.pitchDeep, display: 'inline-block' }}>
-                              {ROLE_CHIP[v as MemberRole]}
-                            </Box>
-                          ),
-                        },
-                      }}
-                    >
-                      {ROLES.map((r) => (
-                        <MenuItem key={r} value={r}>
-                          {ROLE_LABELS[r]}
-                        </MenuItem>
-                      ))}
-                    </TextField>
+                    {roles.includes(m.role) ? (
+                      <TextField
+                        select
+                        size="small"
+                        value={m.role}
+                        onChange={(e) => handleRoleChange(m, e.target.value as MemberRole)}
+                        disabled={busyId === m.membershipId}
+                        sx={{ minWidth: 130 }}
+                        slotProps={{
+                          select: { renderValue: (v) => <RoleChip role={v as MemberRole} /> },
+                          htmlInput: { 'aria-label': `Role for ${m.displayName}` },
+                        }}
+                      >
+                        {roles.map((r) => (
+                          <MenuItem key={r} value={r}>
+                            {ROLE_LABELS[r]}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    ) : (
+                      // Lined up with the chip inside the other rows' role selects.
+                      <Box sx={{ minWidth: 130, px: 1.75 }}>
+                        <RoleChip role={m.role} />
+                      </Box>
+                    )}
                     {m.scope === 'CLUB' && <Chip label="Club-wide" size="small" variant="outlined" />}
-                    <IconButton
-                      size="small"
-                      aria-label="Remove"
-                      onClick={() => setRemoveTarget(m)}
-                      disabled={busyId === m.membershipId}
-                      sx={{ ml: { xs: 'auto', sm: 0 } }}
-                    >
-                      <DeleteOutlineIcon fontSize="small" />
-                    </IconButton>
+                    {roles.includes(m.role) && (
+                      <IconButton
+                        size="small"
+                        aria-label={`Remove ${m.displayName}`}
+                        onClick={() => setRemoveTarget(m)}
+                        disabled={busyId === m.membershipId}
+                        sx={{ ml: { xs: 'auto', sm: 0 } }}
+                      >
+                        <DeleteOutlineIcon fontSize="small" />
+                      </IconButton>
+                    )}
                   </Box>
                 </Box>
               ))}
@@ -364,8 +384,8 @@ export function ClubProfilePage() {
               <Typography sx={{ fontWeight: 700, fontSize: 13.5, mb: 1.5 }}>Invite a member</Typography>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5, mb: 1.5 }}>
                 <TextField label="Email address" type="email" value={email} onChange={(e) => setEmail(e.target.value)} fullWidth />
-                <TextField select label="Role" value={addRole} onChange={(e) => setAddRole(e.target.value as MemberRole)} fullWidth>
-                  {ROLES.map((r) => (
+                <TextField select label="Role" value={pickedRole} onChange={(e) => setAddRole(e.target.value as MemberRole)} fullWidth>
+                  {roles.map((r) => (
                     <MenuItem key={r} value={r}>
                       {ROLE_LABELS[r]}
                     </MenuItem>
@@ -377,6 +397,7 @@ export function ClubProfilePage() {
               </Button>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
                 If they don't have a Kickabout account yet, we'll email them an invitation to sign up.
+                {!canManageClub && ' Only a club admin can add club admins.'}
               </Typography>
               {addNotice && (
                 <Alert severity="success" sx={{ mt: 1.5 }} onClose={() => setAddNotice(null)}>
