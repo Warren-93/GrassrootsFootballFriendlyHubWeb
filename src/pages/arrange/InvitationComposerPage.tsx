@@ -25,9 +25,10 @@ export function InvitationComposerPage() {
   const [searching, setSearching] = useState(false);
   const [ourTeam, setOurTeam] = useState<TeamView | null>(null);
   const [venues, setVenues] = useState<VenueView[]>([]);
-  // Only club admins can list the club's venues. For a team manager the list
-  // fails and the API uses the team's home venue, so there's nothing to pick.
-  const [venuesListed, setVenuesListed] = useState(false);
+  // Any manager of the club can list its venues. If the list fails (an older
+  // API only let club admins list them) the API uses the team's home venue,
+  // so there's nothing to pick - but say so only once it has really failed.
+  const [venueList, setVenueList] = useState<'loading' | 'listed' | 'failed'>('loading');
   // Null until the user picks one - until then the team's default venue is used.
   const [chosenVenueId, setChosenVenueId] = useState<string | null>(null);
 
@@ -52,9 +53,10 @@ export function InvitationComposerPage() {
     teamRepository.get(active.teamId).then((result) => {
       if (result.ok) setOurTeam(result.value);
     });
+    setVenueList('loading');
     venueRepository.list(active.clubId).then((result) => {
       setVenues(result.ok ? result.value : []);
-      setVenuesListed(result.ok);
+      setVenueList(result.ok ? 'listed' : 'failed');
     });
   }, [active]);
 
@@ -105,6 +107,8 @@ export function InvitationComposerPage() {
   const venueId = chosenVenueId ?? defaultVenueId(venues, ourTeam?.defaultVenueId);
   // When they host the API fills in their default venue, so nothing is sent.
   const venue = weHost ? (venues.find((v) => v.id === venueId) ?? null) : null;
+  // When we host, wait for the venues so the one shown is the one sent.
+  const venuesPending = weHost && venueList === 'loading';
 
   function handleContinue() {
     setDraft({
@@ -173,17 +177,24 @@ export function InvitationComposerPage() {
                       </MenuItem>
                     ))}
                   </TextField>
-                ) : venuesListed ? (
+                ) : venueList === 'listed' ? (
                   <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
                     Your club has no venues yet.{' '}
                     <Link component="button" onClick={() => navigate('/venues/new')} sx={{ verticalAlign: 'baseline' }}>
                       Add a venue
                     </Link>
                   </Typography>
-                ) : (
+                ) : venueList === 'failed' ? (
                   <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
                     You host - the match will be at your home ground.
                   </Typography>
+                ) : (
+                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center', alignSelf: 'center' }}>
+                    <CircularProgress size={16} />
+                    <Typography variant="body2" color="text.secondary">
+                      Loading your club's venues…
+                    </Typography>
+                  </Stack>
                 )
               ) : (
                 <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
@@ -224,7 +235,7 @@ export function InvitationComposerPage() {
               sx={{ mb: 2.5 }}
             />
 
-            <Button variant="contained" size="large" onClick={handleContinue} disabled={weAreNotReady || theyAreNotReady}>
+            <Button variant="contained" size="large" onClick={handleContinue} disabled={weAreNotReady || theyAreNotReady || venuesPending}>
               Review invitation
             </Button>
           </CardContent>

@@ -123,7 +123,7 @@ describe('InvitationComposerPage venue', () => {
     expect(useInvitationDraftStore.getState().draft).toMatchObject({ venueId: null, homeTeamId: 'team-2' });
   });
 
-  it("leaves the venue to the API when a team manager can't list the club's venues", async () => {
+  it("leaves the venue to the API when the club's venues can't be listed", async () => {
     vi.mocked(venueRepository.list).mockResolvedValue({ ok: false, message: 'That club could not be found.', status: 404 });
     renderPage();
 
@@ -132,6 +132,15 @@ describe('InvitationComposerPage venue', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Review invitation' }));
     expect(useInvitationDraftStore.getState().draft).toMatchObject({ venueId: null, venueName: null, homeTeamId: 'team-1' });
+  });
+
+  it("doesn't fall back to the home ground while the venues are still loading", async () => {
+    vi.mocked(venueRepository.list).mockReturnValue(new Promise(() => {}));
+    renderPage();
+
+    expect(await screen.findByText("Loading your club's venues…")).toBeInTheDocument();
+    expect(screen.queryByText('You host - the match will be at your home ground.')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Review invitation' })).toBeDisabled();
   });
 
   it('offers to add a venue when the club has none', async () => {
