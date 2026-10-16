@@ -47,3 +47,15 @@ export function defaultVenueId(venues: VenueView[], teamDefaultVenueId: string |
   if (teamDefaultVenueId && venues.some((v) => v.id === teamDefaultVenueId)) return teamDefaultVenueId;
   return (venues.find((v) => v.isDefault) ?? venues[0])?.id ?? null;
 }
+
+/**
+ * The postcode to PATCH when a venue is edited. The API keeps the current
+ * postcode on null and clears it on "", so an emptied field sends "" (when
+ * there was one to clear) and an unchanged one sends null.
+ */
+export function postcodeForUpdate(entered: string, saved: string | null | undefined): string | null {
+  const next = entered.trim();
+  const current = saved?.trim() ?? '';
+  if (next === current) return null;
+  return next;
+}

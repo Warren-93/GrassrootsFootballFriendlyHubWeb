@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultVenueId, directionsUrl, venueAddressLine } from './venue';
+import { defaultVenueId, directionsUrl, postcodeForUpdate, venueAddressLine } from './venue';
 import type { VenueView } from '../api/types';
 
 function venue(id: string, isDefault = false): VenueView {
@@ -72,5 +72,22 @@ describe('venueAddressLine', () => {
     expect(venueAddressLine({ address: null, postcode: 'LS1 4AB' })).toBe('LS1 4AB');
     expect(venueAddressLine({ address: '1 Park Road', postcode: null })).toBe('1 Park Road');
     expect(venueAddressLine({})).toBe('');
+  });
+});
+
+describe('postcodeForUpdate', () => {
+  it('sends a new postcode', () => {
+    expect(postcodeForUpdate(' LS1 4AB ', 'RH16 1AA')).toBe('LS1 4AB');
+    expect(postcodeForUpdate('LS1 4AB', null)).toBe('LS1 4AB');
+  });
+
+  it('sends an empty string to clear a postcode that was emptied', () => {
+    expect(postcodeForUpdate('  ', 'RH16 1AA')).toBe('');
+  });
+
+  it('sends null to keep the postcode when nothing changed', () => {
+    expect(postcodeForUpdate('RH16 1AA ', 'RH16 1AA')).toBeNull();
+    expect(postcodeForUpdate('', null)).toBeNull();
+    expect(postcodeForUpdate('', undefined)).toBeNull();
   });
 });

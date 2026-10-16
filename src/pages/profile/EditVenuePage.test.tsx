@@ -35,6 +35,7 @@ const venue: VenueView = {
 
 describe('venue forms send the postcode', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.mocked(useCurrentTeam).mockReturnValue({
       active: { teamId: 'team-1', teamName: 'Riverside U12 Girls', clubId: 'club-1' },
       setActive: vi.fn(),
@@ -47,8 +48,8 @@ describe('venue forms send the postcode', () => {
     vi.mocked(geocodePostcode).mockResolvedValue({ longitude: -0.1, latitude: 51, outcode: 'RH16' });
   });
 
-  it('shows the saved postcode when editing a venue and sends it back', async () => {
-    render(
+  function renderEdit() {
+    return render(
       <MemoryRouter initialEntries={['/venues/v1/edit']}>
         <Routes>
           <Route path="/venues/:venueId/edit" element={<EditVenuePage />} />
@@ -56,12 +57,47 @@ describe('venue forms send the postcode', () => {
         </Routes>
       </MemoryRouter>,
     );
+  }
+
+  it('shows the saved postcode when editing a venue and keeps it when unchanged', async () => {
+    renderEdit();
 
     expect(await screen.findByLabelText('Postcode')).toHaveValue('RH16 1AA');
     await userEvent.click(screen.getByRole('button', { name: 'Save venue' }));
 
     expect(await screen.findByText('Venues list')).toBeInTheDocument();
-    expect(venueRepository.update).toHaveBeenCalledWith('v1', expect.objectContaining({ postcode: 'RH16 1AA' }));
+    expect(venueRepository.update).toHaveBeenCalledWith('v1', expect.objectContaining({ postcode: null }));
+  });
+
+  it('sends a changed postcode with its new location', async () => {
+    vi.mocked(geocodePostcode).mockResolvedValue({ longitude: -1.55, latitude: 53.8, outcode: 'LS1' });
+    renderEdit();
+
+    const field = await screen.findByLabelText('Postcode');
+    await userEvent.clear(field);
+    await userEvent.type(field, 'LS1 4AB{Enter}');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Save venue' })).toBeEnabled());
+    await userEvent.click(screen.getByRole('button', { name: 'Save venue' }));
+
+    expect(await screen.findByText('Venues list')).toBeInTheDocument();
+    expect(venueRepository.update).toHaveBeenCalledWith(
+      'v1',
+      expect.objectContaining({ postcode: 'LS1 4AB', longitude: -1.55, latitude: 53.8 }),
+    );
+  });
+
+  it('clears the postcode when it is emptied, keeping the venue where it is', async () => {
+    renderEdit();
+
+    await userEvent.clear(await screen.findByLabelText('Postcode'));
+    expect(screen.getByText(/Keeping the existing location/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Save venue' }));
+
+    expect(await screen.findByText('Venues list')).toBeInTheDocument();
+    expect(venueRepository.update).toHaveBeenCalledWith(
+      'v1',
+      expect.objectContaining({ postcode: '', longitude: -0.1, latitude: 51 }),
+    );
   });
 
   it('sends the postcode when adding the first venue during onboarding', async () => {

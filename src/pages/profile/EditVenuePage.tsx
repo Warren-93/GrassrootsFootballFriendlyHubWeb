@@ -21,6 +21,7 @@ import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import type { PitchSurface } from '../../api/types';
 import { PostcodeLocationField } from '../../components/PostcodeLocationField';
 import { PageHeader } from '../../components/PageHeader';
+import { postcodeForUpdate } from '../../utils/venue';
 
 const PITCH_SURFACES: PitchSurface[] = ['GRASS', 'THREE_G', 'FOUR_G', 'ASTRO', 'INDOOR'];
 const PITCH_SURFACE_LABELS: Record<PitchSurface, string> = {
@@ -45,6 +46,10 @@ export function EditVenuePage() {
   const [address, setAddress] = useState('');
   const [postcode, setPostcode] = useState('');
   const [coordinates, setCoordinates] = useState<{ longitude: number; latitude: number } | null>(null);
+  // What the venue had when the page opened: an emptied postcode clears the
+  // saved one but keeps the venue where it is.
+  const [savedPostcode, setSavedPostcode] = useState<string | null>(null);
+  const [savedCoordinates, setSavedCoordinates] = useState<{ longitude: number; latitude: number } | null>(null);
   const [pitchSurface, setPitchSurface] = useState<PitchSurface>('GRASS');
   const [accessNotes, setAccessNotes] = useState('');
   const [parkingNotes, setParkingNotes] = useState('');
@@ -61,7 +66,9 @@ export function EditVenuePage() {
           setName(venue.name);
           setAddress(venue.address);
           setPostcode(venue.postcode ?? '');
+          setSavedPostcode(venue.postcode ?? null);
           setCoordinates({ longitude: venue.longitude, latitude: venue.latitude });
+          setSavedCoordinates({ longitude: venue.longitude, latitude: venue.latitude });
           if (venue.pitchSurface) setPitchSurface(venue.pitchSurface as PitchSurface);
           setAccessNotes(venue.accessNotes ?? '');
           setParkingNotes(venue.parkingNotes ?? '');
@@ -75,19 +82,20 @@ export function EditVenuePage() {
     });
   }, [venueId, clubId, isNew]);
 
-  const canSubmit = name.length >= 3 && address && !!coordinates;
+  const location = coordinates ?? (!isNew && !postcode.trim() ? savedCoordinates : null);
+  const canSubmit = name.length >= 3 && address && !!location;
 
   async function handleSubmit() {
-    if (!active || !coordinates) return;
+    if (!active || !location) return;
     setSubmitting(true);
     setErrorMessage(null);
     const body = {
       name,
       address,
-      // On an edit, null keeps the venue's current postcode.
-      postcode: postcode.trim() || null,
-      longitude: coordinates.longitude,
-      latitude: coordinates.latitude,
+      // On an edit, null keeps the venue's current postcode and "" clears it.
+      postcode: isNew ? postcode.trim() || null : postcodeForUpdate(postcode, savedPostcode),
+      longitude: location.longitude,
+      latitude: location.latitude,
       pitchSurface,
       accessNotes: accessNotes || null,
       parkingNotes: parkingNotes || null,
@@ -132,7 +140,7 @@ export function EditVenuePage() {
             coordinates={coordinates}
             onCoordinatesChange={setCoordinates}
           />
-          {!isNew && !postcode && (
+          {!isNew && !postcode.trim() && (
             <Typography variant="caption" color="text.secondary">
               Keeping the existing location. Enter a postcode above to change it.
             </Typography>
