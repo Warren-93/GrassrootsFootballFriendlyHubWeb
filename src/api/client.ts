@@ -3,8 +3,13 @@ import { fail, ok } from './result';
 import { tokenStore } from '../auth/tokenStore';
 import type { TokenResponse } from './types';
 
-// "/" (or empty) means the API is proxied on this site's own origin (api/proxy.js).
-const configuredBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8090';
+// Production builds call the API through this site's own /api proxy
+// (api/proxy.js), so the refresh cookie is first-party: Safari and every
+// iPhone browser drop a cross-site one, which signs people out on reload.
+// VITE_API_DIRECT=true opts out and calls VITE_API_BASE_URL directly.
+// "/" (or empty) also means the proxy.
+const callsApiDirectly = !import.meta.env.PROD || import.meta.env.VITE_API_DIRECT === 'true';
+const configuredBase = callsApiDirectly ? (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8090') : '/';
 export const API_BASE_URL = configuredBase === '/' ? '' : configuredBase.replace(/\/$/, '');
 
 // Auth endpoints ask for the cookie flow: the API sets the refresh token as an
@@ -23,26 +28,42 @@ let refreshInFlight: Promise<boolean> | null = null;
 export async function tryRefresh(): Promise<boolean> {
   if (refreshInFlight) return refreshInFlight;
   refreshInFlight = (async () => {
-    const refreshToken = tokenStore.refreshToken();
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...COOKIE_MODE_HEADERS },
-        credentials: 'include',
-        body: JSON.stringify(refreshToken ? { refreshToken } : {}),
-      });
-      if (!response.ok) return false;
-      const body = (await response.json()) as TokenResponse;
-      tokenStore.set(body.accessToken, body.refreshToken);
-      return true;
-    } catch {
-      return false;
+    for (let attempt = 0; ; attempt++) {
+      const outcome = await refreshOnce();
+      if (outcome !== 'retry') return outcome === 'ok';
+      // Only a 401 means the session is over. A network error or a 5xx is
+      // usually the free Render instance waking up, so wait and try again
+      // rather than signing the user out.
+      if (attempt >= REFRESH_RETRY_DELAYS_MS.length) return false;
+      await new Promise((resolve) => setTimeout(resolve, REFRESH_RETRY_DELAYS_MS[attempt]));
     }
   })();
   try {
     return await refreshInFlight;
   } finally {
     refreshInFlight = null;
+  }
+}
+
+/** Waits between refresh attempts that failed for a reason other than a 401. */
+export const REFRESH_RETRY_DELAYS_MS = [1000, 3000, 8000];
+
+async function refreshOnce(): Promise<'ok' | 'expired' | 'retry'> {
+  const refreshToken = tokenStore.refreshToken();
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...COOKIE_MODE_HEADERS },
+      credentials: 'include',
+      body: JSON.stringify(refreshToken ? { refreshToken } : {}),
+    });
+    if (response.status >= 500) return 'retry';
+    if (!response.ok) return 'expired';
+    const body = (await response.json()) as TokenResponse;
+    tokenStore.set(body.accessToken, body.refreshToken);
+    return 'ok';
+  } catch {
+    return 'retry';
   }
 }
 

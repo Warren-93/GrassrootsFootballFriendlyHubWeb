@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { authRepository } from '../api/authRepository';
+import { REFRESH_RETRY_DELAYS_MS } from '../api/client';
 import type { UserView } from '../api/types';
 import { AuthContext } from './AuthContext';
 import { setPostAuthRedirect } from '../routes/postAuthRedirect';
@@ -15,7 +16,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return null;
     }
-    const result = await authRepository.me();
+    let result = await authRepository.me();
+    // A network error or 5xx here (the API waking up) isn't a signed-out user.
+    for (const delay of REFRESH_RETRY_DELAYS_MS) {
+      if (result.ok || (result.status !== undefined && result.status < 500)) break;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      result = await authRepository.me();
+    }
     const user = result.ok ? result.value : null;
     setSession(user);
     setLoading(false);

@@ -1,24 +1,25 @@
 // Same-origin proxy to the API, so the refresh-token cookie is first-party
 // (Safari blocks the cross-site one and signs people out on reload).
 //
-// Off until both are set in Vercel:
-//   API_ORIGIN          the Render API, e.g. https://your-api.onrender.com
-//   VITE_API_BASE_URL   "/" (the web app then calls /api/... on its own origin)
-// and on Render: AUTH_COOKIE_SAME_SITE=Lax.
+// Production builds of the web app always call /api/... on their own origin
+// (set VITE_API_DIRECT=true to skip this proxy). The API it forwards to is
+// API_ORIGIN, else VITE_API_BASE_URL when that is a full URL, else the Render
+// API below. No Render setting is needed: the cookie is first-party either way.
 //
 // vercel.json rewrites /api/<path> to /api/proxy?path=<path>.
 export const config = { runtime: 'edge' };
 
 const HOP_BY_HOP = ['host', 'connection', 'content-length', 'accept-encoding'];
+const DEFAULT_API_ORIGIN = 'https://grassrootsfootballfriendlyhubapi.onrender.com';
+
+function apiOrigin() {
+  if (process.env.API_ORIGIN) return process.env.API_ORIGIN;
+  const base = process.env.VITE_API_BASE_URL ?? '';
+  return /^https?:\/\//.test(base) ? new URL(base).origin : DEFAULT_API_ORIGIN;
+}
 
 export default async function handler(request) {
-  const origin = process.env.API_ORIGIN;
-  if (!origin) {
-    return Response.json(
-      { error: { code: 'PROXY_NOT_CONFIGURED', message: 'API_ORIGIN is not set for this deployment.' } },
-      { status: 503 },
-    );
-  }
+  const origin = apiOrigin();
 
   const incoming = new URL(request.url);
   const path = incoming.searchParams.get('path') ?? '';
