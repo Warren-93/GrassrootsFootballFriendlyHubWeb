@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
-  Alert,
   Box,
   Button,
   Card,
   CardActionArea,
   CardContent,
-  CircularProgress,
   Container,
   Stack,
   ToggleButton,
@@ -17,19 +15,15 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import {
-  EMPTY_FILTERS,
-  searchRequestFor,
-  useSearchFilterStore,
-  useSearchResultsStore,
-  type SearchFilters,
-} from '../../session/SearchState';
+import { searchRequestFor, useSearchFilterStore, useSearchResultsStore, type SearchFilters } from '../../session/SearchState';
+import { useDefaultSearch } from '../../session/useDefaultSearch';
 import { matchRepository } from '../../api/matchRepository';
 import { SearchFiltersBar } from '../../components/SearchFiltersBar';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { teamRepository } from '../../api/teamRepository';
 import { geocodeOutcode } from '../../lib/geocodeOutcode';
 import { PageHeader } from '../../components/PageHeader';
+import { DefaultSearchStatus } from '../../components/DefaultSearchStatus';
 import { MatchScoreChip } from '../../components/brand/MatchScoreChip';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { brand } from '../../theme/theme';
@@ -66,10 +60,7 @@ export function ResultsListPage() {
   const [markers, setMarkers] = useState<{ match: MatchSummary; position: [number, number] }[]>([]);
   const [mapLoading, setMapLoading] = useState(false);
   const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const resetFilters = filters.reset;
-  const hasResponse = response !== null;
+  const { searchError, retry } = useDefaultSearch(teamId);
   const filtersSet =
     filters.abilityLevels.length > 0 || filters.formats.length > 0 || filters.maxDistanceMiles !== null || filters.verifiedOnly;
 
@@ -88,24 +79,6 @@ export function ResultsListPage() {
       if (result.ok) setTeam(result.value);
     });
   }, [teamId]);
-
-  // Opened directly (a reload or a shared link) there's no search in memory:
-  // run the default one - every team in our age group and gender - rather
-  // than showing an empty page.
-  useEffect(() => {
-    if (hasResponse || !teamId) return;
-    let cancelled = false;
-    resetFilters();
-    setSearchError(null);
-    matchRepository.search(searchRequestFor(teamId, EMPTY_FILTERS)).then((result) => {
-      if (cancelled) return;
-      if (result.ok) setResponse(result.value);
-      else setSearchError(result.message);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [hasResponse, teamId, resetFilters, setResponse, retryCount]);
 
   useEffect(() => {
     if (view !== 'map' || !response || !teamId) return;
@@ -142,18 +115,8 @@ export function ResultsListPage() {
           <PageHeader title="Search results" />
           {!teamId ? (
             <Typography>Choose a team first to see who you could play.</Typography>
-          ) : searchError ? (
-            <Stack spacing={1.5} sx={{ alignItems: 'flex-start' }}>
-              <Alert severity="error">{searchError}</Alert>
-              <Button variant="outlined" onClick={() => setRetryCount((n) => n + 1)}>
-                Try again
-              </Button>
-            </Stack>
           ) : (
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-              <CircularProgress size={22} sx={{ color: brand.pitch }} />
-              <Typography color="text.secondary">Finding teams to play…</Typography>
-            </Stack>
+            <DefaultSearchStatus error={searchError} onRetry={retry} loadingText="Finding teams to play…" />
           )}
         </Stack>
       </Container>
