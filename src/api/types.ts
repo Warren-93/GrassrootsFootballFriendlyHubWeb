@@ -414,8 +414,9 @@ export interface FixtureTeamView {
   id: string;
   name: string;
   clubName: string;
-  managerName: string | null;
-  contactPhone: string | null;
+  /** The manager's contact details - left out for a member who can't manage either team. */
+  managerName?: string | null;
+  contactPhone?: string | null;
   venueId: string | null;
   badgeUrl?: string | null;
 }
