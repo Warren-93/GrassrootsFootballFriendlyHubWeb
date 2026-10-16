@@ -7,6 +7,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { venueRepository } from '../../api/venueRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { canManageActiveClub } from '../../session/canManageActive';
 import type { VenueView } from '../../api/types';
 import { TeamClubTabs } from '../../components/TeamClubTabs';
 import { brand } from '../../theme/theme';
@@ -46,9 +47,11 @@ function venueIcon(): L.DivIcon {
 }
 
 // SCR-PR-05 Venues list. Purpose: see and manage every pitch the club can host at.
+// Only the club's admin can add or change them: a team manager sees them read-only.
 export function VenuesListPage() {
   const navigate = useNavigate();
   const { active } = useCurrentTeam();
+  const canManageClub = canManageActiveClub(active);
   const [venues, setVenues] = useState<VenueView[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -99,14 +102,22 @@ export function VenuesListPage() {
             {venues.length} saved {venues.length === 1 ? 'venue' : 'venues'}
           </Typography>
         </Box>
-        <Button variant="outlined" startIcon={<AddIcon />} onClick={() => navigate('/venues/new')}>
-          Add venue
-        </Button>
+        {canManageClub && (
+          <Button variant="outlined" startIcon={<AddIcon />} onClick={() => navigate('/venues/new')}>
+            Add venue
+          </Button>
+        )}
       </Stack>
 
       {errorMessage && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {errorMessage}
+        </Alert>
+      )}
+
+      {!canManageClub && !loading && venues.length > 0 && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Only your club admin can add or change venues.
         </Alert>
       )}
 
@@ -116,30 +127,50 @@ export function VenuesListPage() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' }, gap: 2.5 }}>
           <Stack spacing={1.5}>
             {venues.length === 0 ? (
-              <Typography color="text.secondary">No venues yet.</Typography>
+              <Typography color="text.secondary">
+                {canManageClub ? 'No venues yet.' : 'Your club has no venues yet. Ask your club admin to add one.'}
+              </Typography>
             ) : (
-              venues.map((v) => (
-                <Card key={v.id} variant="outlined" sx={{ borderRadius: 3 }}>
-                  <CardActionArea onClick={() => navigate(`/venues/${v.id}/edit`)}>
-                    <CardContent sx={{ p: { xs: 2, sm: 2.25 } }}>
-                      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{v.name}</Typography>
-                        {v.isDefault && (
-                          <Box sx={{ fontSize: 11, fontWeight: 700, px: 1, py: 0.3, borderRadius: 5, bgcolor: '#E4F4E4', color: brand.pitchDeep }}>
-                            Home
-                          </Box>
-                        )}
-                      </Stack>
-                      <Typography sx={{ fontSize: 12.5, color: brand.muted, mt: 0.5 }}>{venueSubtitle(v)}</Typography>
-                    </CardContent>
-                  </CardActionArea>
-                  {!v.isDefault && (
-                    <Button size="small" onClick={() => setDefault(v.id)} sx={{ ml: 1, mb: 1 }}>
-                      Make default
-                    </Button>
-                  )}
-                </Card>
-              ))
+              venues.map((v) => {
+                const details = (
+                  <CardContent sx={{ p: { xs: 2, sm: 2.25 } }}>
+                    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{v.name}</Typography>
+                      {v.isDefault && (
+                        <Box sx={{ fontSize: 11, fontWeight: 700, px: 1, py: 0.3, borderRadius: 5, bgcolor: '#E4F4E4', color: brand.pitchDeep }}>
+                          Home
+                        </Box>
+                      )}
+                    </Stack>
+                    <Typography sx={{ fontSize: 12.5, color: brand.muted, mt: 0.5 }}>{venueSubtitle(v)}</Typography>
+                    {/* The edit form is where these show for a club admin: read-only, they show here. */}
+                    {!canManageClub && v.accessNotes && (
+                      <Typography sx={{ fontSize: 12.5, color: brand.muted, mt: 0.5, whiteSpace: 'pre-line' }}>
+                        Access: {v.accessNotes}
+                      </Typography>
+                    )}
+                    {!canManageClub && v.parkingNotes && (
+                      <Typography sx={{ fontSize: 12.5, color: brand.muted, mt: 0.5, whiteSpace: 'pre-line' }}>
+                        Parking: {v.parkingNotes}
+                      </Typography>
+                    )}
+                  </CardContent>
+                );
+                return (
+                  <Card key={v.id} variant="outlined" sx={{ borderRadius: 3 }}>
+                    {canManageClub ? (
+                      <CardActionArea onClick={() => navigate(`/venues/${v.id}/edit`)}>{details}</CardActionArea>
+                    ) : (
+                      details
+                    )}
+                    {canManageClub && !v.isDefault && (
+                      <Button size="small" onClick={() => setDefault(v.id)} sx={{ ml: 1, mb: 1 }}>
+                        Make default
+                      </Button>
+                    )}
+                  </Card>
+                );
+              })
             )}
           </Stack>
 

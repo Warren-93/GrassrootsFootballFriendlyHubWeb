@@ -8,7 +8,7 @@ import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { clubRepository } from '../../api/clubRepository';
 import { teamRepository } from '../../api/teamRepository';
 import { memberRepository } from '../../api/memberRepository';
-import type { ClubView, InviteView, MemberView } from '../../api/types';
+import type { ClubView, InviteView, MemberView, TeamView } from '../../api/types';
 
 vi.mock('../../auth/AuthContext', () => ({ useAuth: vi.fn() }));
 vi.mock('../../session/CurrentTeamContext', () => ({ useCurrentTeam: vi.fn() }));
@@ -141,5 +141,25 @@ describe('ClubProfilePage members', () => {
     expect(screen.getByLabelText('Email address')).toBeInTheDocument();
     expect(screen.queryByText('That club could not be found.')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Edit club' })).not.toBeInTheDocument();
+  });
+
+  it('keeps whether the user runs the club when they switch to another of its squads', async () => {
+    const setActive = vi.fn();
+    vi.mocked(useCurrentTeam).mockReturnValue({
+      active: { teamId: 'team-1', teamName: 'Riverside U12 Girls', clubId: 'club-1', canManage: true, canManageClub: true },
+      setActive,
+      clear: vi.fn(),
+    });
+    const squad = (id: string, name: string) => ({ id, name, clubId: 'club-1', ageGroup: 'U14', format: 'NINE_A_SIDE' }) as TeamView;
+    vi.mocked(teamRepository.listByClub).mockResolvedValue({
+      ok: true,
+      value: [squad('team-1', 'Riverside U12 Girls'), squad('team-2', 'Riverside U14 Boys')],
+    });
+    vi.mocked(memberRepository.listInvites).mockResolvedValue({ ok: true, value: [] });
+    renderPage();
+
+    await userEvent.click(await screen.findByText('Riverside U14 Boys'));
+
+    expect(setActive).toHaveBeenCalledWith({ teamId: 'team-2', teamName: 'Riverside U14 Boys', clubId: 'club-1', canManageClub: true });
   });
 });

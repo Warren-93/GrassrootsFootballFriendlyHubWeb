@@ -18,9 +18,11 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { venueRepository } from '../../api/venueRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
-import type { PitchSurface } from '../../api/types';
+import { canManageActiveClub } from '../../session/canManageActive';
+import type { PitchSurface, VenueView } from '../../api/types';
 import { PostcodeLocationField } from '../../components/PostcodeLocationField';
 import { PageHeader } from '../../components/PageHeader';
+import { VenueCard } from '../../components/VenueCard';
 import { postcodeForUpdate } from '../../utils/venue';
 
 const PITCH_SURFACES: PitchSurface[] = ['GRASS', 'THREE_G', 'FOUR_G', 'ASTRO', 'INDOOR'];
@@ -34,14 +36,19 @@ const PITCH_SURFACE_LABELS: Record<PitchSurface, string> = {
 
 // SCR-PR-06 Add / edit venue, as its own reachable screen (not just inline
 // during onboarding) - opened from the Venues list for both "new" and edit.
+// Only the club's admin can save it: opened directly by anyone else, it shows
+// the venue read-only instead of a form the API would refuse.
 export function EditVenuePage() {
   const navigate = useNavigate();
   const { active } = useCurrentTeam();
   const clubId = active?.clubId;
+  const canManageClub = canManageActiveClub(active);
   const { venueId } = useParams<{ venueId: string }>();
   const isNew = !venueId;
 
   const [loading, setLoading] = useState(!isNew);
+  // Kept whole to show read-only to anyone who isn't the club's admin.
+  const [loadedVenue, setLoadedVenue] = useState<VenueView | null>(null);
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [postcode, setPostcode] = useState('');
@@ -63,6 +70,7 @@ export function EditVenuePage() {
       if (result.ok) {
         const venue = result.value.find((v) => v.id === venueId);
         if (venue) {
+          setLoadedVenue(venue);
           setName(venue.name);
           setAddress(venue.address);
           setPostcode(venue.postcode ?? '');
@@ -122,6 +130,26 @@ export function EditVenuePage() {
     return (
       <Container maxWidth="xs" sx={{ py: 6, textAlign: 'center' }}>
         <CircularProgress />
+      </Container>
+    );
+  }
+
+  if (!canManageClub) {
+    return (
+      <Container maxWidth="xs" sx={{ py: 6 }}>
+        <Card sx={{ p: 4, borderRadius: 4 }}>
+          <Stack spacing={3}>
+            <PageHeader title={isNew ? 'Add venue' : 'Venue'} onBack={() => navigate('/venues')} />
+            {loadedVenue && (
+              <VenueCard
+                venue={{ ...loadedVenue, postcode: loadedVenue.postcode ?? null }}
+                title={loadedVenue.isDefault ? 'Home venue' : 'Club venue'}
+              />
+            )}
+            {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+            <Alert severity="info">Only your club admin can add or change venues.</Alert>
+          </Stack>
+        </Card>
       </Container>
     );
   }

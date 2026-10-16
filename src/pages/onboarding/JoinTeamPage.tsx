@@ -25,6 +25,7 @@ export function JoinTeamPage() {
         teamName: result.value.teamName,
         clubId: result.value.clubId,
         canManage: result.value.membership.role !== 'USER',
+        canManageClub: result.value.membership.role === 'CLUB_ADMIN',
       });
       navigate('/');
     } else {

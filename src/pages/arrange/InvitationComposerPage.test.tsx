@@ -150,4 +150,17 @@ describe('InvitationComposerPage venue', () => {
     expect(await screen.findByText(/Your club has no venues yet/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Add a venue' })).toBeInTheDocument();
   });
+
+  it("asks a team manager to get their club admin to add a venue, since they can't", async () => {
+    vi.mocked(useCurrentTeam).mockReturnValue({
+      active: { teamId: 'team-1', teamName: 'Riverside U12 Girls', clubId: 'club-1', canManage: true, canManageClub: false },
+      setActive: vi.fn(),
+      clear: vi.fn(),
+    });
+    vi.mocked(venueRepository.list).mockResolvedValue({ ok: true, value: [] });
+    renderPage();
+
+    expect(await screen.findByText('Your club has no venues yet. Ask your club admin to add one.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add a venue' })).not.toBeInTheDocument();
+  });
 });

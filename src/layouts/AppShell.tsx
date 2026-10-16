@@ -50,6 +50,7 @@ import { PageFallback } from '../routes/PageFallback';
 import { useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useCurrentTeam } from '../session/CurrentTeamContext';
+import { activeTeamFrom } from '../session/activeTeamFrom';
 import { useNavPreference } from '../session/NavPreferenceContext';
 import { useThemeMode } from '../session/ThemeModeContext';
 import { notificationRepository } from '../api/notificationRepository';
@@ -163,10 +164,11 @@ export function AppShell() {
         return;
       }
       const current = active ? mine.find((t) => t.id === active.teamId) : undefined;
-      const t = current ?? mine[0];
-      const canManage = t.canManage ?? true;
-      if (!current || active?.canManage !== canManage) {
-        setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId, canManage });
+      const next = activeTeamFrom(current ?? mine[0]);
+      // Also fills in the flags left out when the team was set without them
+      // (at onboarding, or switching squads on Club & members).
+      if (!current || active?.canManage !== next.canManage || active?.canManageClub !== next.canManageClub) {
+        setActive(next);
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -185,7 +187,7 @@ export function AppShell() {
 
   function handleTeamSwitch(event: SelectChangeEvent) {
     const t = myTeams.find((team) => team.id === event.target.value);
-    if (t) setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId, canManage: t.canManage ?? true });
+    if (t) setActive(activeTeamFrom(t));
   }
 
   function isActive(path: string) {

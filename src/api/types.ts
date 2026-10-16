@@ -136,6 +136,11 @@ export interface TeamView {
   createdAt: string;
   /** Only set on GET /teams/mine. */
   canManage?: boolean | null;
+  /**
+   * Only set on GET /teams/mine: whether the caller is the club's admin, the
+   * only role that can add or change its venues. Absent from an older API.
+   */
+  canManageClub?: boolean | null;
   /** Verified and has a venue: the only gate on sending and receiving friendly requests. */
   readyForRequests?: boolean;
   /** What's still to do. Empty for teams the caller doesn't manage. */

@@ -122,3 +122,49 @@ describe('venue forms send the postcode', () => {
     );
   });
 });
+
+describe('venue form for a team manager who is not the club admin', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useCurrentTeam).mockReturnValue({
+      active: { teamId: 'team-1', teamName: 'Riverside U12 Girls', clubId: 'club-1', canManage: true, canManageClub: false },
+      setActive: vi.fn(),
+      clear: vi.fn(),
+    });
+    vi.mocked(venueRepository.list).mockResolvedValue({
+      ok: true,
+      value: [{ ...venue, accessNotes: 'Use the side gate' }],
+    });
+  });
+
+  function renderAt(path: string) {
+    return render(
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route path="/venues/new" element={<EditVenuePage />} />
+          <Route path="/venues/:venueId/edit" element={<EditVenuePage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+  }
+
+  it('shows the venue read-only, with no save or delete', async () => {
+    renderAt('/venues/v1/edit');
+
+    expect(await screen.findByText('Victoria Park')).toBeInTheDocument();
+    expect(screen.getByText('Use the side gate')).toBeInTheDocument();
+    expect(screen.getByText('Only your club admin can add or change venues.')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Venue name')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save venue' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Delete venue' })).not.toBeInTheDocument();
+  });
+
+  it('says only the club admin can add a venue instead of showing the form', () => {
+    renderAt('/venues/new');
+
+    expect(screen.getByText('Only your club admin can add or change venues.')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Venue name')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save venue' })).not.toBeInTheDocument();
+    expect(venueRepository.create).not.toHaveBeenCalled();
+  });
+});

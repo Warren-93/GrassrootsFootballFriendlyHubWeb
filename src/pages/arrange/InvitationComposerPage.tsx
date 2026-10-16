@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Box, Button, Card, CardContent, CircularProgress, Container, Link, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
+import { canManageActiveClub } from '../../session/canManageActive';
 import { useInvitationDraftStore, useSearchResultsStore } from '../../session/SearchState';
 import { addMinutesToTime } from '../../utils/time';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
@@ -178,11 +179,16 @@ export function InvitationComposerPage() {
                     ))}
                   </TextField>
                 ) : venueList === 'listed' ? (
+                  // Only the club's admin can add one.
                   <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
                     Your club has no venues yet.{' '}
-                    <Link component="button" onClick={() => navigate('/venues/new')} sx={{ verticalAlign: 'baseline' }}>
-                      Add a venue
-                    </Link>
+                    {canManageActiveClub(active) ? (
+                      <Link component="button" onClick={() => navigate('/venues/new')} sx={{ verticalAlign: 'baseline' }}>
+                        Add a venue
+                      </Link>
+                    ) : (
+                      'Ask your club admin to add one.'
+                    )}
                   </Typography>
                 ) : venueList === 'failed' ? (
                   <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>

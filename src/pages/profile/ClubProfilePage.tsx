@@ -418,7 +418,11 @@ export function ClubProfilePage() {
                   <Stack spacing={1}>
                     {teams.map((t) => (
                       <Card key={t.id} variant="outlined" sx={{ borderLeft: `3px solid ${t.id === active.teamId ? brand.pitch : brand.border}`, borderRadius: 2 }}>
-                        <CardActionArea onClick={() => setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId })} sx={{ p: 1.25 }}>
+                        {/* Every squad here is in the same club, so whether they can manage the club carries over. */}
+                        <CardActionArea
+                          onClick={() => setActive({ teamId: t.id, teamName: t.name, clubId: t.clubId, canManageClub: active.canManageClub })}
+                          sx={{ p: 1.25 }}
+                        >
                           <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
                             <Box>
                               <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>{t.name}</Typography>
