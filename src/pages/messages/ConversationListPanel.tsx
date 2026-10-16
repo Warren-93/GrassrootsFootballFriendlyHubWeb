@@ -3,13 +3,16 @@ import { Box, Card, CardActionArea, CircularProgress, Stack, Typography } from '
 import { useNavigate } from 'react-router-dom';
 import { conversationRepository } from '../../api/conversationRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
-import type { ConversationView } from '../../api/types';
+import type { ConversationView, MessageView } from '../../api/types';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { brand } from '../../theme/theme';
+import { withSentMessages } from '../../utils/conversation';
 
 interface ConversationListPanelProps {
   /** The conversation currently open in the thread pane, if any - highlighted in the list. */
   selectedConversationId?: string;
+  /** Messages sent from the thread pane since the list loaded, by conversation id - shown in the previews. */
+  sentMessages?: Record<string, MessageView>;
 }
 
 function relativeTime(iso: string): string {
@@ -26,7 +29,7 @@ function relativeTime(iso: string): string {
  * `/messages` and `/messages/:conversationId`) and as the whole of
  * `/messages` on mobile.
  */
-export function ConversationListPanel({ selectedConversationId }: ConversationListPanelProps) {
+export function ConversationListPanel({ selectedConversationId, sentMessages }: ConversationListPanelProps) {
   const navigate = useNavigate();
   const { active } = useCurrentTeam();
   const [conversations, setConversations] = useState<ConversationView[]>([]);
@@ -69,9 +72,11 @@ export function ConversationListPanel({ selectedConversationId }: ConversationLi
     );
   }
 
+  const shown = sentMessages ? withSentMessages(conversations, sentMessages) : conversations;
+
   return (
     <Stack spacing={1} sx={{ p: 1.5 }}>
-      {conversations.map((c) => {
+      {shown.map((c) => {
         const mine = c.lastMessageSenderTeamId === active.teamId;
         const isSelected = c.id === selectedConversationId;
         return (
