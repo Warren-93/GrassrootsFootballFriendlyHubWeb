@@ -31,9 +31,9 @@ const fixture: FixtureView = {
   refereeArrangement: 'NONE',
 };
 
-function renderPage(canManage: boolean, view: FixtureView = fixture) {
+function renderPage(canManage: boolean, view: FixtureView = fixture, teamId = 'team-1') {
   vi.mocked(useCurrentTeam).mockReturnValue({
-    active: { teamId: 'team-1', teamName: 'Riverside U12 Girls', clubId: 'club-1', canManage },
+    active: { teamId, teamName: 'Riverside U12 Girls', clubId: 'club-1', canManage },
     setActive: vi.fn(),
     clear: vi.fn(),
   });
@@ -71,6 +71,16 @@ describe('FixtureDetailPage', () => {
     expect(screen.queryByText('Not given')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Cancel fixture' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Message the other team' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Report or block' })).not.toBeInTheDocument();
+  });
+
+  it("offers no actions to a manager acting as neither team, so they can't report the wrong one", async () => {
+    // A club admin acting as the club's U10s opens a fixture of its U12s.
+    renderPage(true, fixture, 'team-3');
+
+    expect(await screen.findByText('Sam Patel 07700 900123')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Message the other team' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancel fixture' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Report or block' })).not.toBeInTheDocument();
   });
 });

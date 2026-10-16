@@ -83,6 +83,10 @@ export function FixtureDetailPage() {
   // A member who joined with a code sees the fixture read-only: the API leaves
   // the managers' contact details out for them, and every action is a manager's.
   const readOnly = !canManageActive(active);
+  // Every action is taken as one of the two teams. Acting as neither (a club
+  // admin opening a fixture of another of the club's teams, say) there's no
+  // "other team" to message, cancel with or report.
+  const showActions = !readOnly && !!weManage;
 
   async function handleCancel() {
     if (!fixtureId) return;
@@ -128,7 +132,7 @@ export function FixtureDetailPage() {
 
         {fixture.venue && <VenueCard venue={fixture.venue} />}
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: readOnly ? '1fr' : '1fr 1fr' }, gap: 2 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: showActions ? '1fr 1fr' : '1fr' }, gap: 2 }}>
           <Card variant="outlined">
             <CardContent>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
@@ -157,7 +161,7 @@ export function FixtureDetailPage() {
             </CardContent>
           </Card>
 
-          {!readOnly && (
+          {showActions && (
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
@@ -165,15 +169,13 @@ export function FixtureDetailPage() {
                 </Typography>
                 <Stack spacing={1.5}>
                   {messageError && <Alert severity="error">{messageError}</Alert>}
-                  {weManage && (
-                    <Button variant="outlined" startIcon={<ChatBubbleOutlineIcon />} disabled={opening} onClick={openChat}>
-                      {opening ? 'Opening…' : 'Message the other team'}
-                    </Button>
-                  )}
+                  <Button variant="outlined" startIcon={<ChatBubbleOutlineIcon />} disabled={opening} onClick={openChat}>
+                    {opening ? 'Opening…' : 'Message the other team'}
+                  </Button>
 
                   {cancelError && <Alert severity="error">{cancelError}</Alert>}
 
-                  {weManage && fixture.status === 'CONFIRMED' && (
+                  {fixture.status === 'CONFIRMED' && (
                     <Button variant="outlined" color="error" onClick={() => setConfirmCancel(true)}>
                       Cancel fixture
                     </Button>
