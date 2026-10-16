@@ -49,7 +49,7 @@ export function UpcomingFixtures({ teamId }: { teamId: string }) {
         <CircularProgress size={22} sx={{ color: brand.pitch }} />
       ) : fixtures.length === 0 ? (
         <Typography variant="body2" color="text.secondary">
-          No friendlies confirmed yet. They'll show here once a manager arranges one.
+          No friendlies coming up. They'll show here once a manager arranges one.
         </Typography>
       ) : (
         <Stack spacing={1.5}>

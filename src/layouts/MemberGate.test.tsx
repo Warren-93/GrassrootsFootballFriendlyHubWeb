@@ -103,7 +103,16 @@ describe('MemberGate', () => {
     vi.mocked(fixtureRepository.list).mockResolvedValue({ ok: true, value: [fixture('old', '2020-01-04', 'team-1', null)] });
     renderGate('/');
 
-    expect(await screen.findByText(/No friendlies confirmed yet/)).toBeInTheDocument();
+    expect(await screen.findByText(/No friendlies coming up/)).toBeInTheDocument();
+  });
+
+  it("says so when the team's fixtures can't be loaded", async () => {
+    actAs(false);
+    vi.mocked(fixtureRepository.list).mockResolvedValue({ ok: false, message: 'That team could not be found.', status: 404 });
+    renderGate('/');
+
+    expect(await screen.findByText(/fixtures couldn't be loaded/)).toBeInTheDocument();
+    expect(screen.queryByText(/No friendlies coming up/)).not.toBeInTheDocument();
   });
 
   it('leaves managers on their own screens', () => {
