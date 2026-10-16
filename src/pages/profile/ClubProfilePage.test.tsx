@@ -182,6 +182,40 @@ describe('ClubProfilePage members', () => {
     expect(setActive).toHaveBeenCalledWith({ teamId: 'team-2', teamName: 'Riverside U14 Boys', clubId: 'club-1', canManageClub: true });
   });
 
+  it("drops the last club's details on switching to a team in a club they don't run", async () => {
+    vi.mocked(useCurrentTeam).mockReturnValue({
+      active: { teamId: 'team-1', teamName: 'Riverside U12 Girls', clubId: 'club-1', canManage: true, canManageClub: true },
+      setActive: vi.fn(),
+      clear: vi.fn(),
+    });
+    vi.mocked(teamRepository.listByClub).mockResolvedValue({
+      ok: true,
+      value: [{ id: 'team-1', name: 'Riverside U12 Girls', clubId: 'club-1', ageGroup: 'U12', format: 'NINE_A_SIDE' } as TeamView],
+    });
+    vi.mocked(memberRepository.listInvites).mockResolvedValue({ ok: true, value: [] });
+    const { rerender } = renderPage();
+    expect(await screen.findByRole('button', { name: 'Edit club' })).toBeInTheDocument();
+
+    vi.mocked(useCurrentTeam).mockReturnValue({
+      active: { teamId: 'team-9', teamName: 'Hillside U10 Girls', clubId: 'club-2', canManage: true, canManageClub: false },
+      setActive: vi.fn(),
+      clear: vi.fn(),
+    });
+    vi.mocked(clubRepository.get).mockResolvedValue({ ok: false, message: 'That club could not be found.', status: 404 });
+    vi.mocked(teamRepository.listByClub).mockResolvedValue({ ok: false, message: 'That club could not be found.', status: 404 });
+    vi.mocked(memberRepository.list).mockResolvedValue({ ok: true, value: [manager] });
+    rerender(
+      <MemoryRouter initialEntries={['/club']}>
+        <ClubProfilePage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Sam Lee')).toBeInTheDocument();
+    expect(screen.queryByText('Riverside FC')).not.toBeInTheDocument();
+    expect(screen.queryByText('Riverside U12 Girls')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit club' })).not.toBeInTheDocument();
+  });
+
   it("doesn't let a team manager add, change or remove a club admin", async () => {
     vi.mocked(useAuth).mockReturnValue({ session: { id: 'u2' } } as ReturnType<typeof useAuth>);
     vi.mocked(useCurrentTeam).mockReturnValue({

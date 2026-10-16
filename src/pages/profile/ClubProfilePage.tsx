@@ -104,11 +104,13 @@ export function ClubProfilePage() {
     if (!clubId || !teamId) return;
     Promise.all([clubRepository.get(clubId), teamRepository.listByClub(clubId)]).then(
       ([clubResult, teamsResult]) => {
-        if (clubResult.ok) setClub(clubResult.value);
+        // Cleared on a failure too, so switching teams never leaves the last
+        // club's card, squads and Edit club showing over this team's members.
+        setClub(clubResult.ok ? clubResult.value : null);
         // Only club admins can read the club (a team manager gets a 404):
         // they still get the team's members, invitations and join code below.
-        else if (clubResult.status !== 404) setErrorMessage(clubResult.message);
-        if (teamsResult.ok) setTeams(teamsResult.value);
+        if (!clubResult.ok && clubResult.status !== 404) setErrorMessage(clubResult.message);
+        setTeams(teamsResult.ok ? teamsResult.value : []);
         setLoading(false);
       },
     );
