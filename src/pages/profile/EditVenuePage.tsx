@@ -42,7 +42,9 @@ export function EditVenuePage() {
   const navigate = useNavigate();
   const { active } = useCurrentTeam();
   const clubId = active?.clubId;
-  const canManageClub = canManageActiveClub(active);
+  // No team yet (a fresh sign-in, until AppShell has loaded one) keeps the
+  // form as before, rather than telling a club admin it isn't theirs to change.
+  const canManageClub = !active || canManageActiveClub(active);
   const { venueId } = useParams<{ venueId: string }>();
   const isNew = !venueId;
 

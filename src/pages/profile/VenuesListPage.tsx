@@ -127,9 +127,12 @@ export function VenuesListPage() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' }, gap: 2.5 }}>
           <Stack spacing={1.5}>
             {venues.length === 0 ? (
-              <Typography color="text.secondary">
-                {canManageClub ? 'No venues yet.' : 'Your club has no venues yet. Ask your club admin to add one.'}
-              </Typography>
+              // A team manager whose list failed to load sees the error above, not that the club has none.
+              (canManageClub || !errorMessage) && (
+                <Typography color="text.secondary">
+                  {canManageClub ? 'No venues yet.' : 'Your club has no venues yet. Ask your club admin to add one.'}
+                </Typography>
+              )
             ) : (
               venues.map((v) => {
                 const details = (

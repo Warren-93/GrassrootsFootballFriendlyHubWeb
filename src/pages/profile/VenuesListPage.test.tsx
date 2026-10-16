@@ -112,4 +112,13 @@ describe('VenuesListPage', () => {
     expect(await screen.findByText('Your club has no venues yet. Ask your club admin to add one.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Add venue' })).not.toBeInTheDocument();
   });
+
+  it("doesn't tell a team manager the club has no venues when the list failed to load", async () => {
+    vi.mocked(venueRepository.list).mockResolvedValue({ ok: false, message: 'Network error - check your connection and try again.' });
+    actAs({ canManage: true, canManageClub: false });
+    renderPage();
+
+    expect(await screen.findByText('Network error - check your connection and try again.')).toBeInTheDocument();
+    expect(screen.queryByText(/Your club has no venues yet/)).not.toBeInTheDocument();
+  });
 });

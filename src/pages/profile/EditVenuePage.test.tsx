@@ -167,4 +167,12 @@ describe('venue form for a team manager who is not the club admin', () => {
     expect(screen.queryByRole('button', { name: 'Save venue' })).not.toBeInTheDocument();
     expect(venueRepository.create).not.toHaveBeenCalled();
   });
+
+  it("keeps the form until a fresh sign-in has loaded the user's team", () => {
+    vi.mocked(useCurrentTeam).mockReturnValue({ active: null, setActive: vi.fn(), clear: vi.fn() });
+    renderAt('/venues/new');
+
+    expect(screen.getByLabelText('Venue name')).toBeInTheDocument();
+    expect(screen.queryByText('Only your club admin can add or change venues.')).not.toBeInTheDocument();
+  });
 });
