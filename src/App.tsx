@@ -56,6 +56,8 @@ const SuggestChangesPage = lazy(() => import('./pages/arrange/SuggestChangesPage
 const DeclinePage = lazy(() => import('./pages/arrange/DeclinePage').then((m) => ({ default: m.DeclinePage })));
 const FixturesPage = lazy(() => import('./pages/arrange/FixturesPage').then((m) => ({ default: m.FixturesPage })));
 const FixtureDetailPage = lazy(() => import('./pages/arrange/FixtureDetailPage').then((m) => ({ default: m.FixtureDetailPage })));
+const PrivacyPolicyPage = lazy(() => import('./pages/legal/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage })));
+const DeleteAccountInfoPage = lazy(() => import('./pages/legal/DeleteAccountInfoPage').then((m) => ({ default: m.DeleteAccountInfoPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 
 function App() {
@@ -71,6 +73,9 @@ function App() {
         {/* Not gated: a verification link can legitimately be opened while already signed in. */}
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        {/* Public: Google Play links to these, signed in or not. */}
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/delete-account" element={<DeleteAccountInfoPage />} />
 
         <Route element={<ProtectedRoute />}>
           {/* Onboarding is a linear wizard with no team yet - it renders full-screen, outside the dashboard shell. */}
