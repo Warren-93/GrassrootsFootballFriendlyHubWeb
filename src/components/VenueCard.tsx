@@ -3,7 +3,6 @@ import type { SxProps, Theme } from '@mui/material';
 import DirectionsIcon from '@mui/icons-material/DirectionsOutlined';
 import type { VenueSummary } from '../api/types';
 import { directionsUrl, PITCH_SURFACE_LABEL, venueAddressLine } from '../utils/venue';
-import { brand } from '../theme/theme';
 
 interface VenueCardProps {
   venue: VenueSummary;
@@ -21,7 +20,7 @@ export function VenueCard({ venue, title = 'Venue', sx }: VenueCardProps) {
       <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start', gap: 1.5 }}>
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: brand.muted }}>
+            <Typography sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'text.secondary' }}>
               {title}
             </Typography>
             <Typography sx={{ fontWeight: 700, fontSize: 15, mt: 0.25 }}>{venue.name}</Typography>

@@ -161,8 +161,8 @@ function FixtureRow({ fixture, status, onClick }: { fixture: FixtureView; status
       <CardActionArea onClick={onClick}>
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box sx={{ width: 44, textAlign: 'center', flex: 'none' }}>
-            <Typography sx={{ fontSize: 20, fontWeight: 800, lineHeight: 1, color: brand.ink }}>{day}</Typography>
-            <Typography sx={{ fontSize: 10, color: brand.muted, letterSpacing: '.04em' }}>{month}</Typography>
+            <Typography sx={{ fontSize: 20, fontWeight: 800, lineHeight: 1, color: 'text.primary' }}>{day}</Typography>
+            <Typography sx={{ fontSize: 10, color: 'text.secondary', letterSpacing: '.04em' }}>{month}</Typography>
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant="body1" sx={{ fontWeight: 700 }}>

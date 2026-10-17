@@ -274,7 +274,7 @@ export function ClubProfilePage() {
                       {m.displayName}
                       {m.userId === session?.id ? ' (You)' : ''}
                     </Typography>
-                    <Typography sx={{ fontSize: 12, color: brand.muted }} noWrap>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }} noWrap>
                       {m.email}
                     </Typography>
                   </Box>
@@ -361,7 +361,7 @@ export function ClubProfilePage() {
                       <Typography sx={{ fontWeight: 700, fontSize: 14 }} noWrap>
                         {invite.email}
                       </Typography>
-                      <Typography sx={{ fontSize: 12, color: brand.muted }} noWrap>
+                      <Typography sx={{ fontSize: 12, color: 'text.secondary' }} noWrap>
                         {ROLE_CHIP[invite.role]} &middot; expires{' '}
                         {new Date(invite.expiresAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                       </Typography>

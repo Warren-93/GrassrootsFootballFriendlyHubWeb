@@ -54,10 +54,10 @@ export function OnboardingStepper({ currentStep }: OnboardingStepperProps) {
         '& .MuiStepLabel-label': {
           fontSize: 12,
           fontWeight: 700,
-          color: brand.muted,
+          color: 'text.secondary',
           mt: 0.5,
-          '&.Mui-active': { color: brand.ink },
-          '&.Mui-completed': { color: brand.ink },
+          '&.Mui-active': { color: 'text.primary' },
+          '&.Mui-completed': { color: 'text.primary' },
         },
       }}
     >

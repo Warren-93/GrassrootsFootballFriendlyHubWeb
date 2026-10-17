@@ -292,8 +292,8 @@ export function HomePage() {
                             fontSize: 12.5,
                             fontWeight: 700,
                             cursor: 'pointer',
-                            bgcolor: isSelected ? brand.void : hasAvailability ? '#E4F4E4' : 'transparent',
-                            color: isSelected ? '#fff' : hasAvailability ? brand.pitchDeep : brand.ink,
+                            bgcolor: isSelected ? 'secondary.main' : hasAvailability ? '#E4F4E4' : 'transparent',
+                            color: isSelected ? '#fff' : hasAvailability ? brand.pitchDeep : 'text.primary',
                           }}
                         >
                           {d.getDate()}

@@ -88,7 +88,7 @@ export function PrivacyPage() {
       {data && (
         <Card variant="outlined" sx={{ borderLeft: `3px solid ${brand.void}`, borderRadius: 3, maxWidth: 640, mb: 2.5 }}>
           <CardContent>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', fontSize: 11, color: brand.muted }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', fontSize: 11, color: 'text.secondary' }}>
               What we hold on you
             </Typography>
             <Typography variant="body2" sx={{ mt: 1, fontWeight: 700 }}>

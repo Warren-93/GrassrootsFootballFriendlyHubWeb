@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Alert, Box, Button, CircularProgress, Container, Stack, TextField, Typography, useTheme } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Container, Stack, TextField, Typography } from '@mui/material';
 import ShieldIcon from '@mui/icons-material/Shield';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlineOutlined';
 import { useParams } from 'react-router-dom';
@@ -11,16 +11,15 @@ import { TeamClubTabs } from '../../components/TeamClubTabs';
 import { brand } from '../../theme/theme';
 
 function VerifyCard({ tone, icon, title, subtitle }: { tone: 'approved' | 'pending' | 'rejected'; icon: ReactNode; title: string; subtitle: string }) {
-  const theme = useTheme();
   const bg = tone === 'approved' ? '#E4F4E4' : tone === 'pending' ? brand.amberBg : brand.coralBg;
   const iconColor = tone === 'approved' ? brand.pitchDeep : tone === 'pending' ? brand.amber : brand.coral;
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.75, p: 2, borderRadius: 3, bgcolor: bg, mb: 2 }}>
-      <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: theme.palette.background.paper, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: iconColor }}>
+      <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: brand.paper, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: iconColor }}>
         {icon}
       </Box>
       <Box>
-        <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{title}</Typography>
+        <Typography sx={{ fontWeight: 700, fontSize: 14, color: brand.ink }}>{title}</Typography>
         <Typography sx={{ fontSize: 12.5, color: brand.muted }}>{subtitle}</Typography>
       </Box>
     </Box>
@@ -126,7 +125,7 @@ export function VerificationPage() {
           </Alert>
         )}
 
-        <Typography sx={{ fontSize: 12.5, color: brand.muted, mb: 2 }}>
+        <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mb: 2 }}>
           Verified teams get a badge on every result, appear higher in match suggestions, and can see full contact
           details for other verified teams.
         </Typography>

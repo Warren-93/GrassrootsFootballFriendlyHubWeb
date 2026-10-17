@@ -1,4 +1,5 @@
-import { Typography } from '@mui/material';
+import { Link, Typography } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import { LegalPageLayout, LegalSection, SupportContact } from './LegalPageLayout';
 
 // Google Play asks apps that create accounts for a public web page explaining
@@ -17,7 +18,7 @@ export function DeleteAccountInfoPage() {
       <LegalSection heading="On the website">
         <ol>
           <li>
-            Sign in at <a href="/sign-in">Kickabout on the web</a>.
+            Sign in at <Link component={RouterLink} to="/sign-in">Kickabout on the web</Link>.
           </li>
           <li>Open Settings, then choose Delete account and confirm.</li>
         </ol>

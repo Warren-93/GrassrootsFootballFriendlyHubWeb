@@ -147,7 +147,7 @@ export function CalendarPage() {
             {WEEKDAY_LABELS.map((label) => (
               <Typography
                 key={label}
-                sx={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: brand.muted, textAlign: 'center', pb: 0.5 }}
+                sx={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: 'text.secondary', textAlign: 'center', pb: 0.5 }}
               >
                 {label}
               </Typography>
@@ -178,7 +178,7 @@ export function CalendarPage() {
                         width: 18,
                         height: 18,
                         borderRadius: '50%',
-                        bgcolor: brand.void,
+                        bgcolor: 'secondary.main',
                         color: '#fff',
                         display: 'inline-flex',
                         alignItems: 'center',

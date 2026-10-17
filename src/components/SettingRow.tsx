@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
-import { brand } from '../theme/theme';
+import { dangerText } from '../theme/theme';
 
 interface SettingRowProps {
   title: ReactNode;
@@ -28,9 +28,9 @@ export function SettingRow({ title, subtitle, control, danger, last, onClick }: 
       }}
     >
       <Box>
-        <Typography sx={{ fontWeight: 700, fontSize: 13.5, color: danger ? brand.coral : 'inherit' }}>{title}</Typography>
+        <Typography sx={{ fontWeight: 700, fontSize: 13.5, color: danger ? dangerText : 'inherit' }}>{title}</Typography>
         {subtitle && (
-          <Typography sx={{ fontSize: 12, color: brand.muted, mt: 0.25 }}>{subtitle}</Typography>
+          <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>{subtitle}</Typography>
         )}
       </Box>
       {control}

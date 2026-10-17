@@ -90,7 +90,7 @@ export function HelpPage() {
             elevation={0}
             sx={{ border: 1, borderColor: 'divider', borderRadius: '12px !important', mb: 1, '&::before': { display: 'none' } }}
           >
-            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18, color: brand.muted }} />}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18, color: 'text.secondary' }} />}>
               <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>{faq.question}</Typography>
             </AccordionSummary>
             <AccordionDetails sx={{ pt: 0 }}>

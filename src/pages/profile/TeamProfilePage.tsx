@@ -6,7 +6,7 @@ import { teamRepository } from '../../api/teamRepository';
 import type { TeamView } from '../../api/types';
 import { TeamClubTabs } from '../../components/TeamClubTabs';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
-import { brand } from '../../theme/theme';
+import { brand, subtleSurface } from '../../theme/theme';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { canManageActive } from '../../session/canManageActive';
 import { ProfileChecklistCard } from '../../components/ProfileChecklistCard';
@@ -14,10 +14,10 @@ import { ProfileChecklistCard } from '../../components/ProfileChecklistCard';
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <Box>
-      <Typography sx={{ fontSize: 11, fontWeight: 700, color: brand.ink2, textTransform: 'uppercase', letterSpacing: '.03em', mb: 0.75 }}>
+      <Typography sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '.03em', mb: 0.75 }}>
         {label}
       </Typography>
-      <Box sx={{ border: 1, borderColor: brand.border, borderRadius: 2.25, px: 1.5, py: 1.25, fontSize: 13.5, bgcolor: brand.mist }}>
+      <Box sx={{ border: 1, borderColor: 'divider', borderRadius: 2.25, px: 1.5, py: 1.25, fontSize: 13.5, bgcolor: subtleSurface, color: 'text.primary' }}>
         {value}
       </Box>
     </Box>
@@ -89,7 +89,7 @@ export function TeamProfilePage() {
       <ProfileChecklistCard team={team} />
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 2, mb: 2.5 }}>
-        <Field label="Age group" value={team.ageGroup} />
+        <Field label="Age group" value={codeLabel(team.ageGroup)} />
         <Field label="Format" value={codeLabel(team.format)} />
         <Field label="Skill level" value={codeLabel(team.abilityLevel)} />
       </Box>
@@ -97,7 +97,7 @@ export function TeamProfilePage() {
       <Card variant="outlined" sx={{ borderRadius: 3, mb: 2.5 }}>
         <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
           <Typography sx={{ fontWeight: 700, fontSize: 13.5, mb: 1.25 }}>About</Typography>
-          <Box sx={{ border: 1, borderColor: brand.border, borderRadius: 2.25, px: 1.5, py: 1.25, fontSize: 13.5, bgcolor: brand.mist, minHeight: 44 }}>
+          <Box sx={{ border: 1, borderColor: 'divider', borderRadius: 2.25, px: 1.5, py: 1.25, fontSize: 13.5, bgcolor: subtleSurface, color: 'text.primary', minHeight: 44, whiteSpace: 'pre-line' }}>
             {team.description || 'No description yet.'}
           </Box>
         </CardContent>

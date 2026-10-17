@@ -163,8 +163,8 @@ export function DashboardPage() {
                     fontSize: 12.5,
                     fontWeight: 700,
                     cursor: 'pointer',
-                    bgcolor: isFixtureDay ? brand.void : hasAvailability ? '#E4F4E4' : 'transparent',
-                    color: isFixtureDay ? '#fff' : hasAvailability ? brand.pitchDeep : brand.ink,
+                    bgcolor: isFixtureDay ? 'secondary.main' : hasAvailability ? '#E4F4E4' : 'transparent',
+                    color: isFixtureDay ? '#fff' : hasAvailability ? brand.pitchDeep : 'text.primary',
                   }}
                 >
                   {d.getDate()}

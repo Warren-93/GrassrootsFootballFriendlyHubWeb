@@ -12,7 +12,6 @@ import {
 import { AccountTabs } from '../../components/AccountTabs';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { reportRepository } from '../../api/reportRepository';
-import { brand } from '../../theme/theme';
 import type { BlockView } from '../../api/types';
 
 /**
@@ -122,7 +121,7 @@ export function AccountReportPage() {
         </Stack>
       )}
 
-      <Typography variant="caption" sx={{ display: 'block', mt: 2.5, color: brand.muted, maxWidth: 640 }}>
+      <Typography variant="caption" sx={{ display: 'block', mt: 2.5, color: 'text.secondary', maxWidth: 640 }}>
         Unblocking a team lets them appear in search results and contact you again - it doesn't notify them.
       </Typography>
     </Container>

@@ -132,7 +132,7 @@ export function ConversationThreadPanel({ conversationId, onSent }: Conversation
                       py: 1,
                       borderRadius: 2.5,
                       ...(isMine
-                        ? { bgcolor: brand.void, color: '#fff', borderBottomRightRadius: 6 }
+                        ? { bgcolor: 'secondary.main', color: '#fff', borderBottomRightRadius: 6 }
                         : { bgcolor: brand.mist, color: brand.ink, borderBottomLeftRadius: 6 }),
                     }}
                   >
