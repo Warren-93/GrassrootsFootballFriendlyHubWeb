@@ -28,7 +28,7 @@ const response: SearchResponse = {
         ageGroup: 'U12',
         gender: 'GIRLS',
         format: 'NINE_A_SIDE',
-        abilityLevel: 'INTERMEDIATE',
+        abilityLevel: 'DIVISION_2',
         league: null,
         description: 'Friendly, well-organised squad.',
         generalArea: 'RH16',

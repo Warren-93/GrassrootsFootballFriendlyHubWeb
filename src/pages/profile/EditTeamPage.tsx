@@ -1,4 +1,4 @@
-import { codeLabel } from '../../utils/labels';
+import { codeLabel, DIVISIONS, ORGANISATIONS, organisationLabel } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -18,11 +18,10 @@ import {
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { teamRepository } from '../../api/teamRepository';
-import type { AbilityLevel, HomeAwayPreference, TeamView } from '../../api/types';
+import type { AbilityLevel, HomeAwayPreference, Organisation, TeamView } from '../../api/types';
 import { PageHeader } from '../../components/PageHeader';
 import { BadgePicker } from '../../components/brand/BadgePicker';
 
-const ABILITY_LEVELS: AbilityLevel[] = ['DEVELOPMENT', 'INTERMEDIATE', 'COMPETITIVE'];
 const HOME_AWAY: HomeAwayPreference[] = ['HOME', 'AWAY', 'EITHER'];
 
 export function EditTeamPage() {
@@ -50,6 +49,7 @@ export function EditTeamPage() {
     const result = await teamRepository.update(teamId, {
       badgeUrl: team.badgeUrl ?? '',
       abilityLevel: team.abilityLevel,
+      organisation: team.organisation ?? undefined,
       league: team.league,
       homeAwayPreference: team.homeAwayPreference,
       travelRadiusMiles: team.travelRadiusMiles,
@@ -94,12 +94,32 @@ export function EditTeamPage() {
 
         <TextField
           select
-          label="Ability level"
+          label="Organisation"
+          value={team.organisation ?? ''}
+          onChange={(e) => setTeam({ ...team, organisation: e.target.value as Organisation })}
+          fullWidth
+        >
+          {ORGANISATIONS.map((o) => (
+            <MenuItem key={o} value={o}>
+              {organisationLabel(o)}
+            </MenuItem>
+          ))}
+        </TextField>
+        <TextField
+          label="League"
+          value={team.league ?? ''}
+          onChange={(e) => setTeam({ ...team, league: e.target.value })}
+          fullWidth
+        />
+        <TextField
+          select
+          label="Division"
+          helperText="The division you play in within your league."
           value={team.abilityLevel}
           onChange={(e) => setTeam({ ...team, abilityLevel: e.target.value as AbilityLevel })}
           fullWidth
         >
-          {ABILITY_LEVELS.map((a) => (
+          {DIVISIONS.map((a) => (
             <MenuItem key={a} value={a}>
               {codeLabel(a)}
             </MenuItem>
@@ -123,12 +143,6 @@ export function EditTeamPage() {
           type="number"
           value={team.travelRadiusMiles}
           onChange={(e) => setTeam({ ...team, travelRadiusMiles: Number(e.target.value) })}
-          fullWidth
-        />
-        <TextField
-          label="League"
-          value={team.league ?? ''}
-          onChange={(e) => setTeam({ ...team, league: e.target.value })}
           fullWidth
         />
         <TextField

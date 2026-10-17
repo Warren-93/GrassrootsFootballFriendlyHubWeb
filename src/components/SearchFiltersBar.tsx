@@ -1,11 +1,11 @@
 import { Box, Button, Checkbox, FormControlLabel, MenuItem, Select, Typography, useTheme } from '@mui/material';
 import type { ReactNode } from 'react';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import type { AbilityLevel, Format } from '../api/types';
+import type { Format } from '../api/types';
 import { EMPTY_FILTERS, type SearchFilters } from '../session/SearchState';
 import { brand } from '../theme/theme';
+import { codeLabel, DIVISIONS } from '../utils/labels';
 
-const ABILITY_LEVELS: AbilityLevel[] = ['DEVELOPMENT', 'INTERMEDIATE', 'COMPETITIVE'];
 const FORMATS: Format[] = ['FIVE_A_SIDE', 'SEVEN_A_SIDE', 'NINE_A_SIDE', 'ELEVEN_A_SIDE'];
 const DISTANCE_PRESETS = [5, 10, 15, 25, 40, 50];
 
@@ -56,7 +56,7 @@ export function SearchFiltersBar({
       }}
     >
       <Box sx={{ flex: '1 1 160px', minWidth: 160 }}>
-        <FieldLabel>Ability level</FieldLabel>
+        <FieldLabel>Division</FieldLabel>
         <Select
           multiple
           fullWidth
@@ -65,14 +65,14 @@ export function SearchFiltersBar({
           disabled={disabled}
           value={filters.abilityLevels}
           onChange={(e) => onChange({ ...filters, abilityLevels: e.target.value as string[] })}
-          renderValue={(selected) => (selected.length ? selected.map(label).join(', ') : 'All levels')}
+          renderValue={(selected) => (selected.length ? selected.map(codeLabel).join(', ') : 'All divisions')}
           IconComponent={ExpandMoreIcon}
           sx={selectSx}
         >
-          {ABILITY_LEVELS.map((a) => (
+          {DIVISIONS.map((a) => (
             <MenuItem key={a} value={a}>
               <Checkbox checked={filters.abilityLevels.includes(a)} size="small" />
-              {label(a)}
+              {codeLabel(a)}
             </MenuItem>
           ))}
         </Select>

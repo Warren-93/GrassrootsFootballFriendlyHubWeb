@@ -1,4 +1,4 @@
-import { codeLabel } from '../../utils/labels';
+import { codeLabel, organisationLabel } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import { Box, Button, Card, CardContent, CircularProgress, Container, LinearProgress, Typography } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -91,7 +91,7 @@ export function TeamProfilePage() {
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 2, mb: 2.5 }}>
         <Field label="Age group" value={codeLabel(team.ageGroup)} />
         <Field label="Format" value={codeLabel(team.format)} />
-        <Field label="Skill level" value={codeLabel(team.abilityLevel)} />
+        <Field label="Division" value={codeLabel(team.abilityLevel)} />
       </Box>
 
       <Card variant="outlined" sx={{ borderRadius: 3, mb: 2.5 }}>
@@ -112,6 +112,11 @@ export function TeamProfilePage() {
           <Typography variant="body2" color="text.secondary">
             {team.postcode} &middot; travels up to {team.travelRadiusMiles} miles &middot; home or away: {codeLabel(team.homeAwayPreference)}
           </Typography>
+          {team.organisation && (
+            <Typography variant="body2" color="text.secondary">
+              Organisation: {organisationLabel(team.organisation)}
+            </Typography>
+          )}
           {team.league && (
             <Typography variant="body2" color="text.secondary">
               League: {team.league}

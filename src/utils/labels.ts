@@ -1,3 +1,5 @@
+import type { AbilityLevel, Organisation } from '../api/types';
+
 // The API's enum codes as people say them ("U12", "Boys", "9v9", "No
 // preference", "Changes requested"), for every screen that shows one. Any
 // other code - including one the API adds later - just loses its underscores
@@ -15,10 +17,24 @@ const KNOWN_LABELS: Record<string, string> = {
   SENT: 'Awaiting reply',
   UPDATED: 'Changes accepted',
   USER: 'Member',
+  PREMIER: 'Premier / top division',
+  DIVISION_1: 'Division 1 / Championship',
+  DIVISION_2: 'Division 2',
+  DIVISION_3_PLUS: 'Division 3 or lower',
+  NOT_IN_LEAGUE: 'Not in a league',
+  FESTIVAL: 'Festival / non-competitive',
+  SYFA: 'Scottish Youth FA (SYFA)',
+  SAFA: 'Scottish Amateur FA (SAFA)',
+  SWF: "Scottish Women's Football (SWF)",
+  SWFA: 'Scottish Welfare FA (SWFA)',
+  SSFA: "Scottish Schools' FA (SSFA)",
+  SJFA: 'Scottish Junior FA (SJFA)',
 };
 
 export function codeLabel(code: string): string {
   if (KNOWN_LABELS[code]) return KNOWN_LABELS[code];
+  // Already a display label (the match results send "Division 1 / Championship").
+  if (/[a-z]/.test(code)) return code;
   if (/^U\d+$/.test(code)) return code;
   const words = code.toLowerCase().replace(/_/g, ' ');
   return words.charAt(0).toUpperCase() + words.slice(1);
@@ -46,4 +62,15 @@ export function dateLabel(isoDate: string): string {
     year: 'numeric',
     timeZone: 'UTC',
   });
+}
+
+/** Pick-list order for the team's division, top first. */
+export const DIVISIONS: AbilityLevel[] = ['PREMIER', 'DIVISION_1', 'DIVISION_2', 'DIVISION_3_PLUS', 'NOT_IN_LEAGUE', 'FESTIVAL'];
+
+/** The Scottish FA associations a grassroots team can play under. */
+export const ORGANISATIONS: Organisation[] = ['SYFA', 'SAFA', 'SWF', 'SWFA', 'SSFA', 'SJFA', 'OTHER'];
+
+/** OTHER means "Other" elsewhere (a report reason), so the organisation's wording lives here. */
+export function organisationLabel(code: string): string {
+  return code === 'OTHER' ? 'Other / not affiliated' : codeLabel(code);
 }

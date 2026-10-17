@@ -102,7 +102,10 @@ export type AgeGroup =
 /** BOYS/GIRLS for youth age groups, MEN/WOMEN for ADULT/VETERANS, MIXED always allowed - see Gender.availableFor on the backend. */
 export type Gender = 'BOYS' | 'GIRLS' | 'MIXED' | 'MEN' | 'WOMEN';
 export type Format = 'FIVE_A_SIDE' | 'SEVEN_A_SIDE' | 'NINE_A_SIDE' | 'ELEVEN_A_SIDE';
-export type AbilityLevel = 'DEVELOPMENT' | 'INTERMEDIATE' | 'COMPETITIVE';
+/** The division a team plays in. The API property keeps the name abilityLevel. */
+export type AbilityLevel = 'PREMIER' | 'DIVISION_1' | 'DIVISION_2' | 'DIVISION_3_PLUS' | 'NOT_IN_LEAGUE' | 'FESTIVAL';
+/** The Scottish FA association a team plays under. */
+export type Organisation = 'SYFA' | 'SAFA' | 'SWF' | 'SWFA' | 'SSFA' | 'SJFA' | 'OTHER';
 export type HomeAwayPreference = 'HOME' | 'AWAY' | 'EITHER';
 export type VerificationStatus = 'NOT_STARTED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type PitchSurface = 'GRASS' | 'THREE_G' | 'FOUR_G' | 'ASTRO' | 'INDOOR';
@@ -120,6 +123,8 @@ export interface TeamView {
   gender: Gender;
   format: Format;
   abilityLevel: AbilityLevel;
+  /** Null for teams created before organisations were asked for. */
+  organisation?: Organisation | null;
   league: string | null;
   postcode: string;
   longitude: number;
@@ -164,6 +169,7 @@ export interface CreateTeamRequest {
   gender: Gender;
   format?: Format | null;
   abilityLevel: AbilityLevel;
+  organisation?: Organisation | null;
   league?: string | null;
   postcode: string;
   longitude: number;
@@ -276,6 +282,8 @@ export interface TeamSummary {
   gender: string;
   format: string;
   abilityLevel: string;
+  /** The organisation's display label; null when the team hasn't set one. */
+  organisation?: string | null;
   league: string | null;
   description: string | null;
   generalArea: string | null;

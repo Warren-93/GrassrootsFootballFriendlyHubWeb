@@ -13,7 +13,7 @@ function conversation(id: string, lastMessageAt: string | null, lastMessageBody:
       ageGroup: 'U12',
       gender: 'GIRLS',
       format: 'NINE_A_SIDE',
-      abilityLevel: 'INTERMEDIATE',
+      abilityLevel: 'DIVISION_2',
       league: null,
       description: null,
       generalArea: null,
