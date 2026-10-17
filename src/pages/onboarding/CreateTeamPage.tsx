@@ -1,4 +1,4 @@
-import { codeLabel } from '../../utils/labels';
+import { codeLabel, DIVISIONS, ORGANISATIONS, organisationLabel } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -16,13 +16,12 @@ import {
 } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { teamRepository } from '../../api/teamRepository';
-import type { AbilityLevel, AgeGroup, Format, Gender, HomeAwayPreference } from '../../api/types';
+import type { AbilityLevel, AgeGroup, Format, Gender, HomeAwayPreference, Organisation } from '../../api/types';
 import { PostcodeLocationField } from '../../components/PostcodeLocationField';
 import { OnboardingStepper } from '../../components/brand/OnboardingStepper';
 
 const AGE_GROUPS: AgeGroup[] = ['U7', 'U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15', 'U16', 'U17', 'U18', 'ADULT', 'VETERANS'];
 const FORMATS: Format[] = ['FIVE_A_SIDE', 'SEVEN_A_SIDE', 'NINE_A_SIDE', 'ELEVEN_A_SIDE'];
-const ABILITY_LEVELS: AbilityLevel[] = ['DEVELOPMENT', 'INTERMEDIATE', 'COMPETITIVE'];
 const HOME_AWAY: HomeAwayPreference[] = ['HOME', 'AWAY', 'EITHER'];
 
 // Mirrors backend Gender.availableFor(AgeGroup) - see gffh-api Gender.java.
@@ -30,7 +29,7 @@ function gendersFor(ageGroup: AgeGroup): Gender[] {
   return ageGroup === 'ADULT' || ageGroup === 'VETERANS' ? ['MEN', 'WOMEN', 'MIXED'] : ['BOYS', 'GIRLS', 'MIXED'];
 }
 
-const STEPS = ['Basics', 'Location & format', 'Preferences', 'Contact'];
+const STEPS = ['Basics', 'League', 'Location & format', 'Preferences', 'Contact'];
 
 export function CreateTeamPage() {
   const navigate = useNavigate();
@@ -43,7 +42,8 @@ export function CreateTeamPage() {
   const [name, setName] = useState('');
   const [ageGroup, setAgeGroup] = useState<AgeGroup>('ADULT');
   const [gender, setGender] = useState<Gender>('MIXED');
-  const [abilityLevel, setAbilityLevel] = useState<AbilityLevel>('INTERMEDIATE');
+  const [organisation, setOrganisation] = useState<Organisation | ''>('');
+  const [abilityLevel, setAbilityLevel] = useState<AbilityLevel>('DIVISION_2');
   const genders = gendersFor(ageGroup);
 
   useEffect(() => {
@@ -76,6 +76,7 @@ export function CreateTeamPage() {
       gender,
       format,
       abilityLevel,
+      organisation: organisation || null,
       league: league || null,
       postcode,
       longitude: coordinates.longitude,
@@ -96,6 +97,7 @@ export function CreateTeamPage() {
 
   const stepValid = [
     !!name && (hasExistingClub ? !!clubId : !!clubName),
+    !!organisation,
     !!postcode && !!coordinates,
     true,
     true,
@@ -113,9 +115,14 @@ export function CreateTeamPage() {
         </Typography>
 
         <Stepper activeStep={step}>
-          {STEPS.map((label) => (
+          {STEPS.map((label, index) => (
             <Step key={label}>
-              <StepLabel>{label}</StepLabel>
+              {/* Five labels don't fit a phone: show only the current one there. */}
+              <StepLabel
+                sx={{ '& .MuiStepLabel-labelContainer': { display: { xs: index === step ? 'block' : 'none', sm: 'block' } } }}
+              >
+                {label}
+              </StepLabel>
             </Step>
           ))}
         </Stepper>
@@ -147,14 +154,41 @@ export function CreateTeamPage() {
                 </MenuItem>
               ))}
             </TextField>
+          </Stack>
+        )}
+
+        {step === 1 && (
+          <Stack spacing={2}>
             <TextField
               select
-              label="Ability level"
+              label="Organisation"
+              helperText="The Scottish FA association your team plays under."
+              value={organisation}
+              onChange={(e) => setOrganisation(e.target.value as Organisation)}
+              fullWidth
+            >
+              {ORGANISATIONS.map((o) => (
+                <MenuItem key={o} value={o}>
+                  {organisationLabel(o)}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              label="League (optional)"
+              helperText="For example, Warriors FA."
+              value={league}
+              onChange={(e) => setLeague(e.target.value)}
+              fullWidth
+            />
+            <TextField
+              select
+              label="Division"
+              helperText="The division you play in within your league."
               value={abilityLevel}
               onChange={(e) => setAbilityLevel(e.target.value as AbilityLevel)}
               fullWidth
             >
-              {ABILITY_LEVELS.map((a) => (
+              {DIVISIONS.map((a) => (
                 <MenuItem key={a} value={a}>
                   {codeLabel(a)}
                 </MenuItem>
@@ -163,7 +197,7 @@ export function CreateTeamPage() {
           </Stack>
         )}
 
-        {step === 1 && (
+        {step === 2 && (
           <Stack spacing={2}>
             <TextField select label="Format" value={format} onChange={(e) => setFormat(e.target.value as Format)} fullWidth>
               {FORMATS.map((f) => (
@@ -188,7 +222,7 @@ export function CreateTeamPage() {
           </Stack>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <Stack spacing={2}>
             <TextField
               select
@@ -203,11 +237,10 @@ export function CreateTeamPage() {
                 </MenuItem>
               ))}
             </TextField>
-            <TextField label="League (optional)" value={league} onChange={(e) => setLeague(e.target.value)} fullWidth />
           </Stack>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <Stack spacing={2}>
             <TextField label="Manager name (optional)" value={managerName} onChange={(e) => setManagerName(e.target.value)} fullWidth />
             <TextField label="Contact phone (optional)" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} fullWidth />

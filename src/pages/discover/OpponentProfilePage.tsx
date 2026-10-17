@@ -58,6 +58,11 @@ export function OpponentProfilePage() {
               <Typography variant="h5" sx={{ fontWeight: 800 }}>
                 {team.name}
               </Typography>
+              {(team.organisation || team.league) && (
+                <Typography variant="body2" color="text.secondary">
+                  {[team.organisation, team.league].filter(Boolean).join(' · ')}
+                </Typography>
+              )}
               <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
                 <MatchScoreChip score={match.score} />
                 {team.verified && (
@@ -92,7 +97,7 @@ export function OpponentProfilePage() {
           <StatTile label="Distance" value={`${match.milesApart.toFixed(1)} mi`} />
           <StatTile label="Age group" value={team.ageGroup} />
           <StatTile label="Format" value={codeLabel(team.format)} />
-          <StatTile label="Ability" value={codeLabel(team.abilityLevel)} />
+          <StatTile label="Division" value={codeLabel(team.abilityLevel)} />
         </StatTileRow>
 
         <Card variant="outlined" sx={{ borderRadius: 3 }}>
