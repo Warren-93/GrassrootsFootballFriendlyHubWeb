@@ -1,3 +1,4 @@
+import { codeLabel } from '../../utils/labels';
 import { useState } from 'react';
 import { Alert, Box, Button, Card, CardContent, Chip, Container, Stack, Typography } from '@mui/material';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
@@ -90,8 +91,8 @@ export function OpponentProfilePage() {
         <StatTileRow>
           <StatTile label="Distance" value={`${match.milesApart.toFixed(1)} mi`} />
           <StatTile label="Age group" value={team.ageGroup} />
-          <StatTile label="Format" value={team.format.replace(/_/g, ' ')} />
-          <StatTile label="Ability" value={team.abilityLevel} />
+          <StatTile label="Format" value={codeLabel(team.format)} />
+          <StatTile label="Ability" value={codeLabel(team.abilityLevel)} />
         </StatTileRow>
 
         <Card variant="outlined" sx={{ borderRadius: 3 }}>

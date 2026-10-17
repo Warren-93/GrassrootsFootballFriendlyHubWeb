@@ -1,3 +1,4 @@
+import { codeLabel, costShareLabel, refereeLabel, dateLabel } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -110,7 +111,7 @@ export function FixtureDetailPage() {
             <ArrowBackIcon />
           </IconButton>
           <Chip
-            label={fixture.status}
+            label={codeLabel(fixture.status)}
             size="small"
             sx={
               fixture.status === 'CONFIRMED'
@@ -121,12 +122,12 @@ export function FixtureDetailPage() {
         </Box>
 
         <FixtureBanner
-          tag={fixture.status === 'CONFIRMED' ? 'Confirmed friendly' : fixture.status}
+          tag={fixture.status === 'CONFIRMED' ? 'Confirmed friendly' : codeLabel(fixture.status)}
           homeTeam={fixture.homeTeam.name}
           awayTeam={fixture.awayTeam.name}
           homeBadgeUrl={fixture.homeTeam.badgeUrl}
           awayBadgeUrl={fixture.awayTeam.badgeUrl}
-          date={fixture.date}
+          date={dateLabel(fixture.date)}
           meta={`${fixture.startTime.slice(0, 5)} - ${fixture.endTime.slice(0, 5)}`}
         />
 
@@ -139,8 +140,8 @@ export function FixtureDetailPage() {
                 Details
               </Typography>
               <Stack spacing={1}>
-                <Row label="Cost share" value={fixture.costShare.replace(/_/g, ' ')} />
-                <Row label="Referee" value={fixture.refereeArrangement.replace(/_/g, ' ')} />
+                <Row label="Cost share" value={costShareLabel(fixture.costShare)} />
+                <Row label="Referee" value={refereeLabel(fixture.refereeArrangement)} />
                 {readOnly ? (
                   <Typography variant="body2" color="text.secondary">
                     The managers' contact details are only shown to team managers.

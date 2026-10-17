@@ -1,3 +1,4 @@
+import { dateLabel } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import { Box, Button, Card, CardContent, Container, Stack, Typography } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
@@ -62,7 +63,7 @@ export function InvitationSentPage() {
                   {opponentName ?? '…'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {request.date} &middot; {request.startTime.slice(0, 5)}
+                  {dateLabel(request.date)} &middot; {request.startTime.slice(0, 5)}
                 </Typography>
               </Box>
               <Box sx={{ fontSize: 11.5, fontWeight: 700, px: 1.25, py: 0.5, borderRadius: 5, bgcolor: brand.amberBg, color: brand.amber, flexShrink: 0 }}>

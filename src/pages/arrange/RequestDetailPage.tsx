@@ -1,3 +1,4 @@
+import { codeLabel, costShareLabel, dateLabel, refereeLabel } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import { Alert, Box, Button, Card, CardContent, CircularProgress, Container, Link, Stack, Typography } from '@mui/material';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
@@ -122,18 +123,18 @@ export function RequestDetailPage() {
               </Typography>
             )}
             <Box sx={{ display: 'inline-block', mt: 1, fontSize: 12, fontWeight: 700, px: 1.25, py: 0.5, borderRadius: 5, ...style }}>
-              {request.status.replace(/_/g, ' ')}
+              {codeLabel(request.status)}
             </Box>
           </Box>
         </Stack>
 
         <Card variant="outlined" sx={{ borderRadius: 3 }}>
           <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
-            <Row label="Date" value={request.date} />
+            <Row label="Date" value={dateLabel(request.date)} />
             <Row label="Time" value={`${request.startTime.slice(0, 5)} - ${request.endTime.slice(0, 5)}`} />
             {homeTeam && <Row label="Home team" value={homeTeam.name} />}
-            <Row label="Cost share" value={request.costShare.replace(/_/g, ' ')} />
-            <Row label="Referee" value={request.refereeArrangement.replace(/_/g, ' ')} last />
+            <Row label="Cost share" value={costShareLabel(request.costShare)} />
+            <Row label="Referee" value={refereeLabel(request.refereeArrangement)} last />
           </CardContent>
         </Card>
 

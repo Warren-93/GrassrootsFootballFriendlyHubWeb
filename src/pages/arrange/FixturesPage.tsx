@@ -1,3 +1,4 @@
+import { codeLabel, dateLabel } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import { Box, Button, Card, CardActionArea, CardContent, Chip, CircularProgress, Container, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -102,7 +103,7 @@ export function FixturesPage() {
                           {incoming ? `${opponent} wants to play` : `Request sent to ${opponent}`}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          {r.date} &middot; {r.startTime.slice(0, 5)}
+                          {dateLabel(r.date)} &middot; {r.startTime.slice(0, 5)}
                         </Typography>
                       </Box>
                     </Box>
@@ -123,7 +124,7 @@ export function FixturesPage() {
                         </Button>
                       )}
                       {!canAcceptDirect && !r.availableActions.includes('decline') && (
-                        <Chip label={r.status.replace(/_/g, ' ')} size="small" sx={{ bgcolor: brand.amberBg, color: brand.amber }} />
+                        <Chip label={codeLabel(r.status)} size="small" sx={{ bgcolor: brand.amberBg, color: brand.amber }} />
                       )}
                     </Stack>
                   </Box>
