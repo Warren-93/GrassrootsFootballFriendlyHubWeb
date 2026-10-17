@@ -1,6 +1,8 @@
+import { codeLabel } from '../../utils/labels';
 import { useState } from 'react';
 import { Alert, Box, Button, Card, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useOnboardingTeam } from './useOnboardingTeam';
 import { availabilityRepository } from '../../api/availabilityRepository';
 import type { HomeAwayPreference } from '../../api/types';
 import { OnboardingStepper } from '../../components/brand/OnboardingStepper';
@@ -17,8 +19,7 @@ function nextSaturday(): string {
 
 export function AddAvailabilityPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { teamId } = (location.state as { teamId: string; clubId: string }) ?? {};
+  const { teamId, loading: teamLoading } = useOnboardingTeam();
 
   const [date, setDate] = useState(nextSaturday());
   const [startTime, setStartTime] = useState('10:00');
@@ -28,6 +29,7 @@ export function AddAvailabilityPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function handleSubmit() {
+    if (!teamId) return;
     setSubmitting(true);
     setErrorMessage(null);
     const result = await availabilityRepository.create(teamId, {
@@ -97,14 +99,14 @@ export function AddAvailabilityPage() {
           >
             {HOME_AWAY.map((h) => (
               <MenuItem key={h} value={h}>
-                {h}
+                {codeLabel(h)}
               </MenuItem>
             ))}
           </TextField>
 
           {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-          <Button variant="contained" size="large" disabled={submitting} onClick={handleSubmit}>
+          <Button variant="contained" size="large" disabled={submitting || teamLoading || !teamId} onClick={handleSubmit}>
             {submitting ? 'Publishing…' : 'Publish'}
           </Button>
           <Button variant="text" onClick={skip}>

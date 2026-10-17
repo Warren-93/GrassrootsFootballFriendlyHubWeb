@@ -1,3 +1,4 @@
+import { costShareLabel, refereeLabel, dateLabel } from '../../utils/labels';
 import { useState } from 'react';
 import { Alert, Box, Button, Card, CardContent, Container, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -67,15 +68,15 @@ export function InvitationReviewPage() {
         <Card variant="outlined" sx={{ borderRadius: 3 }}>
           <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
             <Stack spacing={0}>
-              <Row label="Date" value={draft.date} />
+              <Row label="Date" value={dateLabel(draft.date)} />
               <Row label="Time" value={`${draft.startTime.slice(0, 5)} - ${draft.endTime.slice(0, 5)}`} />
               <Row label="Home team" value={draft.homeTeamId === active.teamId ? 'Us' : 'Them'} />
               <Row
                 label="Venue"
                 value={draft.homeTeamId === active.teamId ? (draft.venueName ?? 'Our home ground') : 'Their home ground'}
               />
-              <Row label="Cost share" value={draft.costShare.replace(/_/g, ' ')} />
-              <Row label="Referee" value={draft.refereeArrangement.replace(/_/g, ' ')} last />
+              <Row label="Cost share" value={costShareLabel(draft.costShare)} />
+              <Row label="Referee" value={refereeLabel(draft.refereeArrangement)} last />
             </Stack>
             {draft.message && (
               <Typography variant="body2" sx={{ mt: 2 }}>

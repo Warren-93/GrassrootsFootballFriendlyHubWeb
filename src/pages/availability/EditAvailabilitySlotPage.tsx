@@ -1,3 +1,4 @@
+import { codeLabel } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import { Alert, Box, Button, Card, CardContent, CircularProgress, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -128,7 +129,7 @@ export function EditAvailabilitySlotPage() {
             >
               {HOME_AWAY.map((h) => (
                 <MenuItem key={h} value={h}>
-                  {h}
+                  {codeLabel(h)}
                 </MenuItem>
               ))}
             </TextField>

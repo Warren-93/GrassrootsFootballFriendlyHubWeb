@@ -1,3 +1,4 @@
+import { codeLabel } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -135,14 +136,14 @@ export function CreateTeamPage() {
             <TextField select label="Age group" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value as AgeGroup)} fullWidth>
               {AGE_GROUPS.map((g) => (
                 <MenuItem key={g} value={g}>
-                  {g}
+                  {codeLabel(g)}
                 </MenuItem>
               ))}
             </TextField>
             <TextField select label="Gender" value={gender} onChange={(e) => setGender(e.target.value as Gender)} fullWidth>
               {genders.map((g) => (
                 <MenuItem key={g} value={g}>
-                  {g}
+                  {codeLabel(g)}
                 </MenuItem>
               ))}
             </TextField>
@@ -155,7 +156,7 @@ export function CreateTeamPage() {
             >
               {ABILITY_LEVELS.map((a) => (
                 <MenuItem key={a} value={a}>
-                  {a}
+                  {codeLabel(a)}
                 </MenuItem>
               ))}
             </TextField>
@@ -167,7 +168,7 @@ export function CreateTeamPage() {
             <TextField select label="Format" value={format} onChange={(e) => setFormat(e.target.value as Format)} fullWidth>
               {FORMATS.map((f) => (
                 <MenuItem key={f} value={f}>
-                  {f.replace(/_/g, ' ')}
+                  {codeLabel(f)}
                 </MenuItem>
               ))}
             </TextField>
@@ -198,7 +199,7 @@ export function CreateTeamPage() {
             >
               {HOME_AWAY.map((h) => (
                 <MenuItem key={h} value={h}>
-                  {h}
+                  {codeLabel(h)}
                 </MenuItem>
               ))}
             </TextField>

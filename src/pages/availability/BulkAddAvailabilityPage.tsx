@@ -1,3 +1,4 @@
+import { codeLabel } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -219,7 +220,7 @@ export function BulkAddAvailabilityPage() {
               >
                 {HOME_AWAY.map((h) => (
                   <MenuItem key={h} value={h}>
-                    {h}
+                    {codeLabel(h)}
                   </MenuItem>
                 ))}
               </TextField>
@@ -250,7 +251,7 @@ export function BulkAddAvailabilityPage() {
               >
                 {HOME_AWAY.map((h) => (
                   <MenuItem key={h} value={h}>
-                    {h}
+                    {codeLabel(h)}
                   </MenuItem>
                 ))}
               </TextField>

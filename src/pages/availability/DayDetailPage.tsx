@@ -1,3 +1,4 @@
+import { codeLabel } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import { Box, Button, Card, CircularProgress, Container, IconButton, Stack, Typography } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -101,7 +102,7 @@ export function DayDetailPage() {
                   {slot.startTime.slice(0, 5)}-{slot.endTime.slice(0, 5)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
-                  {slot.homeAwayPreference} &middot; {venueName(slot.venueId) ?? 'No venue set'}
+                  {codeLabel(slot.homeAwayPreference)} &middot; {venueName(slot.venueId) ?? 'No venue set'}
                 </Typography>
                 <Box sx={{ fontSize: 11.5, fontWeight: 700, px: 1.25, py: 0.5, borderRadius: 5, bgcolor: style.bgcolor, color: style.color, flexShrink: 0 }}>
                   {style.label}

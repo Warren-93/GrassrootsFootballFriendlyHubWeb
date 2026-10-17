@@ -1,3 +1,4 @@
+import { codeLabel } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -100,7 +101,7 @@ export function EditTeamPage() {
         >
           {ABILITY_LEVELS.map((a) => (
             <MenuItem key={a} value={a}>
-              {a}
+              {codeLabel(a)}
             </MenuItem>
           ))}
         </TextField>
@@ -113,7 +114,7 @@ export function EditTeamPage() {
         >
           {HOME_AWAY.map((h) => (
             <MenuItem key={h} value={h}>
-              {h}
+              {codeLabel(h)}
             </MenuItem>
           ))}
         </TextField>

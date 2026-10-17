@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alert, Box, Button, Card, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useOnboardingTeam } from './useOnboardingTeam';
 import { venueRepository } from '../../api/venueRepository';
 import { teamRepository } from '../../api/teamRepository';
 import type { PitchSurface } from '../../api/types';
@@ -18,8 +19,7 @@ const PITCH_SURFACE_LABELS: Record<PitchSurface, string> = {
 
 export function AddVenuePage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { teamId, clubId } = (location.state as { teamId: string; clubId: string }) ?? {};
+  const { teamId, clubId, loading: teamLoading } = useOnboardingTeam();
 
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
@@ -29,10 +29,10 @@ export function AddVenuePage() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const canSubmit = name.length >= 3 && address && postcode && !!coordinates;
+  const canSubmit = !teamLoading && !!clubId && name.length >= 3 && address && postcode && !!coordinates;
 
   async function handleSubmit() {
-    if (!coordinates) return;
+    if (!coordinates || !teamId || !clubId) return;
     setSubmitting(true);
     setErrorMessage(null);
     const venueResult = await venueRepository.create({

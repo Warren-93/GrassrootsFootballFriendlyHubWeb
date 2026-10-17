@@ -1,3 +1,4 @@
+import { codeLabel } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -450,7 +451,7 @@ export function ClubProfilePage() {
                             <Box>
                               <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>{t.name}</Typography>
                               <Typography variant="caption" color="text.secondary">
-                                {t.ageGroup} &middot; {t.format}
+                                {t.ageGroup} &middot; {codeLabel(t.format)}
                               </Typography>
                             </Box>
                             {t.id === active.teamId && <Chip label="Active" size="small" color="primary" />}

@@ -1,3 +1,4 @@
+import { costShareLabel, refereeLabel, dateLabel } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import { Alert, Box, Button, Card, CardContent, CircularProgress, Container, Link, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -211,7 +212,7 @@ export function InvitationComposerPage() {
               <TextField select label="Cost share" value={costShare} onChange={(e) => setCostShare(e.target.value as CostShare)} fullWidth>
                 {COST_SHARES.map((c) => (
                   <MenuItem key={c} value={c}>
-                    {c.replace(/_/g, ' ')}
+                    {costShareLabel(c)}
                   </MenuItem>
                 ))}
               </TextField>
@@ -225,7 +226,7 @@ export function InvitationComposerPage() {
               >
                 {REFEREE_ARRANGEMENTS.map((r) => (
                   <MenuItem key={r} value={r}>
-                    {r.replace(/_/g, ' ')}
+                    {refereeLabel(r)}
                   </MenuItem>
                 ))}
               </TextField>
@@ -255,7 +256,7 @@ export function InvitationComposerPage() {
                 {match.team.name}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {date}
+                {dateLabel(date)}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {startTime} - {endTime}

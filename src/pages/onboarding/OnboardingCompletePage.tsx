@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Box, Button, Card, CircularProgress, Container, Stack, Typography } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useOnboardingTeam } from './useOnboardingTeam';
 import { teamRepository } from '../../api/teamRepository';
 import type { TeamView } from '../../api/types';
 import { ProfileChecklistCard } from '../../components/ProfileChecklistCard';
@@ -10,14 +11,14 @@ import { brand } from '../../theme/theme';
 
 export function OnboardingCompletePage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { teamId } = (location.state as { teamId: string }) ?? {};
+  const { teamId, loading: teamLoading } = useOnboardingTeam();
   const { setActive } = useCurrentTeam();
   const [loading, setLoading] = useState(true);
   const [team, setTeam] = useState<TeamView | null>(null);
 
   useEffect(() => {
     (async () => {
+      if (teamLoading) return;
       if (!teamId) {
         setLoading(false);
         return;
@@ -30,7 +31,7 @@ export function OnboardingCompletePage() {
       setLoading(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [teamId]);
+  }, [teamId, teamLoading]);
 
   if (loading) {
     return (
