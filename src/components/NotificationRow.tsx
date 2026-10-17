@@ -61,7 +61,7 @@ export function NotificationRow({ notification: n, onClick, last }: Notification
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontWeight: n.read ? 600 : 700, fontSize: 13.5 }}>{n.title}</Typography>
-          <Typography sx={{ fontSize: 12, color: brand.muted, mt: 0.25 }}>
+          <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>
             {n.body} &middot; {relativeTime(n.createdAt)} ago
           </Typography>
         </Box>

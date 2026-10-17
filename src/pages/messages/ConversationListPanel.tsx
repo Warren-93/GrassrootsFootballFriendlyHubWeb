@@ -5,7 +5,7 @@ import { conversationRepository } from '../../api/conversationRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import type { ConversationView, MessageView } from '../../api/types';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
-import { brand } from '../../theme/theme';
+import { subtleSurface } from '../../theme/theme';
 import { withSentMessages } from '../../utils/conversation';
 
 interface ConversationListPanelProps {
@@ -83,7 +83,7 @@ export function ConversationListPanel({ selectedConversationId, sentMessages }: 
           <Card
             key={c.id}
             variant="outlined"
-            sx={isSelected ? { bgcolor: brand.mist, borderColor: brand.void } : undefined}
+            sx={isSelected ? { bgcolor: subtleSurface, borderColor: 'text.primary' } : undefined}
           >
             <CardActionArea onClick={() => navigate(`/messages/${c.id}`)} sx={{ p: 1.5 }}>
               <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>

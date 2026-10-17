@@ -163,7 +163,7 @@ export function BulkAddAvailabilityPage() {
       <Card variant="outlined" sx={{ borderRadius: 3 }}>
         <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
           <Stack spacing={1} sx={{ mb: 2.5 }}>
-            <Typography sx={{ fontSize: 11, fontWeight: 700, color: brand.muted, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+            <Typography sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '.04em' }}>
               Repeat on
             </Typography>
             <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
@@ -176,7 +176,7 @@ export function BulkAddAvailabilityPage() {
                     onClick={() => toggleWeekday(w.value)}
                     sx={
                       selected
-                        ? { bgcolor: brand.void, color: '#fff', fontWeight: 700 }
+                        ? { bgcolor: 'secondary.main', color: '#fff', fontWeight: 700 }
                         : { bgcolor: brand.mist, color: brand.ink2, fontWeight: 700 }
                     }
                   />
@@ -270,7 +270,7 @@ export function BulkAddAvailabilityPage() {
 
           <Typography variant="caption" color="text.secondary">
             Applies to{' '}
-            <Box component="span" sx={{ color: brand.ink, fontWeight: 700 }}>
+            <Box component="span" sx={{ color: 'text.primary', fontWeight: 700 }}>
               {previewDates.length} date{previewDates.length === 1 ? '' : 's'}
             </Box>{' '}
             between {fromDate} and {toDate}.

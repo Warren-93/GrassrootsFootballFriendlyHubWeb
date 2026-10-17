@@ -1,4 +1,5 @@
-import { Typography } from '@mui/material';
+import { Link, Typography } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import { LegalPageLayout, LegalSection, SupportContact } from './LegalPageLayout';
 
 // Public privacy policy for Kickabout's web and mobile apps. Google Play
@@ -70,7 +71,7 @@ export function PrivacyPolicyPage() {
           <li>Download a copy of your data from Settings under Privacy &amp; data.</li>
           <li>Turn notification types on or off in notification settings, or turn off push in your phone's settings.</li>
           <li>
-            Delete your account at any time. See <a href="/delete-account">how to delete your account</a>.
+            Delete your account at any time. See <Link component={RouterLink} to="/delete-account">how to delete your account</Link>.
           </li>
         </ul>
       </LegalSection>

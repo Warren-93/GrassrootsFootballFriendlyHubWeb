@@ -23,7 +23,7 @@ import { useAuth } from '../../auth/AuthContext';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { AccountTabs } from '../../components/AccountTabs';
 import { SettingRow } from '../../components/SettingRow';
-import { brand } from '../../theme/theme';
+import { brand, dangerText } from '../../theme/theme';
 
 /**
  * SCR-PR-08 Settings. Purpose: account, credential and account-deletion
@@ -155,7 +155,7 @@ export function SettingsPage() {
               <Typography
                 component="button"
                 onClick={openChangeEmail}
-                sx={{ font: 'inherit', fontSize: 12.5, fontWeight: 700, color: brand.ink2, background: 'none', border: 'none', cursor: 'pointer' }}
+                sx={{ font: 'inherit', fontSize: 12.5, fontWeight: 700, color: 'text.primary', background: 'none', border: 'none', cursor: 'pointer' }}
               >
                 Change
               </Typography>
@@ -168,7 +168,7 @@ export function SettingsPage() {
               <Typography
                 component="button"
                 onClick={openChangePassword}
-                sx={{ font: 'inherit', fontSize: 12.5, fontWeight: 700, color: brand.ink2, background: 'none', border: 'none', cursor: 'pointer' }}
+                sx={{ font: 'inherit', fontSize: 12.5, fontWeight: 700, color: 'text.primary', background: 'none', border: 'none', cursor: 'pointer' }}
               >
                 Change
               </Typography>
@@ -183,7 +183,7 @@ export function SettingsPage() {
               <Typography
                 component="button"
                 onClick={() => setConfirmDelete(true)}
-                sx={{ font: 'inherit', fontSize: 12.5, fontWeight: 700, color: brand.coral, background: 'none', border: 'none', cursor: 'pointer' }}
+                sx={{ font: 'inherit', fontSize: 12.5, fontWeight: 700, color: dangerText, background: 'none', border: 'none', cursor: 'pointer' }}
               >
                 Delete
               </Typography>

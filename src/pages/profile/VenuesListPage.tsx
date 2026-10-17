@@ -145,15 +145,15 @@ export function VenuesListPage() {
                         </Box>
                       )}
                     </Stack>
-                    <Typography sx={{ fontSize: 12.5, color: brand.muted, mt: 0.5 }}>{venueSubtitle(v)}</Typography>
+                    <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.5 }}>{venueSubtitle(v)}</Typography>
                     {/* The edit form is where these show for a club admin: read-only, they show here. */}
                     {!canManageClub && v.accessNotes && (
-                      <Typography sx={{ fontSize: 12.5, color: brand.muted, mt: 0.5, whiteSpace: 'pre-line' }}>
+                      <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.5, whiteSpace: 'pre-line' }}>
                         Access: {v.accessNotes}
                       </Typography>
                     )}
                     {!canManageClub && v.parkingNotes && (
-                      <Typography sx={{ fontSize: 12.5, color: brand.muted, mt: 0.5, whiteSpace: 'pre-line' }}>
+                      <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.5, whiteSpace: 'pre-line' }}>
                         Parking: {v.parkingNotes}
                       </Typography>
                     )}

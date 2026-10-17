@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { notificationRepository } from '../../api/notificationRepository';
 import type { NotificationView } from '../../api/types';
 import { NotificationRow } from '../../components/NotificationRow';
-import { brand } from '../../theme/theme';
+import { brand, dangerText } from '../../theme/theme';
 
 // SCR-HM-02 Notification centre. Purpose: one place to see everything that
 // happened across requests, fixtures, verification and messages - matches
@@ -80,7 +80,7 @@ export function NotificationsPage() {
           <Typography
             component="button"
             onClick={() => setConfirmClear(true)}
-            sx={{ font: 'inherit', fontSize: 12.5, fontWeight: 700, color: brand.coral, background: 'none', border: 'none', cursor: 'pointer' }}
+            sx={{ font: 'inherit', fontSize: 12.5, fontWeight: 700, color: dangerText, background: 'none', border: 'none', cursor: 'pointer' }}
           >
             Clear all
           </Typography>
@@ -102,7 +102,7 @@ export function NotificationsPage() {
               <Typography
                 component="button"
                 onClick={clearAll}
-                sx={{ font: 'inherit', fontSize: 12.5, fontWeight: 700, color: brand.coral, background: 'none', border: 'none', cursor: 'pointer' }}
+                sx={{ font: 'inherit', fontSize: 12.5, fontWeight: 700, color: dangerText, background: 'none', border: 'none', cursor: 'pointer' }}
               >
                 Clear
               </Typography>

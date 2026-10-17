@@ -13,7 +13,7 @@ export function BrandHeader({ size = 56, tagline = 'compact' }: BrandHeaderProps
     <Stack spacing={1} sx={{ alignItems: 'center', textAlign: 'center' }}>
       <Box component="img" src={mark} alt="Kickabout" sx={{ width: size, height: size, objectFit: 'contain' }} />
       <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: 0.3 }}>
-        <Box component="span" sx={{ color: 'secondary.main' }}>
+        <Box component="span" sx={{ color: (t) => (t.palette.mode === 'dark' ? t.palette.text.primary : t.palette.secondary.main) }}>
           Kick
         </Box>
         <Box component="span" sx={{ color: 'primary.main' }}>

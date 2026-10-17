@@ -84,6 +84,12 @@ export function getTheme(mode: PaletteMode) {
         styleOverrides: {
           root: { borderRadius: 9, fontWeight: 700, paddingLeft: 16, paddingRight: 16 },
           contained: { boxShadow: 'none', '&:hover': { boxShadow: 'none' } },
+          // Text and outlined red buttons (Sign out, Withdraw) are coral text on
+          // the page, which is too dim on the dark navy ground.
+          text: ({ theme, ownerState }: { theme: Theme; ownerState: { color?: string } }) =>
+            ownerState.color === 'error' && theme.palette.mode === 'dark' ? { color: dangerText(theme) } : {},
+          outlined: ({ theme, ownerState }: { theme: Theme; ownerState: { color?: string } }) =>
+            ownerState.color === 'error' && theme.palette.mode === 'dark' ? { color: dangerText(theme), borderColor: dangerText(theme) } : {},
         },
       },
       MuiCard: {
@@ -114,6 +120,12 @@ export function getTheme(mode: PaletteMode) {
     },
   });
 }
+
+/** A soft, see-through fill for read-only fields and selected rows: mist in light mode, a faint white wash in dark mode. */
+export const subtleSurface = (t: Theme) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : brand.mist);
+
+/** Coral for red text links (Delete, Clear all) - lifted in dark mode, where the brand coral is too dim to read. */
+export const dangerText = (t: Theme) => (t.palette.mode === 'dark' ? '#F28B7D' : brand.coral);
 
 /** The default (light) theme - kept for anything importing `theme` directly. */
 export const theme = getTheme('light');

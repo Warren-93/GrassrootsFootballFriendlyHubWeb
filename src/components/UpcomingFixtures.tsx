@@ -61,10 +61,10 @@ export function UpcomingFixtures({ teamId }: { teamId: string }) {
                 <CardActionArea onClick={() => navigate(`/fixtures/${f.id}`)}>
                   <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Box sx={{ width: 44, textAlign: 'center', flex: 'none' }}>
-                      <Typography sx={{ fontSize: 20, fontWeight: 800, lineHeight: 1, color: brand.ink }}>
+                      <Typography sx={{ fontSize: 20, fontWeight: 800, lineHeight: 1, color: 'text.primary' }}>
                         {date?.getDate() ?? ''}
                       </Typography>
-                      <Typography sx={{ fontSize: 10, color: brand.muted, letterSpacing: '.04em' }}>
+                      <Typography sx={{ fontSize: 10, color: 'text.secondary', letterSpacing: '.04em' }}>
                         {date?.toLocaleDateString(undefined, { month: 'short' }).toUpperCase() ?? ''}
                       </Typography>
                     </Box>
