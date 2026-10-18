@@ -1,4 +1,4 @@
-import { codeLabel, DIVISIONS, ORGANISATIONS, organisationLabel } from '../../utils/labels';
+import { codeLabel, DIVISIONS, organisationLabel, organisationsFor } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -99,7 +99,7 @@ export function EditTeamPage() {
           onChange={(e) => setTeam({ ...team, organisation: e.target.value as Organisation })}
           fullWidth
         >
-          {ORGANISATIONS.map((o) => (
+          {organisationsFor(team.ageGroup, team.gender).map((o) => (
             <MenuItem key={o} value={o}>
               {organisationLabel(o)}
             </MenuItem>

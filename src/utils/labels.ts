@@ -1,4 +1,4 @@
-import type { AbilityLevel, Organisation } from '../api/types';
+import type { AbilityLevel, AgeGroup, Gender, Organisation } from '../api/types';
 
 // The API's enum codes as people say them ("U12", "Boys", "9v9", "No
 // preference", "Changes requested"), for every screen that shows one. Any
@@ -67,8 +67,17 @@ export function dateLabel(isoDate: string): string {
 /** Pick-list order for the team's division, top first. */
 export const DIVISIONS: AbilityLevel[] = ['PREMIER', 'DIVISION_1', 'DIVISION_2', 'DIVISION_3_PLUS', 'NOT_IN_LEAGUE', 'FESTIVAL'];
 
-/** The Scottish FA associations a grassroots team can play under. */
-export const ORGANISATIONS: Organisation[] = ['SYFA', 'SAFA', 'SWF', 'SWFA', 'SSFA', 'SJFA', 'OTHER'];
+// The Scottish FA associations a team of this age and gender can play under.
+// Mirrors backend Organisation.availableFor(AgeGroup, Gender): youth, schools
+// and girls' bodies for youth teams; amateur, welfare, junior and women's for
+// adults; Scottish Women's Football is left out for boys' and men's teams.
+export function organisationsFor(ageGroup: AgeGroup, gender?: Gender): Organisation[] {
+  const byAge: Organisation[] =
+    ageGroup === 'ADULT' || ageGroup === 'VETERANS'
+      ? ['SAFA', 'SWF', 'SWFA', 'SJFA', 'OTHER']
+      : ['SYFA', 'SWF', 'SSFA', 'OTHER'];
+  return gender === 'BOYS' || gender === 'MEN' ? byAge.filter((o) => o !== 'SWF') : byAge;
+}
 
 /** OTHER means "Other" elsewhere (a report reason), so the organisation's wording lives here. */
 export function organisationLabel(code: string): string {
