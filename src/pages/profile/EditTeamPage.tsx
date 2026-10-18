@@ -99,7 +99,7 @@ export function EditTeamPage() {
           onChange={(e) => setTeam({ ...team, organisation: e.target.value as Organisation })}
           fullWidth
         >
-          {organisationsFor(team.ageGroup).map((o) => (
+          {organisationsFor(team.ageGroup, team.gender).map((o) => (
             <MenuItem key={o} value={o}>
               {organisationLabel(o)}
             </MenuItem>

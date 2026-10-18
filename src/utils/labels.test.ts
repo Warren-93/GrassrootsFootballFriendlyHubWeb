@@ -27,5 +27,9 @@ describe('labels', () => {
     expect(organisationsFor('ADULT')).not.toContain('SSFA');
     expect(organisationsFor('VETERANS')).toContain('SWFA');
     expect(organisationsFor('U12')).toEqual(['SYFA', 'SWF', 'SSFA', 'OTHER']);
+    expect(organisationsFor('U12', 'BOYS')).toEqual(['SYFA', 'SSFA', 'OTHER']);
+    expect(organisationsFor('ADULT', 'MEN')).not.toContain('SWF');
+    expect(organisationsFor('ADULT', 'WOMEN')).toContain('SWF');
+    expect(organisationsFor('U14', 'MIXED')).toContain('SWF');
   });
 });
