@@ -1,4 +1,4 @@
-import { codeLabel, DIVISIONS, ORGANISATIONS, organisationLabel } from '../../utils/labels';
+import { codeLabel, DIVISIONS, organisationLabel, organisationsFor } from '../../utils/labels';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -48,6 +48,8 @@ export function CreateTeamPage() {
 
   useEffect(() => {
     if (!genders.includes(gender)) setGender('MIXED');
+    // A different age group can rule out the organisation already picked.
+    if (organisation && !organisationsFor(ageGroup).includes(organisation)) setOrganisation('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ageGroup]);
   const [format, setFormat] = useState<Format>('ELEVEN_A_SIDE');
@@ -167,7 +169,7 @@ export function CreateTeamPage() {
               onChange={(e) => setOrganisation(e.target.value as Organisation)}
               fullWidth
             >
-              {ORGANISATIONS.map((o) => (
+              {organisationsFor(ageGroup).map((o) => (
                 <MenuItem key={o} value={o}>
                   {organisationLabel(o)}
                 </MenuItem>
