@@ -7,14 +7,9 @@ import { availabilityRepository } from '../../api/availabilityRepository';
 import { fixtureRepository } from '../../api/fixtureRepository';
 import type { FixtureView, SlotView } from '../../api/types';
 import { brand } from '../../theme/theme';
+import { calendarMonthBounds, calendarMonthCells, localDateKey } from '../../utils/calendarDates';
 
 const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-function monthBounds(cursor: Date): { start: string; end: string } {
-  const start = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
-  const end = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0);
-  return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
-}
 
 /** AM before noon, PM before 5pm, otherwise Eve - matches the concept's .pub-slot badges. */
 function slotBadge(slot: SlotView): string {
@@ -33,7 +28,7 @@ export function CalendarPage() {
   const [fixtures, setFixtures] = useState<FixtureView[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const { start, end } = monthBounds(cursor);
+  const { start, end } = calendarMonthBounds(cursor);
 
   useEffect(() => {
     if (!active) {
@@ -67,30 +62,10 @@ export function CalendarPage() {
   }
   const confirmedFixtureDates = new Set(fixtures.filter((f) => f.status === 'CONFIRMED').map((f) => f.date));
 
-  const firstOfMonth = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
-  const daysInMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
-  const firstWeekday = (firstOfMonth.getDay() + 6) % 7; // Monday = 0
+  // Leading/trailing days from adjacent months fill complete Monday-first weeks.
+  const cells = calendarMonthCells(cursor.getFullYear(), cursor.getMonth());
 
-  // Leading/trailing days from the adjacent months, muted, so the grid always fills complete weeks.
-  const leadDays = firstWeekday;
-  const prevMonthLastDate = new Date(cursor.getFullYear(), cursor.getMonth(), 0);
-  const cells: { date: string; inMonth: boolean }[] = [];
-  for (let i = leadDays; i > 0; i--) {
-    const d = new Date(prevMonthLastDate);
-    d.setDate(prevMonthLastDate.getDate() - i + 1);
-    cells.push({ date: d.toISOString().slice(0, 10), inMonth: false });
-  }
-  for (let day = 1; day <= daysInMonth; day++) {
-    cells.push({ date: new Date(cursor.getFullYear(), cursor.getMonth(), day).toISOString().slice(0, 10), inMonth: true });
-  }
-  let trailDay = 1;
-  while (cells.length % 7 !== 0) {
-    const d = new Date(cursor.getFullYear(), cursor.getMonth() + 1, trailDay);
-    cells.push({ date: d.toISOString().slice(0, 10), inMonth: false });
-    trailDay++;
-  }
-
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDateKey(new Date());
   const publishedCount = new Set(slots.map((s) => s.date)).size;
 
   return (
