@@ -6,8 +6,11 @@ export const conversationRepository = {
     apiClient.post<ConversationView>('/api/v1/conversations', { teamId, otherTeamId, fixtureId }),
   list: (teamId: string) => apiClient.get<ConversationView[]>(`/api/v1/teams/${teamId}/conversations`),
   get: (conversationId: string) => apiClient.get<ConversationView>(`/api/v1/conversations/${conversationId}`),
-  messages: (conversationId: string) =>
-    apiClient.get<MessageView[]>(`/api/v1/conversations/${conversationId}/messages`),
+  /** Oldest first. With `since` (an ISO time), only messages from then on, including one at exactly that time. */
+  messages: (conversationId: string, since?: string) =>
+    apiClient.get<MessageView[]>(
+      `/api/v1/conversations/${conversationId}/messages` + (since ? `?since=${encodeURIComponent(since)}` : ''),
+    ),
   /** Text, a GIF (its id from a GIF search), or both. */
   send: (conversationId: string, body: string, gifId?: string) =>
     apiClient.post<MessageView>(`/api/v1/conversations/${conversationId}/messages`, { body, gifId }),

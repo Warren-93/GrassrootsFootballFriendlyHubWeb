@@ -12,8 +12,7 @@ import { PageHeader } from '../../components/PageHeader';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { brand } from '../../theme/theme';
 import type { ConversationView, GifView, MessageView } from '../../api/types';
-
-const POLL_MS = 4000;
+import { mergeMessages, nextPollDelay, pollSince } from './chatPolling';
 
 interface ConversationThreadPanelProps {
   conversationId: string;
@@ -38,25 +37,64 @@ export function ConversationThreadPanel({ conversationId, onSent }: Conversation
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const { config } = useClientConfig();
+  // The messages held and when the chat last saw a new one, for the poll loop below.
+  const messagesRef = useRef<MessageView[]>([]);
+  const lastActivityRef = useRef(Date.now());
 
-  function loadMessages(id: string) {
-    conversationRepository.messages(id).then((result) => {
-      if (result.ok) setMessages(result.value);
-    });
+  function addMessages(incoming: MessageView[]) {
+    const merged = mergeMessages(messagesRef.current, incoming);
+    if (merged === messagesRef.current) return;
+    messagesRef.current = merged;
+    lastActivityRef.current = Date.now();
+    setMessages(merged);
   }
 
+  // Polls for new messages only (since the newest one held), quickly while
+  // the chat is lively and every 15s once it's quiet. Nothing is fetched while
+  // the tab is hidden; coming back to it checks straight away.
   useEffect(() => {
+    let cancelled = false;
+    let inFlight = false;
+    let timer: number | undefined;
+    messagesRef.current = [];
+    lastActivityRef.current = Date.now();
+    setMessages([]);
     setLoading(true);
     setConversation(null);
     setErrorMessage(null);
     conversationRepository.get(conversationId).then((result) => {
+      if (cancelled) return;
       if (result.ok) setConversation(result.value);
       else setErrorMessage(result.message);
       setLoading(false);
     });
-    loadMessages(conversationId);
-    const timer = setInterval(() => loadMessages(conversationId), POLL_MS);
-    return () => clearInterval(timer);
+
+    async function poll() {
+      window.clearTimeout(timer);
+      if (inFlight) return;
+      if (!document.hidden) {
+        inFlight = true;
+        const result = await conversationRepository.messages(conversationId, pollSince(messagesRef.current));
+        inFlight = false;
+        if (cancelled) return;
+        if (result.ok) addMessages(result.value.filter((m) => m.conversationId === conversationId));
+      }
+      if (!cancelled) timer = window.setTimeout(poll, nextPollDelay(lastActivityRef.current, Date.now()));
+    }
+
+    function onVisibilityChange() {
+      if (document.hidden) return;
+      lastActivityRef.current = Date.now();
+      void poll();
+    }
+
+    void poll();
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, [conversationId]);
 
   useEffect(() => {
@@ -74,7 +112,7 @@ export function ConversationThreadPanel({ conversationId, onSent }: Conversation
     if (result.ok) {
       if (!gif) setDraft('');
       onSent?.(result.value);
-      loadMessages(conversationId);
+      addMessages([result.value]);
     } else {
       setErrorMessage(result.message);
     }
