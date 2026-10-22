@@ -608,13 +608,25 @@ export interface NotificationPreferenceView {
   pushEnabled: boolean;
 }
 
+/** A GIPHY GIF: `url` is 200px tall for the chat, `previewUrl` 100px for the picker grid. */
+export interface GifView {
+  id: string;
+  title: string;
+  url: string;
+  previewUrl: string;
+  width: number;
+  height: number;
+}
+
 export interface MessageView {
   id: string;
   conversationId: string;
   senderTeamId: string;
   senderUserId: string;
+  /** Empty for a GIF-only message. Blocked words arrive already masked (****) by the API. */
   body: string;
   createdAt: string;
+  gif?: GifView | null;
 }
 
 export interface ConversationView {
@@ -633,4 +645,6 @@ export interface ClientConfig {
   supportEmail: string | null;
   google: { enabled: boolean; clientId: string | null };
   apple: { enabled: boolean; servicesId: string | null };
+  /** Whether the chat's GIF picker works (the API has a GIPHY key). Absent from older APIs. */
+  gifsEnabled?: boolean;
 }

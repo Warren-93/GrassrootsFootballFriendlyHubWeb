@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { withSentMessages } from './conversation';
+import { messagePreview, withSentMessages } from './conversation';
 import type { ConversationView, MessageView } from '../api/types';
 
 function conversation(id: string, lastMessageAt: string | null, lastMessageBody: string | null = null): ConversationView {
@@ -61,5 +61,22 @@ describe('withSentMessages', () => {
     });
 
     expect(shown.map((c) => c.id)).toEqual(['c', 'a', 'b']);
+  });
+});
+
+describe('messagePreview', () => {
+  const base: MessageView = {
+    id: 'm',
+    conversationId: 'c',
+    senderTeamId: 't',
+    senderUserId: 'u',
+    body: '',
+    createdAt: '2026-10-22T10:00:00Z',
+  };
+  const gif = { id: 'g', title: '', url: 'https://x/200.gif', previewUrl: 'https://x/100.gif', width: 1, height: 1 };
+
+  it('is the text when there is some, and "Sent a GIF" for a GIF on its own', () => {
+    expect(messagePreview({ ...base, body: 'Hi', gif })).toBe('Hi');
+    expect(messagePreview({ ...base, gif })).toBe('Sent a GIF');
   });
 });

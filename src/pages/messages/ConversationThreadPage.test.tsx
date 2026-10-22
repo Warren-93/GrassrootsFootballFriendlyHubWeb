@@ -8,6 +8,9 @@ import { conversationRepository } from '../../api/conversationRepository';
 import type { ConversationView, MessageView } from '../../api/types';
 
 vi.mock('../../session/CurrentTeamContext', () => ({ useCurrentTeam: vi.fn() }));
+vi.mock('../../session/ClientConfigState', () => ({
+  useClientConfig: () => ({ config: { supportEmail: null, google: {}, apple: {}, gifsEnabled: true }, loading: false }),
+}));
 vi.mock('../../api/conversationRepository', () => ({
   conversationRepository: { list: vi.fn(), get: vi.fn(), messages: vi.fn(), send: vi.fn() },
 }));
@@ -95,5 +98,34 @@ describe('ConversationThreadPage', () => {
     expect(within(preview.closest('button')!).getByText('Haywards Heath Harriers')).toBeInTheDocument();
     expect(screen.queryByText('No messages yet')).not.toBeInTheDocument();
     expect(conversationRepository.list).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a GIF message as the image, and offers the emoji and GIF buttons', async () => {
+    const gifMessage: MessageView = {
+      ...sent,
+      id: 'm2',
+      body: '',
+      gif: {
+        id: 'abc123',
+        title: 'Goal celebration',
+        url: 'https://media.giphy.com/media/abc123/200.gif',
+        previewUrl: 'https://media.giphy.com/media/abc123/100.gif',
+        width: 356,
+        height: 200,
+      },
+    };
+    vi.mocked(conversationRepository.messages).mockResolvedValue({ ok: true, value: [gifMessage] });
+    render(
+      <MemoryRouter initialEntries={['/messages/c1']}>
+        <Routes>
+          <Route path="/messages/:conversationId" element={<ConversationThreadPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    const img = await screen.findByAltText('Goal celebration');
+    expect(img).toHaveAttribute('src', 'https://media.giphy.com/media/abc123/200.gif');
+    expect(screen.getByRole('button', { name: 'Emoji' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'GIF' })).toBeInTheDocument();
   });
 });
