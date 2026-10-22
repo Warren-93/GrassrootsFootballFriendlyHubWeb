@@ -8,6 +8,7 @@ export const conversationRepository = {
   get: (conversationId: string) => apiClient.get<ConversationView>(`/api/v1/conversations/${conversationId}`),
   messages: (conversationId: string) =>
     apiClient.get<MessageView[]>(`/api/v1/conversations/${conversationId}/messages`),
-  send: (conversationId: string, body: string) =>
-    apiClient.post<MessageView>(`/api/v1/conversations/${conversationId}/messages`, { body }),
+  /** Text, a GIF (its id from a GIF search), or both. */
+  send: (conversationId: string, body: string, gifId?: string) =>
+    apiClient.post<MessageView>(`/api/v1/conversations/${conversationId}/messages`, { body, gifId }),
 };

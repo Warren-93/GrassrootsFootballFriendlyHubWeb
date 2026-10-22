@@ -17,7 +17,7 @@ export function withSentMessages(
     if (message && (!c.lastMessageAt || Date.parse(message.createdAt) > Date.parse(c.lastMessageAt))) {
       updated.push({
         ...c,
-        lastMessageBody: message.body,
+        lastMessageBody: messagePreview(message),
         lastMessageSenderTeamId: message.senderTeamId,
         lastMessageAt: message.createdAt,
       });
@@ -27,4 +27,9 @@ export function withSentMessages(
   }
   updated.sort((a, b) => Date.parse(b.lastMessageAt!) - Date.parse(a.lastMessageAt!));
   return [...updated, ...rest];
+}
+
+/** The inbox preview for a message: its text, or "Sent a GIF" for a GIF on its own (as the API stores it). */
+export function messagePreview(message: MessageView): string {
+  return message.body || (message.gif ? 'Sent a GIF' : '');
 }

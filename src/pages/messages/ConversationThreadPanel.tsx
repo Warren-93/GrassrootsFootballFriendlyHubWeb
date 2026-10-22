@@ -4,11 +4,14 @@ import SendIcon from '@mui/icons-material/Send';
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccerOutlined';
 import { useNavigate } from 'react-router-dom';
 import { conversationRepository } from '../../api/conversationRepository';
+import { EmojiPickerButton } from '../../components/chat/EmojiPickerButton';
+import { GifPickerButton } from '../../components/chat/GifPickerButton';
+import { useClientConfig } from '../../session/ClientConfigState';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { PageHeader } from '../../components/PageHeader';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { brand } from '../../theme/theme';
-import type { ConversationView, MessageView } from '../../api/types';
+import type { ConversationView, GifView, MessageView } from '../../api/types';
 
 const POLL_MS = 4000;
 
@@ -33,6 +36,8 @@ export function ConversationThreadPanel({ conversationId, onSent }: Conversation
   const [sending, setSending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { config } = useClientConfig();
 
   function loadMessages(id: string) {
     conversationRepository.messages(id).then((result) => {
@@ -58,19 +63,33 @@ export function ConversationThreadPanel({ conversationId, onSent }: Conversation
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
 
-  async function handleSend() {
-    if (!draft.trim()) return;
+  async function handleSend(gif?: GifView) {
+    // A GIF goes on its own; whatever is typed stays in the box.
+    const body = gif ? '' : draft.trim();
+    if (!body && !gif) return;
     setSending(true);
     setErrorMessage(null);
-    const result = await conversationRepository.send(conversationId, draft.trim());
+    const result = await conversationRepository.send(conversationId, body, gif?.id);
     setSending(false);
     if (result.ok) {
-      setDraft('');
+      if (!gif) setDraft('');
       onSent?.(result.value);
       loadMessages(conversationId);
     } else {
       setErrorMessage(result.message);
     }
+  }
+
+  /** Puts the emoji where the cursor is (or replaces the selection), then puts the cursor after it. */
+  function insertEmoji(emoji: string) {
+    const input = inputRef.current;
+    const start = input?.selectionStart ?? draft.length;
+    const end = input?.selectionEnd ?? draft.length;
+    setDraft(draft.slice(0, start) + emoji + draft.slice(end));
+    requestAnimationFrame(() => {
+      input?.focus();
+      input?.setSelectionRange(start + emoji.length, start + emoji.length);
+    });
   }
 
   if (loading) {
@@ -136,9 +155,28 @@ export function ConversationThreadPanel({ conversationId, onSent }: Conversation
                         : { bgcolor: brand.mist, color: brand.ink, borderBottomLeftRadius: 6 }),
                     }}
                   >
-                    <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {m.body}
-                    </Typography>
+                    {m.gif && (
+                      <Box
+                        component="img"
+                        src={m.gif.url}
+                        alt={m.gif.title || 'GIF'}
+                        loading="lazy"
+                        sx={{
+                          display: 'block',
+                          maxWidth: '100%',
+                          width: m.gif.width || undefined,
+                          height: 'auto',
+                          aspectRatio: m.gif.width && m.gif.height ? `${m.gif.width} / ${m.gif.height}` : undefined,
+                          borderRadius: 1.5,
+                          mt: 0.5,
+                        }}
+                      />
+                    )}
+                    {m.body && (
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                        {m.body}
+                      </Typography>
+                    )}
                     <Typography
                       variant="caption"
                       sx={{ opacity: 0.7, display: 'block', mt: 0.25, textAlign: isMine ? 'right' : 'left' }}
@@ -162,8 +200,11 @@ export function ConversationThreadPanel({ conversationId, onSent }: Conversation
         </Box>
       )}
 
-      <Stack direction="row" spacing={1} sx={{ p: 2, borderTop: 1, borderColor: 'divider', alignItems: 'flex-end' }}>
+      <Stack direction="row" spacing={0.5} sx={{ p: 2, borderTop: 1, borderColor: 'divider', alignItems: 'flex-end' }}>
+        <EmojiPickerButton onPick={insertEmoji} disabled={sending} />
+        {config?.gifsEnabled && <GifPickerButton onPick={(gif) => handleSend(gif)} disabled={sending} />}
         <TextField
+          inputRef={inputRef}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
@@ -178,7 +219,7 @@ export function ConversationThreadPanel({ conversationId, onSent }: Conversation
           multiline
           maxRows={4}
         />
-        <IconButton color="primary" disabled={sending || !draft.trim()} onClick={handleSend} aria-label="Send">
+        <IconButton color="primary" disabled={sending || !draft.trim()} onClick={() => handleSend()} aria-label="Send">
           <SendIcon />
         </IconButton>
       </Stack>
