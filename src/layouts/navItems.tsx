@@ -14,6 +14,8 @@ import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
 import ReportOutlinedIcon from '@mui/icons-material/ReportOutlined';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutlineOutlined';
+import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 /** The navigation menu's destinations, shared by both shells (see NavDrawerContent). */
 export const NAV_DRAWER_WIDTH = 232;
@@ -55,9 +57,18 @@ function accountItems(): NavItem[] {
   ];
 }
 
-export function navSections(teamId: string | undefined): [string, NavItem[]][] {
+/** League > My leagues, then each of the team's leagues by name, each opening its fixtures. */
+export function leagueItems(leagues: { id: string; name: string }[] = []): NavItem[] {
+  return [
+    { label: 'My leagues', icon: <EmojiEventsOutlinedIcon />, path: '/leagues', requiresTeam: true },
+    ...leagues.map((l) => ({ label: l.name, icon: <ChevronRightIcon />, path: `/leagues/${l.id}`, requiresTeam: true })),
+  ];
+}
+
+export function navSections(teamId: string | undefined, leagues: { id: string; name: string }[] = []): [string, NavItem[]][] {
   return [
     ['MAIN', mainItems()],
+    ['LEAGUE', leagueItems(leagues)],
     ['MANAGE', manageItems(teamId)],
     ['ACCOUNT', accountItems()],
   ];
@@ -73,8 +84,12 @@ function isActive(pathname: string, path: string) {
  * /team/:id/verification both match the prefix test, which would highlight
  * both items at once - only the most specific (longest) path wins.
  */
-export function currentNavItem(pathname: string, teamId: string | undefined): NavItem | null {
-  return navSections(teamId)
+export function currentNavItem(
+  pathname: string,
+  teamId: string | undefined,
+  leagues: { id: string; name: string }[] = [],
+): NavItem | null {
+  return navSections(teamId, leagues)
     .flatMap(([, items]) => items)
     .reduce<NavItem | null>(
       (best, item) => (isActive(pathname, item.path) && (!best || item.path.length > best.path.length) ? item : best),

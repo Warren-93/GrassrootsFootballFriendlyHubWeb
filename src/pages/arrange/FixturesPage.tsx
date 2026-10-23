@@ -9,7 +9,6 @@ import { teamRepository } from '../../api/teamRepository';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { LeagueBadge } from '../../components/brand/LeagueBadge';
 import { isLeague } from '../../utils/league';
-import AddIcon from '@mui/icons-material/Add';
 import { opponentNames } from '../../utils/request';
 import type { FixtureView, FriendlyRequestView } from '../../api/types';
 import { brand } from '../../theme/theme';
@@ -81,9 +80,6 @@ export function FixturesPage() {
               : 'Requests, responses, confirmed friendlies and league fixtures in one place.'}
           </Typography>
         </Box>
-        <Button variant="outlined" startIcon={<AddIcon />} onClick={() => navigate('/league-fixtures/new')}>
-          Add league fixture
-        </Button>
       </Box>
 
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>

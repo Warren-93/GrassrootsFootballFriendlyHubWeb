@@ -1,14 +1,18 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { mockApi } from './mock/mockApi.ts'
+
+// The league fixtures preview runs on sample data instead of the API (see
+// src/mock/previewApi.ts): locally with `npm run dev:mock`, and on Vercel for
+// this branch's preview deployments only.
+const previewMock = (mode: string) => mode === 'mock' || process.env.VERCEL_GIT_COMMIT_REF === 'league-fixtures'
 
 // https://vite.dev/config/
-// `npm run dev:mock` (mode "mock") answers the API calls from sample data in
-// mock/mockApi.ts instead of a real API, for previewing screens locally.
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), ...(mode === 'mock' ? [mockApi()] : [])],
-  ...(mode === 'mock' ? { define: { 'import.meta.env.VITE_API_BASE_URL': JSON.stringify('/') } } : {}),
+  plugins: [react()],
+  define: {
+    'import.meta.env.VITE_PREVIEW_MOCK': JSON.stringify(previewMock(mode) ? 'true' : 'false'),
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],

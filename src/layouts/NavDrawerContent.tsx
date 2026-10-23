@@ -8,6 +8,7 @@ import { useNavPreference } from '../session/NavPreferenceContext';
 import { brand } from '../theme/theme';
 import { NAV_DRAWER_WIDTH, currentNavItem, navSections } from './navItems';
 import type { NavItem } from './navItems';
+import { useLeagues } from '../session/useLeagues';
 
 const subheaderSx = { bgcolor: 'transparent', color: '#5E7466', fontSize: 10, letterSpacing: '.1em', lineHeight: 3 };
 
@@ -23,8 +24,9 @@ export function NavDrawerContent({ myTeams, onNavigate }: { myTeams: TeamView[];
   const location = useLocation();
   const { active, setActive } = useCurrentTeam();
   const { setNavStyle } = useNavPreference();
-  const sections = navSections(active?.teamId);
-  const current = currentNavItem(location.pathname, active?.teamId);
+  const leagues = useLeagues(active?.teamId, location.pathname);
+  const sections = navSections(active?.teamId, leagues);
+  const current = currentNavItem(location.pathname, active?.teamId, leagues);
 
   function go(item: NavItem) {
     if (item.path === '/') setNavStyle('top');
@@ -52,8 +54,8 @@ export function NavDrawerContent({ myTeams, onNavigate }: { myTeams: TeamView[];
             <ListSubheader sx={{ ...subheaderSx, mt: index === 0 ? 0 : 1 }}>{title}</ListSubheader>
             {items.map((item) => (
               <ListItemButton
-                key={item.label}
-                selected={item.label === current?.label}
+                key={item.path}
+                selected={item.path === current?.path}
                 disabled={item.requiresTeam && !active}
                 onClick={() => go(item)}
                 sx={{
@@ -67,7 +69,10 @@ export function NavDrawerContent({ myTeams, onNavigate }: { myTeams: TeamView[];
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.label} slotProps={{ primary: { sx: { fontSize: 13.5, fontWeight: 600 } } }} />
+                <ListItemText
+                  primary={item.label}
+                  slotProps={{ primary: { sx: { fontSize: 13.5, fontWeight: 600, overflowWrap: 'anywhere' } } }}
+                />
               </ListItemButton>
             ))}
           </Box>

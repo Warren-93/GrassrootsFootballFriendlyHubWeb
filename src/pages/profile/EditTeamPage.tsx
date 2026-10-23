@@ -11,7 +11,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Divider,
   MenuItem,
   Stack,
   TextField,
@@ -57,8 +56,6 @@ export function EditTeamPage() {
       managerName: team.managerName,
       contactPhone: team.contactPhone,
       description: team.description,
-      cometContactEmail: team.cometContactEmail ?? '',
-      cometCompetitionName: team.cometCompetitionName ?? '',
     });
     setSubmitting(false);
     if (result.ok) navigate(`/team/${teamId}`);
@@ -166,29 +163,6 @@ export function EditTeamPage() {
           onChange={(e) => setTeam({ ...team, description: e.target.value })}
           multiline
           minRows={3}
-          fullWidth
-        />
-
-        <Divider />
-        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: -1.5 }}>
-          League fixtures
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
-          When a league fixture's venue and kick-off are agreed, the confirmation also goes to this contact.
-        </Typography>
-        <TextField
-          label="Comet contact email (optional)"
-          type="email"
-          value={team.cometContactEmail ?? ''}
-          onChange={(e) => setTeam({ ...team, cometContactEmail: e.target.value })}
-          helperText="Usually your club's Comet or fixtures secretary."
-          fullWidth
-        />
-        <TextField
-          label="Comet league / competition name (optional)"
-          value={team.cometCompetitionName ?? ''}
-          onChange={(e) => setTeam({ ...team, cometCompetitionName: e.target.value })}
-          helperText="Printed on the confirmation email."
           fullWidth
         />
 

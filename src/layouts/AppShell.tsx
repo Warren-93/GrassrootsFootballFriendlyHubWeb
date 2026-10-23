@@ -54,6 +54,8 @@ import { teamRepository } from '../api/teamRepository';
 import { NotificationsModal } from '../components/NotificationsModal';
 import { NavDrawerContent } from './NavDrawerContent';
 import { NAV_DRAWER_WIDTH } from './navItems';
+import { useLeagues } from '../session/useLeagues';
+import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
 
 interface NavLink {
   label: string;
@@ -114,6 +116,7 @@ export function AppShell() {
   const logoMark = resolvedMode === 'dark' ? '/icon-mark-reversed-transparent.png' : '/icon-mark-transparent.png';
   const [mobileOpen, setMobileOpen] = useState(false);
   const [teamMenuAnchor, setTeamMenuAnchor] = useState<null | HTMLElement>(null);
+  const [leagueMenuAnchor, setLeagueMenuAnchor] = useState<null | HTMLElement>(null);
   const [accountMenuAnchor, setAccountMenuAnchor] = useState<null | HTMLElement>(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -127,6 +130,7 @@ export function AppShell() {
   const primaryLinks = usePrimaryLinks();
   const teamClubLinks = useTeamClubLinks(active?.teamId);
   const accountLinks = useAccountLinks();
+  const leagues = useLeagues(active?.teamId, location.pathname);
 
   function refreshUnreadCount() {
     notificationRepository.unreadCount().then((result) => {
@@ -193,6 +197,7 @@ export function AppShell() {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   }
 
+  const leagueActive = location.pathname === '/leagues' || location.pathname.startsWith('/leagues/');
   const teamClubActive = teamClubLinks.some((item) => isActive(item.path));
   const accountActive = accountLinks.some((item) => isActive(item.path));
   // Nested routes like /team/:id and /team/:id/verification (or /settings
@@ -275,6 +280,58 @@ export function AppShell() {
                   </Box>
                 );
               })}
+
+              <Box
+                component="button"
+                disabled={!active}
+                onClick={(e) => setLeagueMenuAnchor(e.currentTarget)}
+                sx={{
+                  font: 'inherit',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  background: 'none',
+                  border: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  cursor: active ? 'pointer' : 'default',
+                  color: !active ? 'text.disabled' : leagueActive ? 'primary.main' : 'text.primary',
+                  px: 1.25,
+                  py: 0.75,
+                  borderRadius: 1,
+                  '&:hover': !active ? undefined : { bgcolor: 'action.hover' },
+                }}
+              >
+                League
+                <ExpandMoreIcon sx={{ fontSize: 18, ml: 0.25 }} />
+              </Box>
+              <Menu anchorEl={leagueMenuAnchor} open={!!leagueMenuAnchor} onClose={() => setLeagueMenuAnchor(null)}>
+                <MenuItem
+                  selected={location.pathname === '/leagues'}
+                  onClick={() => {
+                    setLeagueMenuAnchor(null);
+                    navigate('/leagues');
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 32 }}>
+                    <EmojiEventsOutlinedIcon />
+                  </ListItemIcon>
+                  My leagues
+                </MenuItem>
+                {leagues.length > 0 && <Divider />}
+                {leagues.map((l) => (
+                  <MenuItem
+                    key={l.id}
+                    selected={location.pathname.startsWith(`/leagues/${l.id}`)}
+                    onClick={() => {
+                      setLeagueMenuAnchor(null);
+                      navigate(`/leagues/${l.id}`);
+                    }}
+                    sx={{ pl: 6.5, maxWidth: 360, whiteSpace: 'normal' }}
+                  >
+                    {l.name}
+                  </MenuItem>
+                ))}
+              </Menu>
 
               <Box
                 component="button"

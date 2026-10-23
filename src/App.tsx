@@ -57,6 +57,8 @@ const DeclinePage = lazy(() => import('./pages/arrange/DeclinePage').then((m) =>
 const FixturesPage = lazy(() => import('./pages/arrange/FixturesPage').then((m) => ({ default: m.FixturesPage })));
 const FixtureDetailPage = lazy(() => import('./pages/arrange/FixtureDetailPage').then((m) => ({ default: m.FixtureDetailPage })));
 const AddLeagueFixturePage = lazy(() => import('./pages/league/AddLeagueFixturePage').then((m) => ({ default: m.AddLeagueFixturePage })));
+const LeaguesPage = lazy(() => import('./pages/league/LeaguesPage').then((m) => ({ default: m.LeaguesPage })));
+const LeagueDetailPage = lazy(() => import('./pages/league/LeagueDetailPage').then((m) => ({ default: m.LeagueDetailPage })));
 const PrivacyPolicyPage = lazy(() => import('./pages/legal/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage })));
 const DeleteAccountInfoPage = lazy(() => import('./pages/legal/DeleteAccountInfoPage').then((m) => ({ default: m.DeleteAccountInfoPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
@@ -130,7 +132,9 @@ function App() {
             <Route path="/request/:requestId/decline" element={<DeclinePage />} />
             <Route path="/fixtures" element={<FixturesPage />} />
             <Route path="/fixtures/:fixtureId" element={<FixtureDetailPage />} />
-            <Route path="/league-fixtures/new" element={<AddLeagueFixturePage />} />
+            <Route path="/leagues" element={<LeaguesPage />} />
+            <Route path="/leagues/:leagueId" element={<LeagueDetailPage />} />
+            <Route path="/leagues/:leagueId/fixtures/new" element={<AddLeagueFixturePage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Route>

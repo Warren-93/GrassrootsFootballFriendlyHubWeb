@@ -14,7 +14,8 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
+import { leagueRepository } from '../../api/leagueRepository';
 import { teamRepository } from '../../api/teamRepository';
 import { venueRepository } from '../../api/venueRepository';
 import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
@@ -23,7 +24,7 @@ import { PageHeader } from '../../components/PageHeader';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
 import { LeagueBadge } from '../../components/brand/LeagueBadge';
 import { codeLabel, dateLabel } from '../../utils/labels';
-import type { TeamSummary, TeamView, VenueView } from '../../api/types';
+import type { LeagueView, TeamSummary, TeamView, VenueView } from '../../api/types';
 
 function minutesOf(time: string): number {
   const [h, m] = time.split(':').map(Number);
@@ -44,6 +45,8 @@ function today(): string {
 export function AddLeagueFixturePage() {
   const navigate = useNavigate();
   const { active } = useCurrentTeam();
+  const { leagueId } = useParams<{ leagueId: string }>();
+  const [league, setLeague] = useState<LeagueView | null>(null);
   const [ourTeam, setOurTeam] = useState<TeamView | null>(null);
   const [venues, setVenues] = useState<VenueView[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,9 +66,14 @@ export function AddLeagueFixturePage() {
   const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
 
   useEffect(() => {
-    if (!active) return;
-    Promise.all([teamRepository.get(active.teamId), venueRepository.list(active.clubId)]).then(([teamResult, venueResult]) => {
+    if (!active || !leagueId) return;
+    Promise.all([
+      teamRepository.get(active.teamId),
+      venueRepository.list(active.clubId),
+      leagueRepository.get(leagueId),
+    ]).then(([teamResult, venueResult, leagueResult]) => {
       if (teamResult.ok) setOurTeam(teamResult.value);
+      if (leagueResult.ok) setLeague(leagueResult.value);
       if (venueResult.ok) {
         setVenues(venueResult.value);
         // Pre-filled with the club venue: the team's default, else the club's.
@@ -77,7 +85,7 @@ export function AddLeagueFixturePage() {
       }
       setLoading(false);
     });
-  }, [active]);
+  }, [active, leagueId]);
 
   useEffect(() => {
     if (!active || query.trim().length < 2) {
@@ -101,13 +109,14 @@ export function AddLeagueFixturePage() {
   const canSubmit = !!opponent && !!date && !!venueId && !!startTime && !endBeforeStart && !inPast && !notReady && !submitting;
 
   async function handleSubmit() {
-    if (!active || !opponent) return;
+    if (!active || !opponent || !leagueId) return;
     setSubmitting(true);
     setErrorMessage(null);
     const result = await friendlyRequestRepository.createLeague(
       {
         homeTeamId: active.teamId,
         awayTeamId: opponent.id,
+        leagueId,
         date,
         startTime: `${startTime}:00`,
         endTime: endTime ? `${endTime}:00` : null,
@@ -133,7 +142,13 @@ export function AddLeagueFixturePage() {
     <Container maxWidth="lg" sx={{ py: 3 }}>
       <Stack spacing={3} sx={{ maxWidth: 560 }}>
         <Box>
-          <PageHeader title="Add league fixture" />
+          <PageHeader title="Create league fixture" />
+          {league && (
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mt: 0.5, mb: 1 }}>
+              <LeagueBadge />
+              <Typography sx={{ fontWeight: 700 }}>{league.name}</Typography>
+            </Stack>
+          )}
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
             Enter a fixture the league has already set in Comet. {opponent?.name ?? 'The away team'} will be asked to
             agree the venue and kick-off, then both teams and your Comet contact get one confirmation email.
@@ -256,18 +271,18 @@ export function AddLeagueFixturePage() {
                 {dateLabel(date)} · {startTime}
                 {endTime ? ` - ${endTime}` : ''} · {venues.find((v) => v.id === venueId)?.name}
               </Typography>
-              {ourTeam?.cometCompetitionName && (
+              {league && (
                 <Typography variant="body2" color="text.secondary">
-                  {ourTeam.cometCompetitionName}
+                  {league.name}
                 </Typography>
               )}
               <Typography variant="body2" sx={{ mt: 1 }}>
-                {ourTeam?.cometContactEmail ? (
-                  <>Once agreed, the confirmation also goes to <strong>{ourTeam.cometContactEmail}</strong>.</>
+                {league?.cometContactEmail ? (
+                  <>Once agreed, the confirmation also goes to <strong>{league.cometContactEmail}</strong>.</>
                 ) : (
                   <>
                     No Comet contact is set, so only the managers and club contacts will be emailed.{' '}
-                    <Link component={RouterLink} to={`/team/${active?.teamId}/edit`}>
+                    <Link component={RouterLink} to={`/leagues/${leagueId}`}>
                       Add one
                     </Link>
                   </>

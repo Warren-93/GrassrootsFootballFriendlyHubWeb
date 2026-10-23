@@ -150,10 +150,6 @@ export interface TeamView {
   readyForRequests?: boolean;
   /** What's still to do. Empty for teams the caller doesn't manage. */
   profileChecklist?: ProfileChecklistItem[];
-  /** League fixtures: who at the league (Comet) gets the confirmation email. Only shown to the team's managers. */
-  cometContactEmail?: string | null;
-  /** League fixtures: the league or competition name printed on the confirmation email. */
-  cometCompetitionName?: string | null;
 }
 
 export interface ProfileChecklistItem {
@@ -186,11 +182,7 @@ export interface CreateTeamRequest {
   defaultVenueId?: string | null;
 }
 
-export type UpdateTeamRequest = Partial<Omit<CreateTeamRequest, 'clubId' | 'clubName'>> & {
-  /** Empty string clears it. */
-  cometContactEmail?: string | null;
-  cometCompetitionName?: string | null;
-};
+export type UpdateTeamRequest = Partial<Omit<CreateTeamRequest, 'clubId' | 'clubName'>>;
 
 export interface VenueView {
   id: string;
@@ -346,6 +338,22 @@ export interface SearchResponse {
   nextCursor: string | null;
 }
 
+/** A league or cup a team plays in, set up by its managers under League. Its Comet contact gets every confirmation. */
+export interface LeagueView {
+  id: string;
+  teamId: string;
+  name: string;
+  cometContactEmail: string | null;
+  /** Open league fixtures needing a reply, and confirmed ones still to play. */
+  pendingCount: number;
+  upcomingCount: number;
+}
+
+export interface SaveLeagueBody {
+  name: string;
+  cometContactEmail?: string | null;
+}
+
 /** A friendly comes from Discover; a league fixture's opponent and date are already set by the league. Absent from an older API, which means FRIENDLY. */
 export type MatchType = 'FRIENDLY' | 'LEAGUE';
 
@@ -424,7 +432,8 @@ export interface FriendlyRequestView {
   senderTeam?: TeamRef | null;
   recipientTeam?: TeamRef | null;
   type?: MatchType;
-  /** League fixtures only: the home team's league or competition name. */
+  /** League fixtures only: the viewing team's league it belongs to, and its name. */
+  leagueId?: string | null;
   competitionName?: string | null;
   /** League fixtures only: a suggested change can move the date too. */
   proposedDate?: string | null;
@@ -434,6 +443,7 @@ export interface FriendlyRequestView {
 export interface CreateLeagueFixtureBody {
   homeTeamId: string;
   awayTeamId: string;
+  leagueId: string;
   date: string;
   startTime: string;
   /** Optional: the API fills in the format's usual match length when it's left out. */
@@ -480,6 +490,7 @@ export interface FixtureView {
   venue?: VenueSummary | null;
   type?: MatchType;
   /** League fixtures only. */
+  leagueId?: string | null;
   competitionName?: string | null;
   /** League fixtures only, and only for the two teams' managers: the Comet contacts the confirmation went to. */
   cometContacts?: string[] | null;
