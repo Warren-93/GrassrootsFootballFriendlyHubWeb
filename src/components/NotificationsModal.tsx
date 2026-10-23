@@ -27,7 +27,7 @@ interface NotificationsModalProps {
  * Notifications tab (.a-topbar + .c-row list) rather than sending every
  * bell click to a full page navigation. Opened from the bell icon on any
  * page except Dashboard, which already shows notifications inline (see
- * AppShell/AppShellSidebar) - a modal on top of that would be redundant.
+ * AppShell) - a modal on top of that would be redundant.
  */
 export function NotificationsModal({ open, onClose }: NotificationsModalProps) {
   const navigate = useNavigate();

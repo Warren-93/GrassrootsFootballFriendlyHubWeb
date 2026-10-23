@@ -1,6 +1,6 @@
 // Light/dark mode preference - defaults to following the OS setting until
 // the user explicitly picks one via the toggle, then remembers that choice
-// (same localStorage-backed pattern as NavPreferenceContext).
+// in localStorage.
 import { createContext, useContext } from 'react';
 
 export type ThemeModePreference = 'light' | 'dark' | 'system';

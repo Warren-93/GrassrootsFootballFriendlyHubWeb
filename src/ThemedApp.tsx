@@ -4,7 +4,6 @@ import { BrowserRouter } from 'react-router-dom';
 import { getTheme } from './theme/theme';
 import { AuthProvider } from './auth/AuthProvider';
 import { CurrentTeamProvider } from './session/CurrentTeamProvider';
-import { NavPreferenceProvider } from './session/NavPreferenceProvider';
 import { useThemeMode } from './session/ThemeModeContext';
 import { SplashGate } from './components/SplashGate';
 import App from './App.tsx';
@@ -21,11 +20,9 @@ export function ThemedApp() {
         <BrowserRouter>
           <AuthProvider>
             <CurrentTeamProvider>
-              <NavPreferenceProvider>
-                <SplashGate>
-                  <App />
-                </SplashGate>
-              </NavPreferenceProvider>
+              <SplashGate>
+                <App />
+              </SplashGate>
             </CurrentTeamProvider>
           </AuthProvider>
         </BrowserRouter>

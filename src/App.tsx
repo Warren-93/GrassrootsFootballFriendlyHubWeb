@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import { PublicOnlyRoute } from './routes/PublicOnlyRoute';
-import { AppShellSwitch } from './layouts/AppShellSwitch';
+import { AppShell } from './layouts/AppShell';
 import { PageFallback } from './routes/PageFallback';
 
 // Every page is its own chunk, loaded when first visited, so the first load
@@ -89,7 +89,7 @@ function App() {
           <Route path="/add-availability" element={<AddAvailabilityPage />} />
           <Route path="/onboarding-complete" element={<OnboardingCompletePage />} />
 
-          <Route element={<AppShellSwitch />}>
+          <Route element={<AppShell />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/team/:teamId" element={<TeamProfilePage />} />

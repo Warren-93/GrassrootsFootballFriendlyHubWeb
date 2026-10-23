@@ -5,7 +5,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppShell } from './AppShell';
 import { useAuth } from '../auth/AuthContext';
 import { useCurrentTeam } from '../session/CurrentTeamContext';
-import { NavPreferenceProvider } from '../session/NavPreferenceProvider';
 import { ThemeModeProvider } from '../session/ThemeModeProvider';
 import { notificationRepository } from '../api/notificationRepository';
 import { teamRepository } from '../api/teamRepository';
@@ -48,18 +47,17 @@ function setDesktop(matches: boolean) {
 function renderShell(initialPath = '/') {
   return render(
     <ThemeModeProvider>
-      <NavPreferenceProvider>
         <MemoryRouter initialEntries={[initialPath]}>
           <Routes>
             <Route element={<AppShell />}>
-              <Route path="/" element={<div>Dashboard content</div>} />
+              <Route path="/" element={<div>Home content</div>} />
+              <Route path="/dashboard" element={<div>Dashboard content</div>} />
               <Route path="/calendar" element={<div>Calendar content</div>} />
               <Route path="/settings" element={<div>Settings content</div>} />
               <Route path="/team/team-1" element={<div>Team profile content</div>} />
             </Route>
           </Routes>
         </MemoryRouter>
-      </NavPreferenceProvider>
     </ThemeModeProvider>,
   );
 }
@@ -76,27 +74,53 @@ describe('AppShell', () => {
     vi.clearAllMocks();
   });
 
-  it('renders the top nav with all primary destinations on desktop, no sidebar', async () => {
+  it('shows the navy menu with every destination on desktop', () => {
     mockedUseCurrentTeam.mockReturnValue({ active: null, setActive: vi.fn(), clear: vi.fn() });
 
     renderShell();
 
-    for (const label of ['Home', 'Publish availability', 'Discover', 'Arrange & fixtures', 'Messages', 'Team & club', 'Account']) {
-      expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
+    const nav = screen.getByRole('navigation');
+    for (const heading of ['MAIN', 'MANAGE', 'ACCOUNT']) {
+      expect(within(nav).getByText(heading)).toBeInTheDocument();
     }
-    // The old permanent sidebar is gone - there's no navigation landmark other than the top bar.
-    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+    for (const label of ['Home', 'Publish availability', 'Discover', 'Arrange & fixtures', 'Messages', 'Team profile',
+      'Club & members', 'Venues', 'Verification', 'Dashboard', 'Settings', 'Notifications', 'Privacy & data',
+      'Report & block', 'Help']) {
+      expect(within(nav).getByRole('button', { name: label })).toBeInTheDocument();
+    }
+    expect(screen.getByText('Home content')).toBeInTheDocument();
+  });
+
+  it('shows the same menu on Dashboard as on Home, with Dashboard selected', () => {
+    mockedUseCurrentTeam.mockReturnValue({ active: null, setActive: vi.fn(), clear: vi.fn() });
+
+    renderShell('/dashboard');
+
+    const nav = screen.getByRole('navigation');
+    expect(within(nav).getByText('MANAGE')).toBeInTheDocument();
+    expect(within(nav).getByRole('button', { name: 'Dashboard' })).toHaveClass('Mui-selected');
+    expect(within(nav).getByRole('button', { name: 'Home' })).not.toHaveClass('Mui-selected');
     expect(screen.getByText('Dashboard content')).toBeInTheDocument();
   });
 
-  it('collapses to a menu button on narrow viewports instead of showing flat links', () => {
+  it('opens the same menu from a menu button on narrow viewports', async () => {
     setDesktop(false);
-    mockedUseCurrentTeam.mockReturnValue({ active: null, setActive: vi.fn(), clear: vi.fn() });
+    mockedUseCurrentTeam.mockReturnValue({
+      active: { teamId: 'team-1', teamName: 'Riverside FC', clubId: 'club-1', canManage: true, canManageClub: true },
+      setActive: vi.fn(),
+      clear: vi.fn(),
+    });
 
     renderShell();
+    await userEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
 
-    expect(screen.getByRole('button', { name: 'Open navigation' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Discover' })).not.toBeInTheDocument();
+    const drawer = (await screen.findByText('MAIN')).closest('.MuiDrawer-paper') as HTMLElement;
+    for (const heading of ['MAIN', 'MANAGE', 'ACCOUNT']) {
+      expect(within(drawer).getByText(heading)).toBeInTheDocument();
+    }
+    expect(within(drawer).getByRole('button', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(within(drawer).getByRole('button', { name: 'Home' })).toHaveClass('Mui-selected');
+    expect(within(drawer).getByText('Signed in as')).toBeInTheDocument();
   });
 
   it('disables team-scoped links until a team is active', async () => {
@@ -106,15 +130,16 @@ describe('AppShell', () => {
 
     await waitFor(() => expect(mockedListMine).toHaveBeenCalled());
 
-    expect(screen.getByRole('button', { name: 'Discover' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Arrange & fixtures' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Team & club' })).toBeDisabled();
-    // Home and Account never depend on having a team.
-    expect(screen.getByRole('button', { name: 'Home' })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Account' })).toBeEnabled();
+    const nav = screen.getByRole('navigation');
+    for (const label of ['Discover', 'Arrange & fixtures', 'Team profile', 'Venues']) {
+      expect(within(nav).getByRole('button', { name: label })).toHaveAttribute('aria-disabled', 'true');
+    }
+    // Home and the account pages never depend on having a team.
+    expect(within(nav).getByRole('button', { name: 'Home' })).not.toHaveAttribute('aria-disabled');
+    expect(within(nav).getByRole('button', { name: 'Settings' })).not.toHaveAttribute('aria-disabled');
   });
 
-  it('enables team-scoped links and exposes Team profile / Club & members / Venues / Verification via the Team & club menu once a team is active', async () => {
+  it('navigates from the menu once a team is active', async () => {
     mockedUseCurrentTeam.mockReturnValue({
       active: { teamId: 'team-1', teamName: 'Riverside FC', clubId: 'club-1' },
       setActive: vi.fn(),
@@ -123,33 +148,11 @@ describe('AppShell', () => {
 
     renderShell();
 
-    const teamClubButton = screen.getByRole('button', { name: 'Team & club' });
-    expect(teamClubButton).toBeEnabled();
+    const nav = screen.getByRole('navigation');
+    await userEvent.click(within(nav).getByRole('button', { name: 'Team profile' }));
+    expect(await screen.findByText('Team profile content')).toBeInTheDocument();
 
-    await userEvent.click(teamClubButton);
-
-    const menu = await screen.findByRole('menu');
-    expect(within(menu).getByText('Team profile')).toBeInTheDocument();
-    expect(within(menu).getByText('Club & members')).toBeInTheDocument();
-    expect(within(menu).getByText('Venues')).toBeInTheDocument();
-    expect(within(menu).getByText('Verification')).toBeInTheDocument();
-  });
-
-  it('navigates to the settings route via the Account menu, and exposes the other account destinations', async () => {
-    mockedUseCurrentTeam.mockReturnValue({ active: null, setActive: vi.fn(), clear: vi.fn() });
-
-    renderShell();
-
-    await userEvent.click(screen.getByRole('button', { name: 'Account' }));
-
-    const menu = await screen.findByRole('menu');
-    expect(within(menu).getByText('Notifications')).toBeInTheDocument();
-    expect(within(menu).getByText('Privacy & data')).toBeInTheDocument();
-    expect(within(menu).getByText('Report & block')).toBeInTheDocument();
-    expect(within(menu).getByText('Help')).toBeInTheDocument();
-
-    await userEvent.click(within(menu).getByText('Settings'));
-
+    await userEvent.click(within(nav).getByRole('button', { name: 'Settings' }));
     expect(await screen.findByText('Settings content')).toBeInTheDocument();
   });
 
