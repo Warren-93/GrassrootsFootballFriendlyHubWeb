@@ -8,11 +8,7 @@ import {
   Divider,
   Drawer,
   IconButton,
-  List,
-  ListItemButton,
   ListItemIcon,
-  ListItemText,
-  ListSubheader,
   Menu,
   MenuItem,
   Select,
@@ -56,6 +52,8 @@ import { useThemeMode } from '../session/ThemeModeContext';
 import { notificationRepository } from '../api/notificationRepository';
 import { teamRepository } from '../api/teamRepository';
 import { NotificationsModal } from '../components/NotificationsModal';
+import { NavDrawerContent } from './NavDrawerContent';
+import { NAV_DRAWER_WIDTH } from './navItems';
 
 interface NavLink {
   label: string;
@@ -226,78 +224,6 @@ export function AppShell() {
     'Report & block': <ReportOutlinedIcon />,
     Help: <HelpOutlineIcon />,
   };
-
-  const mobileDrawer = (
-    <Box sx={{ width: 280, display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Toolbar sx={{ gap: 1 }}>
-        <Box component="img" src={logoMark} alt="" sx={{ width: 28, height: 28, objectFit: 'contain' }} />
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          Kickabout
-        </Typography>
-      </Toolbar>
-      <Divider />
-      <List sx={{ flexGrow: 1, py: 1, overflowY: 'auto' }}>
-        {primaryLinks.map((item) => (
-          <ListItemButton
-            key={item.path}
-            selected={isActive(item.path)}
-            disabled={item.requiresTeam && !active}
-            onClick={() => {
-              navigate(item.path);
-              setMobileOpen(false);
-            }}
-            sx={{ mx: 1, borderRadius: 1 }}
-          >
-            <ListItemIcon sx={{ minWidth: 40 }}>{iconFor[item.label]}</ListItemIcon>
-            <ListItemText primary={item.label} />
-          </ListItemButton>
-        ))}
-        <ListSubheader sx={{ mt: 1 }}>Team &amp; club</ListSubheader>
-        {teamClubLinks.map((item) => (
-          <ListItemButton
-            key={item.path}
-            selected={item === currentTeamClubItem}
-            disabled={item.requiresTeam && !active}
-            onClick={() => {
-              navigate(item.path);
-              setMobileOpen(false);
-            }}
-            sx={{ mx: 1, borderRadius: 1 }}
-          >
-            <ListItemIcon sx={{ minWidth: 40 }}>{iconFor[item.label]}</ListItemIcon>
-            <ListItemText primary={item.label} />
-          </ListItemButton>
-        ))}
-        <ListSubheader sx={{ mt: 1 }}>Account</ListSubheader>
-        <ListItemButton
-          onClick={() => {
-            goToDashboard();
-            setMobileOpen(false);
-          }}
-          sx={{ mx: 1, borderRadius: 1 }}
-        >
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <DashboardIcon />
-          </ListItemIcon>
-          <ListItemText primary="Dashboard" />
-        </ListItemButton>
-        {accountLinks.map((item) => (
-          <ListItemButton
-            key={item.path}
-            selected={item === currentAccountItem}
-            onClick={() => {
-              navigate(item.path);
-              setMobileOpen(false);
-            }}
-            sx={{ mx: 1, borderRadius: 1 }}
-          >
-            <ListItemIcon sx={{ minWidth: 40 }}>{iconFor[item.label]}</ListItemIcon>
-            <ListItemText primary={item.label} />
-          </ListItemButton>
-        ))}
-      </List>
-    </Box>
-  );
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -509,9 +435,9 @@ export function AppShell() {
         open={!isDesktop && mobileOpen}
         onClose={() => setMobileOpen(false)}
         ModalProps={{ keepMounted: true }}
-        sx={{ '& .MuiDrawer-paper': { width: 280, boxSizing: 'border-box' } }}
+        sx={{ '& .MuiDrawer-paper': { width: NAV_DRAWER_WIDTH, boxSizing: 'border-box', border: 'none' } }}
       >
-        {mobileDrawer}
+        <NavDrawerContent myTeams={myTeams} onNavigate={() => setMobileOpen(false)} />
       </Drawer>
 
       <Box component="main" sx={{ flexGrow: 1, minWidth: 0 }}>

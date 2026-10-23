@@ -99,6 +99,26 @@ describe('AppShell', () => {
     expect(screen.queryByRole('button', { name: 'Discover' })).not.toBeInTheDocument();
   });
 
+  it('opens the same navy menu as the Dashboard on narrow viewports', async () => {
+    setDesktop(false);
+    mockedUseCurrentTeam.mockReturnValue({
+      active: { teamId: 'team-1', teamName: 'Riverside FC', clubId: 'club-1', canManage: true, canManageClub: true },
+      setActive: vi.fn(),
+      clear: vi.fn(),
+    });
+
+    renderShell();
+    await userEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
+
+    const drawer = (await screen.findByText('MAIN')).closest('.MuiDrawer-paper') as HTMLElement;
+    for (const heading of ['MAIN', 'MANAGE', 'ACCOUNT']) {
+      expect(within(drawer).getByText(heading)).toBeInTheDocument();
+    }
+    expect(within(drawer).getByRole('button', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(within(drawer).getByRole('button', { name: 'Home' })).toHaveClass('Mui-selected');
+    expect(within(drawer).getByText('Signed in as')).toBeInTheDocument();
+  });
+
   it('disables team-scoped links until a team is active', async () => {
     mockedUseCurrentTeam.mockReturnValue({ active: null, setActive: vi.fn(), clear: vi.fn() });
 
