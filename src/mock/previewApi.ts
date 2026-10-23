@@ -29,6 +29,7 @@ function addMinutes(time: string, minutes: number): string {
 const LEAGUE = 'Glasgow & District U13 League - Division 1';
 const CUP = 'Glasgow & District U13 Cup';
 const OUR_TEAM = 't1';
+const SAMPLE_LEAGUE = 'Sample League - Division 1';
 
 const user = { id: 'u1', email: 'manager@hillheadjuniors.example', displayName: 'Sample Manager', emailVerified: true };
 
@@ -69,7 +70,8 @@ function team(id: string, clubId: string, name: string, extra: Json = {}): Json 
   };
 }
 
-function seedStore() {
+/** The sample opponents and their venues, shared by both modes. */
+function baseStore() {
   const teams: Record<string, Json> = {
     t1: team('t1', 'c1', 'Hillhead Juniors U13', {
       managerName: 'Sample Manager', contactPhone: '07700 900001', canManage: true, canManageClub: true,
@@ -81,76 +83,95 @@ function seedStore() {
     t6: team('t6', 'c6', 'Partick Park U13', { verification: 'PENDING', readyForRequests: false }),
     t7: team('t7', 'c2', 'Kelvinside Rovers U14', { ageGroup: 'U14' }),
   };
-
-  // Each team's own leagues. The other teams' copies only matter for whose
-  // Comet contact gets copied in on a fixture between them.
+  // The other teams' copies of a league only matter for whose Comet contact
+  // gets copied in on a fixture between them.
   const leagues: Json[] = [
-    { id: 'l1', teamId: 't1', name: LEAGUE, cometContactEmail: 'fixtures@hillheadjuniors.example' },
-    { id: 'l2', teamId: 't1', name: CUP, cometContactEmail: 'cup@glasgowdistrict.example' },
     { id: 'l3', teamId: 't2', name: LEAGUE, cometContactEmail: 'comet@kelvinsiderovers.example' },
     { id: 'l5', teamId: 't5', name: LEAGUE, cometContactEmail: 'fixtures@clydebankathletic.example' },
   ];
+  return {
+    teams, leagues, venues: [...venues], requests: [] as Json[], fixtures: [] as Json[], notifications: [] as Json[],
+    seededTeams: [] as string[], nextId: 100,
+  };
+}
 
-  const store = { teams, leagues, requests: [] as Json[], fixtures: [] as Json[], notifications: [] as Json[], nextId: 100 };
+type Store = ReturnType<typeof baseStore>;
 
-  // What the sample team starts with: an incoming league fixture to answer, an
-  // outgoing one the away team asked to move, a cup tie, and a friendly for
-  // comparison.
+/**
+ * Gives a team its sample leagues and league fixtures: an incoming one to
+ * answer, an outgoing one the away team asked to move, upcoming and played
+ * ones, and a cup tie. `withFriendlies` adds a friendly request and fixture
+ * for comparison - only in the all-sample mode, never mixed into real data.
+ */
+function seedTeam(store: Store, ourTeamId: string, withFriendlies: boolean) {
+  if (!ourTeamId || store.seededTeams.includes(ourTeamId)) return;
+  store.seededTeams.push(ourTeamId);
+  // A real team the app hasn't loaded yet - named properly once it does.
+  store.teams[ourTeamId] ??= { id: ourTeamId, name: 'Your team', clubName: null, defaultVenueId: null };
+  const our = store.teams[ourTeamId];
+  const ourVenue = (our?.defaultVenueId as string) ?? null;
+  const l1 = `l${store.nextId++}`;
+  const l2 = `l${store.nextId++}`;
+  const id = (prefix: string) => `${prefix}${store.nextId++}`;
+  // A real team gets clearly made-up league names, whatever its age group.
+  store.leagues.push(
+    { id: l1, teamId: ourTeamId, name: withFriendlies ? LEAGUE : SAMPLE_LEAGUE, cometContactEmail: withFriendlies ? 'fixtures@hillheadjuniors.example' : null },
+    { id: l2, teamId: ourTeamId, name: withFriendlies ? CUP : 'Sample Cup', cometContactEmail: 'cup@sampleleague.example' },
+  );
   store.requests.push(
-    request(store, 'r1', {
-      type: 'LEAGUE', leagueId: 'l1', senderTeamId: 't2', recipientTeamId: OUR_TEAM, date: saturday(1), startTime: '10:30:00',
+    request(store, id('r'), {
+      type: 'LEAGUE', leagueId: l1, senderTeamId: 't2', recipientTeamId: ourTeamId, date: saturday(1), startTime: '10:30:00',
       endTime: '12:00:00', venueId: 'v3', message: 'Pitch 2, behind the pavilion. Please arrive 30 minutes before kick-off.',
       availableActions: ['accept', 'suggestChanges', 'decline'],
     }),
-    request(store, 'r2', {
-      type: 'LEAGUE', leagueId: 'l1', senderTeamId: OUR_TEAM, recipientTeamId: 't3', status: 'CHANGES_REQUESTED', date: saturday(2),
-      startTime: '10:00:00', endTime: '11:30:00', venueId: 'v1', proposedDate: saturday(2, 1), proposedStartTime: '11:00:00',
+    request(store, id('r'), {
+      type: 'LEAGUE', leagueId: l1, senderTeamId: ourTeamId, recipientTeamId: 't3', status: 'CHANGES_REQUESTED', date: saturday(2),
+      startTime: '10:00:00', endTime: '11:30:00', venueId: ourVenue, proposedDate: saturday(2, 1), proposedStartTime: '11:00:00',
       proposedEndTime: '12:30:00',
       actionReason: 'Half the squad are at a school tournament that Saturday. Could we play on the Sunday instead?',
       availableActions: ['acceptChanges', 'counter', 'withdraw'],
     }),
-    request(store, 'r3', {
-      senderTeamId: 't4', recipientTeamId: OUR_TEAM, date: saturday(3), startTime: '13:00:00', endTime: '14:30:00',
+  );
+  store.fixtures.push(
+    fixture(store, id('f'), {
+      type: 'LEAGUE', leagueId: l1, homeTeamId: ourTeamId, awayTeamId: 't5', date: saturday(0), startTime: '10:00:00',
+      endTime: '11:30:00', venueId: ourVenue,
+    }),
+    fixture(store, id('f'), {
+      type: 'LEAGUE', leagueId: l1, homeTeamId: 't2', awayTeamId: ourTeamId, date: isoDate(-6), startTime: '10:30:00',
+      endTime: '12:00:00', venueId: 'v3', status: 'COMPLETED',
+    }),
+    fixture(store, id('f'), {
+      type: 'LEAGUE', leagueId: l2, homeTeamId: ourTeamId, awayTeamId: 't3', date: saturday(4), startTime: '12:00:00',
+      endTime: '13:30:00', venueId: ourVenue,
+    }),
+  );
+  if (!withFriendlies) return;
+  store.requests.push(
+    request(store, id('r'), {
+      senderTeamId: 't4', recipientTeamId: ourTeamId, date: saturday(3), startTime: '13:00:00', endTime: '14:30:00',
       venueId: 'v5', costShare: 'SPLIT', refereeArrangement: 'CLUB_SUPPLIED', message: 'Fancy a game before the winter break?',
       availableActions: ['accept', 'suggestChanges', 'decline'],
     }),
   );
   store.fixtures.push(
-    fixture(store, 'f1', {
-      type: 'LEAGUE', leagueId: 'l1', homeTeamId: OUR_TEAM, awayTeamId: 't5', date: saturday(0), startTime: '10:00:00',
-      endTime: '11:30:00', venueId: 'v1',
-    }),
-    fixture(store, 'f2', {
-      homeTeamId: 't4', awayTeamId: OUR_TEAM, date: saturday(0, 1), startTime: '11:00:00', endTime: '12:30:00',
+    fixture(store, id('f'), {
+      homeTeamId: 't4', awayTeamId: ourTeamId, date: saturday(0, 1), startTime: '11:00:00', endTime: '12:30:00',
       venueId: 'v5', costShare: 'SPLIT', refereeArrangement: 'CLUB_SUPPLIED',
-    }),
-    fixture(store, 'f3', {
-      type: 'LEAGUE', leagueId: 'l1', homeTeamId: 't2', awayTeamId: OUR_TEAM, date: isoDate(-6), startTime: '10:30:00',
-      endTime: '12:00:00', venueId: 'v3', status: 'COMPLETED',
-    }),
-    fixture(store, 'f4', {
-      type: 'LEAGUE', leagueId: 'l2', homeTeamId: OUR_TEAM, awayTeamId: 't3', date: saturday(4), startTime: '12:00:00',
-      endTime: '13:30:00', venueId: 'v1',
     }),
   );
   store.notifications.push(
     {
       id: 'n1', type: 'REQUEST_RECEIVED', title: 'New league fixture', body: 'Kelvinside Rovers U13 added a league fixture. Agree the venue and kick-off.',
-      relatedTeamId: 't2', relatedRequestId: 'r1', relatedFixtureId: null, relatedConversationId: null, read: false,
+      relatedTeamId: 't2', relatedRequestId: store.requests[0].id, relatedFixtureId: null, relatedConversationId: null, read: false,
       createdAt: new Date(Date.now() - 3600_000).toISOString(),
     },
-    {
-      id: 'n2', type: 'REQUEST_CHANGES_REQUESTED', title: 'Change requested', body: 'Govan Thistle U13 asked to move your league fixture.',
-      relatedTeamId: 't3', relatedRequestId: 'r2', relatedFixtureId: null, relatedConversationId: null, read: false,
-      createdAt: new Date(Date.now() - 7200_000).toISOString(),
-    },
   );
-  return store;
 }
 
-type Store = ReturnType<typeof seedStore>;
 
-const STORAGE_KEY = 'kickabout.previewApi';
+
+const STORAGE_KEY = 'kickabout.previewApi.v2';
 
 function loadStore(): Store {
   try {
@@ -159,7 +180,7 @@ function loadStore(): Store {
   } catch {
     // Storage blocked or corrupt - start from the sample data.
   }
-  return seedStore();
+  return baseStore();
 }
 
 function saveStore(store: Store) {
@@ -210,8 +231,8 @@ function side(store: Store, teamId: string): Json {
   return { id: teamId, name: t.name, clubName: t.clubName, managerName: t.managerName, contactPhone: t.contactPhone, venueId: t.defaultVenueId, badgeUrl: null };
 }
 
-function venueSummary(id: unknown): Json | null {
-  const v = venues.find((x) => x.id === id);
+function venueSummary(store: Store, id: unknown): Json | null {
+  const v = store.venues.find((x) => x.id === id);
   if (!v) return null;
   return {
     id: v.id, name: v.name, address: v.address, postcode: v.postcode, pitchSurface: v.pitchSurface,
@@ -234,14 +255,14 @@ function requestView(store: Store, r: Json): Json {
   const s = r.senderTeamId as string;
   const rc = r.recipientTeamId as string;
   return {
-    ...r, venue: venueSummary(r.venueId ?? store.teams[r.homeTeamId as string].defaultVenueId),
-    proposedVenue: venueSummary(r.proposedVenueId), senderTeam: teamRef(store, s), recipientTeam: teamRef(store, rc),
+    ...r, venue: venueSummary(store, r.venueId ?? store.teams[r.homeTeamId as string]?.defaultVenueId),
+    proposedVenue: venueSummary(store, r.proposedVenueId), senderTeam: teamRef(store, s), recipientTeam: teamRef(store, rc),
     senderContact: contact(store, s), recipientContact: contact(store, rc),
   };
 }
 
-function fixtureView(f: Json): Json {
-  return { ...f, venue: venueSummary(f.venueId) };
+function fixtureView(store: Store, f: Json): Json {
+  return { ...f, venue: venueSummary(store, f.venueId) };
 }
 
 function leagueView(store: Store, l: Json): Json {
@@ -349,7 +370,7 @@ function route(store: Store, method: string, path: string, query: URLSearchParam
     return [200, t];
   }
 
-  if (path === '/api/v1/venues') return [200, venues.filter((v) => v.clubId === query.get('clubId'))];
+  if (path === '/api/v1/venues') return [200, store.venues.filter((v) => v.clubId === query.get('clubId'))];
   m = path.match(/^\/api\/v1\/clubs\/([^/]+)$/);
   if (m) {
     const c = clubs[m[1]];
@@ -426,7 +447,7 @@ function route(store: Store, method: string, path: string, query: URLSearchParam
       200,
       store.fixtures
         .filter((f) => (f.homeTeam as Json).id === teamId || (f.awayTeam as Json).id === teamId)
-        .map(fixtureView),
+        .map((f) => fixtureView(store, f)),
     ];
   }
   m = path.match(/^\/api\/v1\/fixtures\/([^/]+)(\/cancel)?$/);
@@ -440,7 +461,7 @@ function route(store: Store, method: string, path: string, query: URLSearchParam
       for (const key of ['date', 'startTime', 'endTime', 'venueId']) if (body[key]) f[key] = body[key];
       console.info(`[preview] Fixture updated. The real API would send "updated details" to both teams and ${(f.cometContacts as string[] | null)?.join(', ')}.`);
     }
-    return [200, fixtureView(f)];
+    return [200, fixtureView(store, f)];
   }
 
   // Anything else the app asks for (availability, conversations, members…) is empty in the preview.
@@ -448,9 +469,129 @@ function route(store: Store, method: string, path: string, query: URLSearchParam
   return [204, null];
 }
 
-/** Answers the app's /api/v1/* fetches from the sample data. Anything else goes to the network as usual. */
-export function installPreviewApi() {
+function jsonResponse(status: number, payload: unknown): Response {
+  return new Response(payload === null ? null : JSON.stringify(payload), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+/** The real team, kept so a league fixture can show its name, contacts and venue. */
+function rememberTeam(store: Store, t: Json) {
+  if (t && typeof t.id === 'string') store.teams[t.id] = { ...store.teams[t.id], ...t };
+}
+
+/**
+ * The league fixtures overlay, for the Vercel preview: everything goes to the
+ * real API (real sign-in, real teams, friendlies, messages), except the league
+ * parts, which the API doesn't have yet. Those come from sample data kept in
+ * this browser tab, seeded for whichever real team is signed in. Nothing
+ * league-related reaches the real API or emails anyone.
+ */
+async function overlay(store: Store, realFetch: typeof fetch, input: RequestInfo | URL, init: RequestInit | undefined, url: URL, method: string, body: Json): Promise<Response> {
+  const path = url.pathname;
+  const local = (status: number, payload: unknown) => {
+    if (method !== 'GET') saveStore(store);
+    return jsonResponse(status, payload);
+  };
+  const passJson = async (): Promise<[Response, unknown]> => {
+    const response = await realFetch(input, init);
+    if (!response.ok) return [response, null];
+    return [response, await response.clone().json().catch(() => null)];
+  };
+
+  // Learn the real teams and venues as the app loads them.
+  const isTeamPath = /^\/api\/v1\/teams\/[^/]+$/.test(path) && path !== '/api/v1/teams/search';
+  if (method === 'GET' && (isTeamPath || path === '/api/v1/venues')) {
+    const [response, data] = await passJson();
+    if (path === '/api/v1/venues' && Array.isArray(data)) {
+      for (const v of data as Json[]) if (!store.venues.some((x) => x.id === v.id)) store.venues.push(v);
+    } else if (Array.isArray(data)) (data as Json[]).forEach((t) => rememberTeam(store, t));
+    else if (data) rememberTeam(store, data as Json);
+    saveStore(store);
+    return response;
+  }
+
+  // Opponents: real teams from Discover (same age group and gender), plus the sample ones.
+  if (path === '/api/v1/teams/search') {
+    const teamId = url.searchParams.get('excludeTeamId');
+    const q = (url.searchParams.get('q') ?? '').toLowerCase();
+    let real: Json[] = [];
+    if (teamId) {
+      const response = await realFetch(new URL('/api/v1/matches/search', url).toString(), {
+        ...init,
+        method: 'POST',
+        headers: { ...(init?.headers as Record<string, string>), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teamId, ignoreTravelRadius: true, limit: 50 }),
+      });
+      if (response.ok) {
+        const data = (await response.json()) as { results?: { team: Json }[] };
+        real = (data.results ?? []).map((r) => r.team);
+        for (const t of real) {
+          const known = store.teams[t.id as string];
+          store.teams[t.id as string] = { ...t, ...known, id: t.id, name: t.name, clubName: t.clubName };
+        }
+      }
+    }
+    const sample = Object.values(store.teams).filter((t) => /^t\d$/.test(t.id as string) && t.id !== 't1').map(teamSummary);
+    const matches = [...real, ...sample].filter((t) => `${t.name} ${t.clubName}`.toLowerCase().includes(q));
+    return local(200, matches);
+  }
+
+  const leagueTeam = path.match(/^\/api\/v1\/teams\/([^/]+)\/leagues$/)?.[1];
+  if (leagueTeam) seedTeam(store, leagueTeam, false);
+
+  // Lists: the real ones, with the sample league items added.
+  if (method === 'GET' && (path === '/api/v1/friendly-requests' || path === '/api/v1/fixtures')) {
+    const teamId = url.searchParams.get('teamId') ?? '';
+    seedTeam(store, teamId, false);
+    saveStore(store);
+    const [response, data] = await passJson();
+    if (!response.ok) return response;
+    const real = Array.isArray(data) ? (data as Json[]) : [];
+    const [, extra] = route(store, method, path, url.searchParams, body) as [number, Json[]];
+    return jsonResponse(200, [...real, ...extra]);
+  }
+
+  const itemId = path.match(/^\/api\/v1\/(?:friendly-requests|fixtures)\/([^/]+)/)?.[1];
+  const isLocalItem =
+    !!itemId && (store.requests.some((r) => r.id === itemId) || store.fixtures.some((f) => f.id === itemId));
+  if (leagueTeam || path.startsWith('/api/v1/leagues/') || path === '/api/v1/friendly-requests/league' || isLocalItem) {
+    const [status, payload] = route(store, method, path, url.searchParams, body);
+    return local(status, payload);
+  }
+  return realFetch(input, init);
+}
+
+/** Puts a small strip at the bottom of every page, so nobody mistakes the preview for the live site. */
+function showPreviewStrip(text: string) {
+  const strip = document.createElement('div');
+  strip.textContent = text;
+  strip.setAttribute('role', 'note');
+  Object.assign(strip.style, {
+    position: 'fixed', left: '0', right: '0', bottom: '0', zIndex: '2000', padding: '6px 12px',
+    background: '#A85E10', color: '#fff', font: '600 12px/1.4 system-ui, sans-serif', textAlign: 'center',
+  });
+  document.body.appendChild(strip);
+}
+
+/**
+ * Answers the app's API calls for the league fixtures preview. "full" answers
+ * everything from sample data and signs you in as a sample manager (for
+ * `npm run dev:mock`, with no API). "overlay" uses the real API and only fills
+ * in the league parts (the Vercel preview).
+ */
+export function installPreviewApi(mode: 'full' | 'overlay') {
   const store = loadStore();
+  if (mode === 'full') seedTeam(store, OUR_TEAM, true);
+  else {
+    // Alongside real teams, the made-up opponents say so.
+    for (const t of Object.values(store.teams)) {
+      if (/^t\d$/.test(t.id as string) && !(t.name as string).endsWith('(sample)')) t.name = `${t.name} (sample)`;
+    }
+    // The sample opponents are in this league too, so their Comet contacts get copied in.
+    for (const l of store.leagues) if (l.teamId === 't2' || l.teamId === 't5') l.name = SAMPLE_LEAGUE;
+  }
   const realFetch = window.fetch.bind(window);
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(typeof input === 'string' || input instanceof URL ? input.toString() : input.url, window.location.origin);
@@ -462,13 +603,16 @@ export function installPreviewApi() {
     } catch {
       // Not JSON - the preview's routes don't need it.
     }
+    if (mode === 'overlay') return overlay(store, realFetch, input, init, url, method, body);
     const [status, payload] = route(store, method, url.pathname, url.searchParams, body);
     if (method !== 'GET') saveStore(store);
     // A short pause, so loading states show as they would against the real API.
     await new Promise((resolve) => setTimeout(resolve, 150));
-    return new Response(payload === null ? null : JSON.stringify(payload), {
-      status,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse(status, payload);
   };
+  showPreviewStrip(
+    mode === 'overlay'
+      ? 'Preview: league fixtures use sample data in this browser only. Nothing league-related is saved or emailed.'
+      : 'Preview: sample data only, no real API.',
+  );
 }
