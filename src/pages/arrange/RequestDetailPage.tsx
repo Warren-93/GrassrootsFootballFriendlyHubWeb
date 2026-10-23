@@ -7,6 +7,8 @@ import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
 import { conversationRepository } from '../../api/conversationRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
+import { LeagueBadge } from '../../components/brand/LeagueBadge';
+import { isLeague } from '../../utils/league';
 import { VenueCard } from '../../components/VenueCard';
 import { brand } from '../../theme/theme';
 import { directionsUrl, PITCH_SURFACE_LABEL, venueAddressLine } from '../../utils/venue';
@@ -32,6 +34,13 @@ const ACTION_LABELS: Record<string, string> = {
   cancel: 'Cancel fixture',
   acceptChanges: 'Accept changes',
   counter: 'Send again',
+};
+
+// A league fixture is the same request underneath, worded for what's happening:
+// the away team asks for a change rather than suggesting a friendly's terms.
+const LEAGUE_ACTION_LABELS: Record<string, string> = {
+  suggestChanges: 'Ask for a change',
+  counter: 'Keep original details',
 };
 
 export function RequestDetailPage() {
@@ -102,6 +111,8 @@ export function RequestDetailPage() {
   const recipientLabel = request.recipientContact?.teamName ?? request.recipientTeam?.name ?? 'Recipient';
   const hasProposal = !!(request.proposedStartTime || request.proposedEndTime || request.proposedVenueId || request.proposedVenue);
   const proposesVenue = !!(request.proposedVenue || request.proposedVenueId);
+  const league = isLeague(request);
+  const hasLeagueProposal = hasProposal || (league && !!request.proposedDate);
 
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
@@ -111,7 +122,13 @@ export function RequestDetailPage() {
           <Box sx={{ flex: 1, minWidth: 0 }}>
             {otherTeam && (
               <Typography variant="body2" color="text.secondary">
-                {sentByUs ? 'Friendly request to' : 'Friendly request from'}
+                {league
+                  ? sentByUs
+                    ? 'League fixture sent to'
+                    : 'League fixture from'
+                  : sentByUs
+                    ? 'Friendly request to'
+                    : 'Friendly request from'}
               </Typography>
             )}
             <Typography variant="h5" sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
@@ -122,9 +139,12 @@ export function RequestDetailPage() {
                 {otherTeam.clubName}
               </Typography>
             )}
-            <Box sx={{ display: 'inline-block', mt: 1, fontSize: 12, fontWeight: 700, px: 1.25, py: 0.5, borderRadius: 5, ...style }}>
-              {codeLabel(request.status)}
-            </Box>
+            <Stack direction="row" spacing={1} sx={{ mt: 1, alignItems: 'center' }}>
+              <Box sx={{ display: 'inline-block', fontSize: 12, fontWeight: 700, px: 1.25, py: 0.5, borderRadius: 5, ...style }}>
+                {codeLabel(request.status)}
+              </Box>
+              {league && <LeagueBadge />}
+            </Stack>
           </Box>
         </Stack>
 
@@ -132,9 +152,16 @@ export function RequestDetailPage() {
           <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
             <Row label="Date" value={dateLabel(request.date)} />
             <Row label="Time" value={`${request.startTime.slice(0, 5)} - ${request.endTime.slice(0, 5)}`} />
-            {homeTeam && <Row label="Home team" value={homeTeam.name} />}
-            <Row label="Cost share" value={costShareLabel(request.costShare)} />
-            <Row label="Referee" value={refereeLabel(request.refereeArrangement)} last />
+            {homeTeam && <Row label="Home team" value={homeTeam.name} last={league && !request.competitionName} />}
+            {league ? (
+              // The league decides cost share and referee, so they aren't asked.
+              request.competitionName && <Row label="Competition" value={request.competitionName} last />
+            ) : (
+              <>
+                <Row label="Cost share" value={costShareLabel(request.costShare)} />
+                <Row label="Referee" value={refereeLabel(request.refereeArrangement)} last />
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -142,7 +169,7 @@ export function RequestDetailPage() {
 
         {request.message && (
           <Typography variant="body2" sx={{ mt: 2 }}>
-            Message: "{request.message}"
+            {league ? 'Note' : 'Message'}: "{request.message}"
           </Typography>
         )}
         {request.actionReason && (
@@ -151,12 +178,15 @@ export function RequestDetailPage() {
           </Typography>
         )}
 
-        {hasProposal && (
+        {hasLeagueProposal && (
           <Card variant="outlined" sx={{ borderRadius: 3, mt: 2, borderColor: brand.amber }}>
             <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: brand.amber }}>
                 Proposed changes
               </Typography>
+              {request.proposedDate && (
+                <Row label="New date" value={dateLabel(request.proposedDate)} last={!request.proposedStartTime && !request.proposedEndTime && !proposesVenue} />
+              )}
               {(request.proposedStartTime || request.proposedEndTime) && (
                 <Row
                   label="New time"
@@ -204,7 +234,7 @@ export function RequestDetailPage() {
               disabled={acting}
               onClick={() => handleAction(action)}
             >
-              {ACTION_LABELS[action] ?? action}
+              {(league && LEAGUE_ACTION_LABELS[action]) || ACTION_LABELS[action] || action}
             </Button>
           ))}
         </Stack>

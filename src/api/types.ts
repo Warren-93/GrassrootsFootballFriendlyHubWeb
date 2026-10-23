@@ -150,6 +150,10 @@ export interface TeamView {
   readyForRequests?: boolean;
   /** What's still to do. Empty for teams the caller doesn't manage. */
   profileChecklist?: ProfileChecklistItem[];
+  /** League fixtures: who at the league (Comet) gets the confirmation email. Only shown to the team's managers. */
+  cometContactEmail?: string | null;
+  /** League fixtures: the league or competition name printed on the confirmation email. */
+  cometCompetitionName?: string | null;
 }
 
 export interface ProfileChecklistItem {
@@ -182,7 +186,11 @@ export interface CreateTeamRequest {
   defaultVenueId?: string | null;
 }
 
-export type UpdateTeamRequest = Partial<Omit<CreateTeamRequest, 'clubId' | 'clubName'>>;
+export type UpdateTeamRequest = Partial<Omit<CreateTeamRequest, 'clubId' | 'clubName'>> & {
+  /** Empty string clears it. */
+  cometContactEmail?: string | null;
+  cometCompetitionName?: string | null;
+};
 
 export interface VenueView {
   id: string;
@@ -338,6 +346,9 @@ export interface SearchResponse {
   nextCursor: string | null;
 }
 
+/** A friendly comes from Discover; a league fixture's opponent and date are already set by the league. Absent from an older API, which means FRIENDLY. */
+export type MatchType = 'FRIENDLY' | 'LEAGUE';
+
 export type RequestStatus =
   | 'DRAFT' | 'SENT' | 'CHANGES_REQUESTED' | 'UPDATED' | 'ACCEPTED' | 'CONFIRMED' | 'DECLINED' | 'CANCELLED' | 'COMPLETED';
 
@@ -412,6 +423,23 @@ export interface FriendlyRequestView {
   proposedVenue?: VenueSummary | null;
   senderTeam?: TeamRef | null;
   recipientTeam?: TeamRef | null;
+  type?: MatchType;
+  /** League fixtures only: the home team's league or competition name. */
+  competitionName?: string | null;
+  /** League fixtures only: a suggested change can move the date too. */
+  proposedDate?: string | null;
+}
+
+/** POST /api/v1/friendly-requests/league - the home team adds a fixture the league has already set. */
+export interface CreateLeagueFixtureBody {
+  homeTeamId: string;
+  awayTeamId: string;
+  date: string;
+  startTime: string;
+  /** Optional: the API fills in the format's usual match length when it's left out. */
+  endTime?: string | null;
+  venueId: string;
+  message?: string | null;
 }
 
 export interface SuggestChangesBody {
@@ -419,6 +447,8 @@ export interface SuggestChangesBody {
   proposedStartTime?: string;
   proposedEndTime?: string;
   proposedVenueId?: string;
+  /** League fixtures only. */
+  proposedDate?: string;
 }
 
 export type FixtureStatus = 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
@@ -448,6 +478,20 @@ export interface FixtureView {
   refereeArrangement: RefereeArrangement;
   /** The fixture's venue, else the home team's default venue. */
   venue?: VenueSummary | null;
+  type?: MatchType;
+  /** League fixtures only. */
+  competitionName?: string | null;
+  /** League fixtures only, and only for the two teams' managers: the Comet contacts the confirmation went to. */
+  cometContacts?: string[] | null;
+}
+
+/** PATCH /api/v1/fixtures/{id} - league fixtures only: either side can move a confirmed fixture. Emails both teams and the Comet contact. */
+export interface UpdateFixtureBody {
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+  venueId?: string;
+  reason?: string | null;
 }
 
 export type ReportType = 'SAFEGUARDING' | 'ABUSIVE_BEHAVIOUR' | 'FAKE_OR_MISLEADING_TEAM' | 'SPAM' | 'OTHER';

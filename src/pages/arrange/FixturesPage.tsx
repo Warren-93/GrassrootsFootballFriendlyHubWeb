@@ -7,6 +7,9 @@ import { friendlyRequestRepository } from '../../api/friendlyRequestRepository';
 import { fixtureRepository } from '../../api/fixtureRepository';
 import { teamRepository } from '../../api/teamRepository';
 import { CrestAvatar } from '../../components/brand/CrestAvatar';
+import { LeagueBadge } from '../../components/brand/LeagueBadge';
+import { isLeague } from '../../utils/league';
+import AddIcon from '@mui/icons-material/Add';
 import { opponentNames } from '../../utils/request';
 import type { FixtureView, FriendlyRequestView } from '../../api/types';
 import { brand } from '../../theme/theme';
@@ -67,15 +70,20 @@ export function FixturesPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Arrange &amp; fixtures
-        </Typography>
-        <Typography color="text.secondary" sx={{ fontSize: 13.5 }}>
-          {tab === 0
-            ? `Needs a response · ${pending.length}`
-            : 'Requests, responses and confirmed friendlies in one place.'}
-        </Typography>
+      <Box sx={{ mb: 3, display: 'flex', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
+        <Box sx={{ flex: 1, minWidth: 200 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Arrange &amp; fixtures
+          </Typography>
+          <Typography color="text.secondary" sx={{ fontSize: 13.5 }}>
+            {tab === 0
+              ? `Needs a response · ${pending.length}`
+              : 'Requests, responses, confirmed friendlies and league fixtures in one place.'}
+          </Typography>
+        </Box>
+        <Button variant="outlined" startIcon={<AddIcon />} onClick={() => navigate('/league-fixtures/new')}>
+          Add league fixture
+        </Button>
       </Box>
 
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>
@@ -93,17 +101,27 @@ export function FixturesPage() {
               const opponent = opponents[r.id] ?? '…';
               const incoming = active && r.recipientTeamId === active.teamId;
               const canAcceptDirect = r.availableActions.includes('accept');
+              const league = isLeague(r);
+              const headline = league
+                ? incoming
+                  ? `${opponent} added a league fixture`
+                  : `League fixture sent to ${opponent}`
+                : incoming
+                  ? `${opponent} wants to play`
+                  : `Request sent to ${opponent}`;
               return (
                 <Card key={r.id} variant="outlined" sx={{ borderRadius: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.75, p: 2, flexWrap: 'wrap' }}>
                     <Box sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.75, flex: 1, minWidth: 220 }} onClick={() => navigate(`/request/${r.id}`)}>
                       <CrestAvatar name={opponent} />
                       <Box sx={{ minWidth: 0 }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: 14 }}>
-                          {incoming ? `${opponent} wants to play` : `Request sent to ${opponent}`}
-                        </Typography>
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{headline}</Typography>
+                          {league && <LeagueBadge />}
+                        </Stack>
                         <Typography variant="body2" color="text.secondary">
                           {dateLabel(r.date)} &middot; {r.startTime.slice(0, 5)}
+                          {league && r.competitionName ? ` · ${r.competitionName}` : ''}
                         </Typography>
                       </Box>
                     </Box>
@@ -115,7 +133,7 @@ export function FixturesPage() {
                       )}
                       {r.availableActions.includes('suggestChanges') && (
                         <Button variant="outlined" size="small" onClick={() => navigate(`/request/${r.id}/suggest-changes`)}>
-                          Suggest change
+                          {league ? 'Ask for a change' : 'Suggest change'}
                         </Button>
                       )}
                       {r.availableActions.includes('decline') && (
@@ -165,11 +183,15 @@ function FixtureRow({ fixture, status, onClick }: { fixture: FixtureView; status
             <Typography sx={{ fontSize: 10, color: 'text.secondary', letterSpacing: '.04em' }}>{month}</Typography>
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="body1" sx={{ fontWeight: 700 }}>
-              {fixture.homeTeam.name} vs {fixture.awayTeam.name}
-            </Typography>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+              <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                {fixture.homeTeam.name} vs {fixture.awayTeam.name}
+              </Typography>
+              {isLeague(fixture) && <LeagueBadge />}
+            </Stack>
             <Typography variant="body2" color="text.secondary">
               {fixture.startTime.slice(0, 5)}
+              {isLeague(fixture) && fixture.venue ? ` · ${fixture.venue.name}` : ''}
             </Typography>
           </Box>
           <Chip

@@ -1,11 +1,19 @@
 import { apiClient } from './client';
-import type { FriendlyRequestView, SendRequestBody, SuggestChangesBody } from './types';
+import type { CreateLeagueFixtureBody, FriendlyRequestView, SendRequestBody, SuggestChangesBody } from './types';
 
 export const friendlyRequestRepository = {
   send: (request: SendRequestBody, idempotencyKey?: string) =>
     apiClient.post<FriendlyRequestView>(
       '/api/v1/friendly-requests',
       request,
+      true,
+      idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
+    ),
+  /** The home team adds a league fixture; the away team then accepts, asks for a change or declines it like a friendly. */
+  createLeague: (body: CreateLeagueFixtureBody, idempotencyKey?: string) =>
+    apiClient.post<FriendlyRequestView>(
+      '/api/v1/friendly-requests/league',
+      body,
       true,
       idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
     ),

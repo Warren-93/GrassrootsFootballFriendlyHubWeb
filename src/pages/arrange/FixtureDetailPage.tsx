@@ -15,6 +15,7 @@ import {
   DialogContentText,
   DialogTitle,
   IconButton,
+  MenuItem,
   Stack,
   TextField,
   Typography,
@@ -30,7 +31,10 @@ import { FixtureBanner } from '../../components/brand/FixtureBanner';
 import { VenueCard } from '../../components/VenueCard';
 import { contactLine } from '../../utils/contact';
 import { brand } from '../../theme/theme';
-import type { FixtureView } from '../../api/types';
+import { LeagueBadge } from '../../components/brand/LeagueBadge';
+import { isLeague } from '../../utils/league';
+import { venueRepository } from '../../api/venueRepository';
+import type { FixtureView, VenueView } from '../../api/types';
 
 export function FixtureDetailPage() {
   const navigate = useNavigate();
@@ -44,6 +48,11 @@ export function FixtureDetailPage() {
   const [cancelReason, setCancelReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [edit, setEdit] = useState({ date: '', startTime: '', endTime: '', venueId: '', reason: '' });
+  const [venues, setVenues] = useState<VenueView[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!fixtureId) return;
@@ -89,6 +98,46 @@ export function FixtureDetailPage() {
   // "other team" to message, cancel with or report.
   const showActions = !readOnly && !!weManage;
 
+  const league = isLeague(fixture);
+
+  function openEdit() {
+    if (!fixture) return;
+    setEdit({
+      date: fixture.date,
+      startTime: fixture.startTime.slice(0, 5),
+      endTime: fixture.endTime.slice(0, 5),
+      venueId: fixture.venueId ?? fixture.venue?.id ?? '',
+      reason: '',
+    });
+    setEditError(null);
+    setEditing(true);
+    if (active && venues.length === 0) {
+      venueRepository.list(active.clubId).then((result) => {
+        if (result.ok) setVenues(result.value);
+      });
+    }
+  }
+
+  async function handleSaveEdit() {
+    if (!fixtureId || !fixture) return;
+    setSaving(true);
+    setEditError(null);
+    const result = await fixtureRepository.update(fixtureId, {
+      date: edit.date !== fixture.date ? edit.date : undefined,
+      startTime: edit.startTime !== fixture.startTime.slice(0, 5) ? `${edit.startTime}:00` : undefined,
+      endTime: edit.endTime !== fixture.endTime.slice(0, 5) ? `${edit.endTime}:00` : undefined,
+      venueId: edit.venueId && edit.venueId !== (fixture.venueId ?? fixture.venue?.id) ? edit.venueId : undefined,
+      reason: edit.reason.trim() || null,
+    });
+    setSaving(false);
+    if (result.ok) {
+      setFixture(result.value);
+      setEditing(false);
+    } else {
+      setEditError(result.message);
+    }
+  }
+
   async function handleCancel() {
     if (!fixtureId) return;
     setCancelling(true);
@@ -119,10 +168,17 @@ export function FixtureDetailPage() {
                 : { bgcolor: brand.mist, color: brand.muted }
             }
           />
+          {league && <LeagueBadge />}
         </Box>
 
         <FixtureBanner
-          tag={fixture.status === 'CONFIRMED' ? 'Confirmed friendly' : codeLabel(fixture.status)}
+          tag={
+            fixture.status === 'CONFIRMED'
+              ? league
+                ? 'Confirmed league fixture'
+                : 'Confirmed friendly'
+              : codeLabel(fixture.status)
+          }
           homeTeam={fixture.homeTeam.name}
           awayTeam={fixture.awayTeam.name}
           homeBadgeUrl={fixture.homeTeam.badgeUrl}
@@ -140,8 +196,19 @@ export function FixtureDetailPage() {
                 Details
               </Typography>
               <Stack spacing={1}>
-                <Row label="Cost share" value={costShareLabel(fixture.costShare)} />
-                <Row label="Referee" value={refereeLabel(fixture.refereeArrangement)} />
+                {league ? (
+                  <>
+                    {fixture.competitionName && <Row label="Competition" value={fixture.competitionName} />}
+                    {!!fixture.cometContacts?.length && (
+                      <Row label="Comet contact" value={fixture.cometContacts.join(', ')} />
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Row label="Cost share" value={costShareLabel(fixture.costShare)} />
+                    <Row label="Referee" value={refereeLabel(fixture.refereeArrangement)} />
+                  </>
+                )}
                 {readOnly ? (
                   <Typography variant="body2" color="text.secondary">
                     The managers' contact details are only shown to team managers.
@@ -176,6 +243,12 @@ export function FixtureDetailPage() {
 
                   {cancelError && <Alert severity="error">{cancelError}</Alert>}
 
+                  {league && fixture.status === 'CONFIRMED' && (
+                    <Button variant="outlined" onClick={openEdit}>
+                      Change date, time or venue
+                    </Button>
+                  )}
+
                   {fixture.status === 'CONFIRMED' && (
                     <Button variant="outlined" color="error" onClick={() => setConfirmCancel(true)}>
                       Cancel fixture
@@ -205,8 +278,9 @@ export function FixtureDetailPage() {
         <DialogTitle>Cancel this fixture?</DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ mb: 2 }}>
-            The other team will be notified. This can't be undone - you'd need to arrange a new friendly from
-            scratch.
+            {league
+              ? "The other team and the Comet contact will get a cancellation email. This can't be undone - you'd need to add the fixture again."
+              : "The other team will be notified. This can't be undone - you'd need to arrange a new friendly from scratch."}
           </DialogContentText>
           <TextField
             label="Reason (optional)"
@@ -221,6 +295,75 @@ export function FixtureDetailPage() {
           <Button onClick={() => setConfirmCancel(false)}>Back</Button>
           <Button color="error" onClick={handleCancel} disabled={cancelling}>
             {cancelling ? 'Cancelling…' : 'Cancel fixture'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={editing} onClose={() => setEditing(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Change league fixture</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            Both teams and the Comet contact will get an "updated details" email.
+          </DialogContentText>
+          <Stack spacing={2} sx={{ pt: 0.5 }}>
+            <TextField
+              label="Date"
+              type="date"
+              value={edit.date}
+              onChange={(e) => setEdit({ ...edit, date: e.target.value })}
+              slotProps={{ inputLabel: { shrink: true } }}
+              fullWidth
+            />
+            <Stack direction="row" spacing={2}>
+              <TextField
+                label="Kick-off"
+                type="time"
+                value={edit.startTime}
+                onChange={(e) => setEdit({ ...edit, startTime: e.target.value })}
+                slotProps={{ inputLabel: { shrink: true } }}
+                fullWidth
+              />
+              <TextField
+                label="End time"
+                type="time"
+                value={edit.endTime}
+                onChange={(e) => setEdit({ ...edit, endTime: e.target.value })}
+                slotProps={{ inputLabel: { shrink: true } }}
+                fullWidth
+              />
+            </Stack>
+            <TextField
+              select
+              label="Venue"
+              value={edit.venueId}
+              onChange={(e) => setEdit({ ...edit, venueId: e.target.value })}
+              fullWidth
+            >
+              {/* The current venue is often the other club's, which isn't in our list. */}
+              {fixture.venue && !venues.some((v) => v.id === fixture.venue?.id) && (
+                <MenuItem value={fixture.venue.id}>{fixture.venue.name} (current)</MenuItem>
+              )}
+              {venues.map((v) => (
+                <MenuItem key={v.id} value={v.id}>
+                  {v.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              label="Reason (optional)"
+              value={edit.reason}
+              onChange={(e) => setEdit({ ...edit, reason: e.target.value })}
+              multiline
+              minRows={2}
+              fullWidth
+            />
+            {editError && <Alert severity="error">{editError}</Alert>}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditing(false)}>Back</Button>
+          <Button variant="contained" onClick={handleSaveEdit} disabled={saving}>
+            {saving ? 'Saving…' : 'Save and email'}
           </Button>
         </DialogActions>
       </Dialog>

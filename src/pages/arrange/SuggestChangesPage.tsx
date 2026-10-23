@@ -14,6 +14,7 @@ import { venueRepository } from '../../api/venueRepository';
 import { useCurrentTeam } from '../../session/CurrentTeamContext';
 import type { FriendlyRequestView, VenueView } from '../../api/types';
 import { addMinutesToTime } from '../../utils/time';
+import { isLeague } from '../../utils/league';
 
 function minutesOf(time: string): number {
   const [h, m] = time.split(':').map(Number);
@@ -31,6 +32,7 @@ export function SuggestChangesPage() {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [venueId, setVenueId] = useState('');
+  const [date, setDate] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -42,6 +44,7 @@ export function SuggestChangesPage() {
         setStartTime(result.value.startTime.slice(0, 5));
         setEndTime(result.value.endTime.slice(0, 5));
         setVenueId(result.value.venueId ?? '');
+        setDate(result.value.date);
       }
     });
   }, [requestId]);
@@ -62,22 +65,40 @@ export function SuggestChangesPage() {
       proposedStartTime: startTime !== request.startTime.slice(0, 5) ? `${startTime}:00` : undefined,
       proposedEndTime: endTime !== request.endTime.slice(0, 5) ? `${endTime}:00` : undefined,
       proposedVenueId: venueId && venueId !== (request.venueId ?? '') ? venueId : undefined,
+      proposedDate: league && date && date !== request.date ? date : undefined,
     });
     setSubmitting(false);
     if (result.ok) navigate(`/request/${requestId}`);
     else setErrorMessage(result.message);
   }
 
+  const league = isLeague(request);
+  // A league fixture's change needs a reason: the home team has to tell the league why it moved.
+  const missingReason = league && !reason.trim();
+  const endBeforeStart = !!startTime && !!endTime && minutesOf(endTime) <= minutesOf(startTime);
+
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
       <Stack spacing={3} sx={{ maxWidth: 480 }}>
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Suggest changes
+          {league ? 'Ask for a change' : 'Suggest changes'}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Propose a different kick-off time or venue. The date itself can't change here - decline and start a new
-          request if a different day works better.
+          {league
+            ? 'Propose a different date, kick-off or venue for this league fixture. The home team will accept or reject it.'
+            : "Propose a different kick-off time or venue. The date itself can't change here - decline and start a new request if a different day works better."}
         </Typography>
+
+        {league && (
+          <TextField
+            label="Date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            slotProps={{ inputLabel: { shrink: true } }}
+            fullWidth
+          />
+        )}
 
         <Stack direction="row" spacing={2}>
           <TextField
@@ -129,7 +150,8 @@ export function SuggestChangesPage() {
         )}
 
         <TextField
-          label="Reason (optional)"
+          label={league ? 'Reason' : 'Reason (optional)'}
+          required={league}
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           multiline
@@ -138,7 +160,7 @@ export function SuggestChangesPage() {
         />
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
         <Stack direction="row" spacing={1.5}>
-          <Button variant="contained" size="large" disabled={submitting || (!!startTime && !!endTime && minutesOf(endTime) <= minutesOf(startTime))} onClick={handleSubmit}>
+          <Button variant="contained" size="large" disabled={submitting || endBeforeStart || missingReason} onClick={handleSubmit}>
             {submitting ? 'Sending…' : 'Send'}
           </Button>
           <Button variant="text" onClick={() => navigate(-1)}>
