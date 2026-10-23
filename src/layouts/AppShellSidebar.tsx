@@ -7,39 +7,19 @@ import {
   Divider,
   Drawer,
   IconButton,
-  List,
-  ListItemButton,
   ListItemIcon,
-  ListItemText,
-  ListSubheader,
   Menu,
   MenuItem,
-  Select,
   Stack,
   Toolbar,
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import type { SelectChangeEvent } from '@mui/material';
 import type { TeamView } from '../api/types';
 import { useTheme } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import HomeIcon from '@mui/icons-material/Home';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import SearchIcon from '@mui/icons-material/Search';
-import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
-import GroupsIcon from '@mui/icons-material/Groups';
-import ApartmentIcon from '@mui/icons-material/Apartment';
-import PlaceIcon from '@mui/icons-material/Place';
-import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
-import SettingsIcon from '@mui/icons-material/Settings';
-import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
-import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
-import ReportOutlinedIcon from '@mui/icons-material/ReportOutlined';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutlineOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -48,50 +28,14 @@ import { PageFallback } from '../routes/PageFallback';
 import { useAuth } from '../auth/AuthContext';
 import { useCurrentTeam } from '../session/CurrentTeamContext';
 import { activeTeamFrom } from '../session/activeTeamFrom';
-import { useNavPreference } from '../session/NavPreferenceContext';
 import { useThemeMode } from '../session/ThemeModeContext';
 import { notificationRepository } from '../api/notificationRepository';
 import { teamRepository } from '../api/teamRepository';
 import { NotificationsModal } from '../components/NotificationsModal';
-import { brand } from '../theme/theme';
+import { NavDrawerContent } from './NavDrawerContent';
+import { NAV_DRAWER_WIDTH, currentNavItem } from './navItems';
 
-const DRAWER_WIDTH = 232;
-
-interface NavItem {
-  label: string;
-  icon: React.ReactNode;
-  path: string;
-  requiresTeam?: boolean;
-}
-
-function useNavItems(): NavItem[] {
-  return [
-    { label: 'Home', icon: <HomeIcon />, path: '/' },
-    { label: 'Publish availability', icon: <CalendarMonthIcon />, path: '/calendar', requiresTeam: true },
-    { label: 'Discover', icon: <SearchIcon />, path: '/search', requiresTeam: true },
-    { label: 'Arrange & fixtures', icon: <SportsSoccerIcon />, path: '/fixtures', requiresTeam: true },
-    { label: 'Messages', icon: <ChatBubbleOutlineIcon />, path: '/messages', requiresTeam: true },
-  ];
-}
-
-function useManageItems(teamId: string | undefined): NavItem[] {
-  return [
-    { label: 'Team profile', icon: <GroupsIcon />, path: teamId ? `/team/${teamId}` : '/role-selection', requiresTeam: true },
-    { label: 'Club & members', icon: <ApartmentIcon />, path: '/club', requiresTeam: true },
-    { label: 'Venues', icon: <PlaceIcon />, path: '/venues', requiresTeam: true },
-    { label: 'Verification', icon: <VerifiedUserIcon />, path: teamId ? `/team/${teamId}/verification` : '/role-selection', requiresTeam: true },
-  ];
-}
-
-function useAccountItems(): NavItem[] {
-  return [
-    { label: 'Settings', icon: <SettingsIcon />, path: '/settings' },
-    { label: 'Notifications', icon: <NotificationsNoneIcon />, path: '/settings/notifications' },
-    { label: 'Privacy & data', icon: <PrivacyTipIcon />, path: '/settings/privacy' },
-    { label: 'Report & block', icon: <ReportOutlinedIcon />, path: '/settings/report' },
-    { label: 'Help', icon: <HelpOutlineIcon />, path: '/settings/help' },
-  ];
-}
+const DRAWER_WIDTH = NAV_DRAWER_WIDTH;
 
 /**
  * The alternate "Sidebar view" shell from the concept - a persistent dark
@@ -119,10 +63,6 @@ export function AppShellSidebar() {
   const location = useLocation();
   const { session, signOut } = useAuth();
   const { active, setActive, clear } = useCurrentTeam();
-  const { setNavStyle } = useNavPreference();
-  const navItems = useNavItems();
-  const manageItems = useManageItems(active?.teamId);
-  const accountItems = useAccountItems();
 
   function refreshUnreadCount() {
     notificationRepository.unreadCount().then((result) => {
@@ -167,158 +107,7 @@ export function AppShellSidebar() {
     navigate('/welcome');
   }
 
-  function handleTeamSwitch(event: SelectChangeEvent) {
-    const t = myTeams.find((team) => team.id === event.target.value);
-    if (t) setActive(activeTeamFrom(t));
-  }
-
-  function isActive(path: string) {
-    if (path === '/') return location.pathname === '/';
-    return location.pathname === path || location.pathname.startsWith(`${path}/`);
-  }
-
-  // Nested routes like /team/:id and /team/:id/verification both match the
-  // prefix test above, which would highlight both nav items at once - only
-  // the most specific (longest) matching path should win.
-  const currentNavItem = [...navItems, ...manageItems, ...accountItems].reduce<NavItem | null>(
-    (best, item) => (isActive(item.path) && (!best || item.path.length > best.path.length) ? item : best),
-    null,
-  );
-
-  const drawerContent = (
-    <Box sx={{ width: DRAWER_WIDTH, display: 'flex', flexDirection: 'column', height: '100%', bgcolor: brand.void, color: '#AEC2B5' }}>
-      <Toolbar sx={{ gap: 1 }}>
-        <Box component="img" src="/icon-mark-reversed-transparent.png" alt="" sx={{ width: 26, height: 26, objectFit: 'contain' }} />
-        <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#fff' }}>
-          Kick<Box component="span" sx={{ color: brand.lime }}>about</Box>
-        </Typography>
-      </Toolbar>
-      <List sx={{ flexGrow: 1, py: 1, overflowY: 'auto' }}>
-        <ListSubheader sx={{ bgcolor: 'transparent', color: '#5E7466', fontSize: 10, letterSpacing: '.1em', lineHeight: 3 }}>
-          MAIN
-        </ListSubheader>
-        {navItems.map((item) => {
-          const disabled = item.requiresTeam && !active;
-          const active_ = item === currentNavItem;
-          return (
-            <ListItemButton
-              key={item.path}
-              selected={active_}
-              disabled={disabled}
-              onClick={() => {
-                // Home is the top-nav experience - clicking it from the sidebar
-                // shell is how you get back to top nav, rather than a separate
-                // "switch to top nav" control.
-                if (item.path === '/') setNavStyle('top');
-                navigate(item.path);
-                setMobileOpen(false);
-              }}
-              sx={{
-                mx: 1,
-                my: 0.25,
-                borderRadius: 1.5,
-                color: '#B8C8BE',
-                '&.Mui-selected': { bgcolor: brand.pitch, color: '#fff' },
-                '&.Mui-selected:hover': { bgcolor: brand.pitch },
-                '&.Mui-disabled': { color: '#4A5A50', opacity: 1 },
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} slotProps={{ primary: { sx: { fontSize: 13.5, fontWeight: 600 } } }} />
-            </ListItemButton>
-          );
-        })}
-        <ListSubheader sx={{ bgcolor: 'transparent', color: '#5E7466', fontSize: 10, letterSpacing: '.1em', lineHeight: 3, mt: 1 }}>
-          MANAGE
-        </ListSubheader>
-        {manageItems.map((item) => {
-          const disabled = item.requiresTeam && !active;
-          const active_ = item === currentNavItem;
-          return (
-            <ListItemButton
-              key={item.path}
-              selected={active_}
-              disabled={disabled}
-              onClick={() => {
-                navigate(item.path);
-                setMobileOpen(false);
-              }}
-              sx={{
-                mx: 1,
-                my: 0.25,
-                borderRadius: 1.5,
-                color: '#B8C8BE',
-                '&.Mui-selected': { bgcolor: brand.pitch, color: '#fff' },
-                '&.Mui-selected:hover': { bgcolor: brand.pitch },
-                '&.Mui-disabled': { color: '#4A5A50', opacity: 1 },
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} slotProps={{ primary: { sx: { fontSize: 13.5, fontWeight: 600 } } }} />
-            </ListItemButton>
-          );
-        })}
-        <ListSubheader sx={{ bgcolor: 'transparent', color: '#5E7466', fontSize: 10, letterSpacing: '.1em', lineHeight: 3, mt: 1 }}>
-          ACCOUNT
-        </ListSubheader>
-        {accountItems.map((item) => {
-          const active_ = item === currentNavItem;
-          return (
-            <ListItemButton
-              key={item.path}
-              selected={active_}
-              onClick={() => {
-                navigate(item.path);
-                setMobileOpen(false);
-              }}
-              sx={{
-                mx: 1,
-                my: 0.25,
-                borderRadius: 1.5,
-                color: '#B8C8BE',
-                '&.Mui-selected': { bgcolor: brand.pitch, color: '#fff' },
-                '&.Mui-selected:hover': { bgcolor: brand.pitch },
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} slotProps={{ primary: { sx: { fontSize: 13.5, fontWeight: 600 } } }} />
-            </ListItemButton>
-          );
-        })}
-      </List>
-      {active && (
-        <Box sx={{ p: 2, borderTop: '1px solid rgba(255,255,255,.08)' }}>
-          <Typography variant="caption" sx={{ color: '#8AA091' }}>
-            Signed in as
-          </Typography>
-          {myTeams.length > 1 ? (
-            <Select
-              value={active.teamId}
-              onChange={handleTeamSwitch}
-              size="small"
-              fullWidth
-              sx={{
-                mt: 0.5,
-                color: '#fff',
-                bgcolor: 'rgba(255,255,255,.06)',
-                '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,.15)' },
-              }}
-            >
-              {myTeams.map((t) => (
-                <MenuItem key={t.id} value={t.id}>
-                  {t.name}
-                </MenuItem>
-              ))}
-            </Select>
-          ) : (
-            <Typography variant="body2" sx={{ fontWeight: 700, color: '#fff' }} noWrap>
-              {active.teamName}
-            </Typography>
-          )}
-        </Box>
-      )}
-    </Box>
-  );
+  const currentItem = currentNavItem(location.pathname, active?.teamId);
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
@@ -341,7 +130,7 @@ export function AppShellSidebar() {
               </IconButton>
             )}
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              {isActive('/dashboard') ? 'Dashboard' : currentNavItem?.label ?? ''}
+              {currentItem?.label ?? ''}
             </Typography>
           </Stack>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -372,7 +161,7 @@ export function AppShellSidebar() {
               </MenuItem>
               <Divider />
               <MenuItem
-                selected={isActive('/dashboard')}
+                selected={location.pathname === '/dashboard'}
                 onClick={() => {
                   setUserMenuAnchor(null);
                   navigate('/dashboard');
@@ -412,7 +201,7 @@ export function AppShellSidebar() {
           ModalProps={{ keepMounted: true }}
           sx={{ '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box', border: 'none' } }}
         >
-          {drawerContent}
+          <NavDrawerContent myTeams={myTeams} onNavigate={() => setMobileOpen(false)} />
         </Drawer>
       </Box>
 
